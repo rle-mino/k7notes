@@ -41,7 +41,7 @@ Plans:
 - [x] 01-05-PLAN.md — Add Google OAuth sign-in and logout functionality
 
 ### Phase 2: Core Note-Taking
-**Goal**: User can create, organize, and search markdown notes
+**Goal**: User can create, organize, and search markdown notes with WYSIWYG editing
 **Depends on**: Phase 1
 **Requirements**: NOTE-01, NOTE-02, NOTE-03, NOTE-04, NOTE-05
 **Success Criteria** (what must be TRUE):
@@ -50,14 +50,15 @@ Plans:
   3. User can move notes between folders
   4. User can search across all note content and find matches instantly
   5. Markdown renders correctly with headers, lists, code blocks, and formatting
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Set up SQLite database with Drizzle ORM for local-first note storage
-- [ ] 02-02-PLAN.md — Implement CRUD operations for notes and folders with type-safe queries
-- [ ] 02-03-PLAN.md — Set up FTS5 full-text search with automatic index synchronization
-- [ ] 02-04-PLAN.md — Build note list, folder navigation, and note editor screens
-- [ ] 02-05-PLAN.md — Complete Phase 2 with search, markdown rendering, and move note functionality
+- [ ] 02-01-PLAN.md — Set up SQLite database with Drizzle ORM and migrations
+- [ ] 02-02-PLAN.md — Implement note and folder CRUD with useLiveQuery hook
+- [ ] 02-03-PLAN.md — Set up FTS5 full-text search with sync triggers
+- [ ] 02-04-PLAN.md — Create 10tap-editor component with markdown conversion
+- [ ] 02-05-PLAN.md — Build note list, folder navigation, and editor screens
+- [ ] 02-06-PLAN.md — Complete search UI, move notes, and verify end-to-end
 
 ### Phase 3: Audio & Transcription
 **Goal**: User can record meetings with live transcription and speaker identification
@@ -127,7 +128,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-01-31 |
-| 2. Core Note-Taking | 0/5 | Planned | - |
+| 2. Core Note-Taking | 0/6 | Planned | - |
 | 3. Audio & Transcription | 0/TBD | Not started | - |
 | 4. Calendar Integration | 0/TBD | Not started | - |
 | 5. Cloud Sync | 0/TBD | Not started | - |
@@ -135,4 +136,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Last updated: 2026-01-31 after Phase 2 planning*
+*Last updated: 2026-01-31 after Phase 2 planning (6 plans with 10tap-editor)*
