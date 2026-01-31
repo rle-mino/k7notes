@@ -1,30 +1,20 @@
 import { Stack, router, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState } from "react";
-import { View, ActivityIndicator, StyleSheet } from "react-native";
+import { useEffect, useState, useRef } from "react";
+import { View, ActivityIndicator, StyleSheet, Platform } from "react-native";
 import { initDatabase } from "../db";
 import { authClient } from "@/lib/auth";
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
   const segments = useSegments();
+  const hasNavigated = useRef(false);
 
-  // Use auth session - may fail on web due to SecureStore
-  let session = null;
-  let isPending = true;
-
-  try {
-    const authState = authClient.useSession();
-    session = authState.data;
-    isPending = authState.isPending;
-  } catch (e) {
-    // Auth may fail on web - that's ok, just skip auth check
-    console.log('[Auth] Session hook failed (expected on web):', e);
-    isPending = false;
-  }
-
-  // Stable auth state for dependency tracking
-  const isAuthenticated = !!session;
+  // Use auth session - wrap in try/catch for web compatibility
+  const authState = Platform.OS === 'web' ? { data: null, isPending: false } : authClient.useSession();
+  const session = authState.data;
+  const isPending = authState.isPending;
 
   // Initialize database on app start
   useEffect(() => {
@@ -33,24 +23,30 @@ export default function RootLayout() {
       .catch((err) => console.error('[DB] Migration failed:', err));
   }, []);
 
-  // Handle navigation based on auth state
-  // Use first segment as stable dependency (segments array reference changes each render)
+  // Mark auth as checked once isPending becomes false
+  useEffect(() => {
+    if (!isPending && !authChecked) {
+      setAuthChecked(true);
+    }
+  }, [isPending, authChecked]);
+
+  // Handle navigation based on auth state - only run once when ready
   const firstSegment = segments[0];
 
   useEffect(() => {
-    if (isPending || !dbReady) return;
+    if (!authChecked || !dbReady || hasNavigated.current) return;
 
     const inAuthGroup = firstSegment === "(auth)";
     const inAppGroup = firstSegment === "(app)";
 
-    if (isAuthenticated && !inAppGroup) {
-      // User is signed in but not in app group - redirect to home
+    if (session && !inAppGroup) {
+      hasNavigated.current = true;
       router.replace("/(app)/home");
-    } else if (!isAuthenticated && !inAuthGroup) {
-      // User is not signed in and not in auth group - redirect to login
+    } else if (!session && !inAuthGroup) {
+      hasNavigated.current = true;
       router.replace("/(auth)/login");
     }
-  }, [isAuthenticated, isPending, dbReady, firstSegment]);
+  }, [session, authChecked, dbReady, firstSegment]);
 
   // Show loading while checking auth state or waiting for database
   if (!dbReady || isPending) {
