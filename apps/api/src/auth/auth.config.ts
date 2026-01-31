@@ -19,6 +19,16 @@ export const auth = betterAuth({
     enabled: true,
     requireEmailVerification: false, // Simplify for v1
   },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      // Request offline access to get refresh tokens
+      accessType: "offline",
+      // Always show account picker
+      prompt: "select_account",
+    },
+  },
   plugins: [expo()],
 });
 
