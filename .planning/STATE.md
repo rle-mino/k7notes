@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 2 of 6 (Core Note-Taking)
-Plan: 3 of 6 in current phase
+Plan: 4 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-31 — Completed 02-03-PLAN.md (FTS5 Search)
+Last activity: 2026-01-31 — Completed 02-04-PLAN.md (Note Editor Component)
 
-Progress: [███████░░░] 28% (7/~25 total plans)
+Progress: [████████░░] 32% (8/~25 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 6.9 min
-- Total execution time: 0.8 hours
+- Total plans completed: 8
+- Average duration: 6.3 min
+- Total execution time: 0.84 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 44 min | 8.8 min |
-| 02-core-note-taking | 2 | 4 min | 2.0 min |
+| 02-core-note-taking | 3 | 6 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 11 min, 10 min, 14 min, 2 min, 2 min
+- Last 5 plans: 10 min, 14 min, 2 min, 2 min, 2 min
 - Trend: Fast execution with simple dependency setup
 
 *Updated after each plan completion*
@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - Trigger-based FTS5 sync — automatic index maintenance on CRUD (02-03)
 - Raw SQL for FTS5 queries — Drizzle doesn't support FTS5 syntax (02-03)
 - bm25 ranking for search — relevance-based ordering (02-03)
+- 10tap-editor for WYSIWYG — Tiptap/Prosemirror based, renders in WebView (02-04)
+- Showdown for md-to-HTML (loading), Turndown for HTML-to-md (saving) (02-04)
+- Built-in Toolbar used initially — custom EditorToolbar.tsx can be added later (02-04)
 
 ### Pending Todos
 
@@ -83,10 +86,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:19:14Z
-Stopped at: Completed 02-03-PLAN.md (FTS5 Search)
+Last session: 2026-01-31T15:24:25Z
+Stopped at: Completed 02-04-PLAN.md (Note Editor Component)
 Resume file: None
 
 ---
 *State initialized: 2026-01-31*
-*Last updated: 2026-01-31 after 02-03-PLAN.md completion*
+*Last updated: 2026-01-31 after 02-04-PLAN.md completion*
