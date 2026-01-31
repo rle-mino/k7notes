@@ -50,7 +50,7 @@ Plans:
   3. User can move notes between folders
   4. User can search across all note content and find matches instantly
   5. Markdown renders correctly with headers, lists, code blocks, and formatting
-**Plans**: 6 plans
+**Plans**: 7 plans
 
 Plans:
 - [ ] 02-01-PLAN.md — Set up SQLite database with Drizzle ORM and migrations
@@ -59,6 +59,7 @@ Plans:
 - [ ] 02-04-PLAN.md — Create 10tap-editor component with markdown conversion
 - [ ] 02-05-PLAN.md — Build note list, folder navigation, and editor screens
 - [ ] 02-06-PLAN.md — Complete search UI, move notes, and verify end-to-end
+- [ ] 02-07-PLAN.md — Fix migration tracking and web WebView support (gap closure)
 
 ### Phase 3: Audio & Transcription
 **Goal**: User can record meetings with live transcription and speaker identification
@@ -123,12 +124,12 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation | 5/5 | Complete | 2026-01-31 |
-| 2. Core Note-Taking | 0/6 | Planned | - |
+| 2. Core Note-Taking | 0/7 | In Progress | - |
 | 3. Audio & Transcription | 0/TBD | Not started | - |
 | 4. Calendar Integration | 0/TBD | Not started | - |
 | 5. Cloud Sync | 0/TBD | Not started | - |
@@ -136,4 +137,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Last updated: 2026-01-31 after Phase 2 planning (6 plans with 10tap-editor)*
+*Last updated: 2026-01-31 after adding gap closure plan 02-07*
