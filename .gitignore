@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Turborepo
+.turbo
+
+# Build outputs
+dist
+
+# Expo
+.expo
+
+# Environment files
+*.local
+.env
+.env.*
+
+# IDE
+.idea
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
