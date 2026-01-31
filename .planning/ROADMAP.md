@@ -31,10 +31,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can sign in with Google OAuth
   4. User session persists across app restarts
   5. User can log out from any screen
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- (Plans will be created during Phase 1 planning)
+- [ ] 01-01-PLAN.md — Initialize Turborepo monorepo with pnpm workspaces and shared configs
+- [ ] 01-02-PLAN.md — Scaffold NestJS backend with Drizzle ORM and PostgreSQL
+- [ ] 01-03-PLAN.md — Scaffold Expo mobile app with React Native and Expo Router
+- [ ] 01-04-PLAN.md — Implement email/password authentication with better-auth
+- [ ] 01-05-PLAN.md — Add Google OAuth sign-in and logout functionality
 
 ### Phase 2: Core Note-Taking
 **Goal**: User can create, organize, and search markdown notes
@@ -118,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 0/5 | Planned | - |
 | 2. Core Note-Taking | 0/TBD | Not started | - |
 | 3. Audio & Transcription | 0/TBD | Not started | - |
 | 4. Calendar Integration | 0/TBD | Not started | - |
@@ -127,4 +131,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Last updated: 2026-01-31 after initialization*
+*Last updated: 2026-01-31 after Phase 1 planning*
