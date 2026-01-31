@@ -7,12 +7,12 @@ export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-  baseURL: process.env.BASE_URL || "http://localhost:3000",
+  baseURL: process.env.BASE_URL || "http://localhost:4000",
   basePath: "/api/auth",
   trustedOrigins: [
     "k7notes://", // App deep link scheme
     "exp://", // Expo dev scheme
-    "http://localhost:8081", // Expo web
+    "http://localhost:4001", // Expo web
     "http://localhost:19006", // Expo web alt
   ],
   emailAndPassword: {

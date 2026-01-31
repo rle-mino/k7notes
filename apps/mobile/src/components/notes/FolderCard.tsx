@@ -1,6 +1,13 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Folder } from '../../../db';
+
+export interface Folder {
+  id: string;
+  name: string;
+  parentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
 
 interface FolderCardProps {
   folder: Folder;
@@ -17,7 +24,7 @@ export function FolderCard({ folder, onPress, onLongPress }: FolderCardProps) {
       activeOpacity={0.7}
     >
       <View style={styles.iconContainer}>
-        <Text style={styles.icon}>📁</Text>
+        <Text style={styles.icon}>folder</Text>
       </View>
       <Text style={styles.name} numberOfLines={1}>
         {folder.name}

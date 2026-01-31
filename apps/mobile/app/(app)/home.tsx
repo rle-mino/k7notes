@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { authClient } from "@/lib/auth";
 
 export default function HomeScreen() {
-  const { data: session } = authClient.useSession();
+  const session = authClient.useSession();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {
@@ -37,10 +37,10 @@ export default function HomeScreen() {
       <View style={styles.content}>
         <Text style={styles.title}>K7Notes</Text>
 
-        {session?.user && (
+        {session.data?.user && (
           <View style={styles.userInfo}>
-            <Text style={styles.userName}>{session.user.name}</Text>
-            <Text style={styles.userEmail}>{session.user.email}</Text>
+            <Text style={styles.userName}>{session.data.user.name}</Text>
+            <Text style={styles.userEmail}>{session.data.user.email}</Text>
           </View>
         )}
 

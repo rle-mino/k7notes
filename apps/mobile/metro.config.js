@@ -4,12 +4,6 @@ const { getDefaultConfig } = require('expo/metro-config');
 /** @type {import('expo/metro-config').MetroConfig} */
 const config = getDefaultConfig(__dirname);
 
-// Add sql to source extensions for inline-import
-config.resolver.sourceExts.push('sql');
-
-// Add wasm asset support for expo-sqlite web
-config.resolver.assetExts.push('wasm');
-
 // Enable package.json exports field resolution (needed for better-auth/react)
 config.resolver.unstable_enablePackageExports = true;
 
@@ -34,16 +28,6 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
     return originalResolveRequest(context, moduleName, platform);
   }
   return context.resolveRequest(context, moduleName, platform);
-};
-
-// Add COEP and COOP headers to support SharedArrayBuffer for expo-sqlite web
-config.server = config.server || {};
-config.server.enhanceMiddleware = (middleware) => {
-  return (req, res, next) => {
-    res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
-    middleware(req, res, next);
-  };
 };
 
 module.exports = config;

@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean, AnyPgColumn } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // Better-auth tables
@@ -66,4 +66,31 @@ export const healthCheck = pgTable("health_check", {
   checkedAt: timestamp("checked_at", { withTimezone: true })
     .defaultNow()
     .notNull(),
+});
+
+// Folders table for organizing notes
+export const folders = pgTable("folders", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  parentId: uuid("parent_id").references((): AnyPgColumn => folders.id, {
+    onDelete: "cascade",
+  }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Notes table for storing user notes
+export const notes = pgTable("notes", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  content: text("content").notNull().default(""),
+  folderId: uuid("folder_id").references(() => folders.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

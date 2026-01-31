@@ -9,7 +9,7 @@
  */
 
 // Default fallback URL for development
-const DEFAULT_API_URL = "http://localhost:3000";
+const DEFAULT_API_URL = "http://localhost:4000";
 
 // EXPO_PUBLIC_ variables are replaced at build time by Metro
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -36,14 +36,16 @@ export interface HealthResponse {
 
 /**
  * Generic fetch wrapper with error handling
+ * Includes credentials for cookie-based auth (web) and proper headers
  */
 export async function fetchApi<T>(
   endpoint: string,
-  options?: RequestInit
+  options?: RequestInit,
 ): Promise<ApiResponse<T>> {
   try {
     const url = `${API_URL}${endpoint}`;
     const response = await fetch(url, {
+      credentials: "include", // Include cookies for auth
       headers: {
         "Content-Type": "application/json",
         ...options?.headers,
@@ -52,9 +54,17 @@ export async function fetchApi<T>(
     });
 
     if (!response.ok) {
-      return {
-        error: `HTTP ${response.status}: ${response.statusText}`,
-      };
+      // Try to get error message from response body
+      try {
+        const errorData = await response.json();
+        return {
+          error: errorData.message || `HTTP ${response.status}: ${response.statusText}`,
+        };
+      } catch {
+        return {
+          error: `HTTP ${response.status}: ${response.statusText}`,
+        };
+      }
     }
 
     const data = await response.json();
