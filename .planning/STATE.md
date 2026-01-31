@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-01-31)
 
 **Core value:** Seamless meeting capture — walk into a meeting, and the app handles everything (pre-created notes, live transcription, speaker tagging, smart filing)
-**Current focus:** Phase 1 - Foundation
+**Current focus:** Phase 2 - Core Note-Taking
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation)
-Plan: 5 of 5 in current phase
-Status: Phase complete
-Last activity: 2026-01-31 — Completed 01-05-PLAN.md (Google OAuth and Logout)
+Phase: 2 of 6 (Core Note-Taking)
+Plan: 1 of 6 in current phase
+Status: In progress
+Last activity: 2026-01-31 — Completed 02-01-PLAN.md (SQLite Database Setup)
 
-Progress: [█████░░░░░] 20% (5/~25 total plans)
+Progress: [██████░░░░] 24% (6/~25 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 8.8 min
-- Total execution time: 0.7 hours
+- Total plans completed: 6
+- Average duration: 7.7 min
+- Total execution time: 0.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 44 min | 8.8 min |
+| 02-core-note-taking | 1 | 2 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 7 min, 11 min, 10 min, 14 min
-- Trend: Stable execution times
+- Last 5 plans: 7 min, 11 min, 10 min, 14 min, 2 min
+- Trend: Fast execution with simple dependency setup
 
 *Updated after each plan completion*
 
@@ -59,6 +60,10 @@ Recent decisions affecting current work:
 - SecureStore for session tokens — expo-secure-store for persistent auth (01-04)
 - Google OAuth config ready but untested — credentials not configured yet (01-05)
 - Logout with confirmation dialog — destructive action protection (01-05)
+- expo-sqlite with enableChangeListener — for live queries and reactive updates (02-01)
+- Drizzle ORM for type-safe SQLite — schema inference and migration tooling (02-01)
+- Adjacency list for folders — simple parentId pattern for nested structure (02-01)
+- babel-plugin-inline-import for SQL migrations — no runtime file system access (02-01)
 
 ### Pending Todos
 
@@ -70,10 +75,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T14:15:00Z
-Stopped at: Completed 01-05-PLAN.md (Google OAuth and Logout) - Phase 1 complete
+Last session: 2026-01-31T15:13:27Z
+Stopped at: Completed 02-01-PLAN.md (SQLite Database Setup)
 Resume file: None
 
 ---
 *State initialized: 2026-01-31*
-*Last updated: 2026-01-31 after 01-05-PLAN.md completion (Phase 1 complete)*
+*Last updated: 2026-01-31 after 02-01-PLAN.md completion*
