@@ -9,18 +9,18 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform
 
-- [ ] **PLAT-01**: App runs on iOS (iPhone)
-- [ ] **PLAT-02**: App runs on Android phones
-- [ ] **PLAT-03**: App runs in web browsers
-- [ ] **PLAT-04**: App is optimized for tablets (iPad, Android tablets)
-- [ ] **PLAT-05**: Codebase is Turborepo monorepo with shared packages
+- [x] **PLAT-01**: App runs on iOS (iPhone)
+- [x] **PLAT-02**: App runs on Android phones
+- [x] **PLAT-03**: App runs in web browsers
+- [x] **PLAT-04**: App is optimized for tablets (iPad, Android tablets)
+- [x] **PLAT-05**: Codebase is Turborepo monorepo with shared packages
 
 ### Authentication
 
-- [ ] **AUTH-01**: User can sign up with email and password
-- [ ] **AUTH-02**: User can sign in with Google OAuth
-- [ ] **AUTH-03**: User session persists across app restarts
-- [ ] **AUTH-04**: User can log out from any screen
+- [x] **AUTH-01**: User can sign up with email and password
+- [x] **AUTH-02**: User can sign in with Google OAuth
+- [x] **AUTH-03**: User session persists across app restarts
+- [x] **AUTH-04**: User can log out from any screen
 
 ### Note-Taking
 
@@ -64,9 +64,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Backend
 
-- [ ] **BACK-01**: NestJS API handles authentication, sync, and AI operations
-- [ ] **BACK-02**: PostgreSQL stores user data, notes, meetings
-- [ ] **BACK-03**: Drizzle ORM with shared schema between mobile SQLite and server PostgreSQL
+- [x] **BACK-01**: NestJS API handles authentication, sync, and AI operations
+- [x] **BACK-02**: PostgreSQL stores user data, notes, meetings
+- [x] **BACK-03**: Drizzle ORM with shared schema between mobile SQLite and server PostgreSQL
 - [ ] **BACK-04**: Redis caches LLM responses to control costs
 - [ ] **BACK-05**: API rate limits AI operations per user
 
@@ -124,18 +124,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 1 | Pending |
-| PLAT-02 | Phase 1 | Pending |
-| PLAT-03 | Phase 1 | Pending |
-| PLAT-04 | Phase 1 | Pending |
-| PLAT-05 | Phase 1 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
-| BACK-01 | Phase 1 | Pending |
-| BACK-02 | Phase 1 | Pending |
-| BACK-03 | Phase 1 | Pending |
+| PLAT-01 | Phase 1 | Complete |
+| PLAT-02 | Phase 1 | Complete |
+| PLAT-03 | Phase 1 | Complete |
+| PLAT-04 | Phase 1 | Complete |
+| PLAT-05 | Phase 1 | Complete |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Complete |
+| AUTH-04 | Phase 1 | Complete |
+| BACK-01 | Phase 1 | Complete |
+| BACK-02 | Phase 1 | Complete |
+| BACK-03 | Phase 1 | Complete |
 | NOTE-01 | Phase 2 | Pending |
 | NOTE-02 | Phase 2 | Pending |
 | NOTE-03 | Phase 2 | Pending |

@@ -12,7 +12,7 @@ K7Notes delivers seamless meeting capture through six phases that build from fou
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - Monorepo structure, authentication, and backend infrastructure
+- [x] **Phase 1: Foundation** - Monorepo structure, authentication, and backend infrastructure
 - [ ] **Phase 2: Core Note-Taking** - Markdown editing with folders and search
 - [ ] **Phase 3: Audio & Transcription** - Recording, live transcription, and speaker diarization
 - [ ] **Phase 4: Calendar Integration** - Pre-created meeting notes with attendee context
@@ -34,11 +34,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 5 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Initialize Turborepo monorepo with pnpm workspaces and shared configs
-- [ ] 01-02-PLAN.md — Scaffold NestJS backend with Drizzle ORM and PostgreSQL
-- [ ] 01-03-PLAN.md — Scaffold Expo mobile app with React Native and Expo Router
-- [ ] 01-04-PLAN.md — Implement email/password authentication with better-auth
-- [ ] 01-05-PLAN.md — Add Google OAuth sign-in and logout functionality
+- [x] 01-01-PLAN.md — Initialize Turborepo monorepo with pnpm workspaces and shared configs
+- [x] 01-02-PLAN.md — Scaffold NestJS backend with Drizzle ORM and PostgreSQL
+- [x] 01-03-PLAN.md — Scaffold Expo mobile app with React Native and Expo Router
+- [x] 01-04-PLAN.md — Implement email/password authentication with better-auth
+- [x] 01-05-PLAN.md — Add Google OAuth sign-in and logout functionality
 
 ### Phase 2: Core Note-Taking
 **Goal**: User can create, organize, and search markdown notes
