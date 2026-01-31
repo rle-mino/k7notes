@@ -10,7 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { authClient, signInWithGoogle } from "@/lib/auth";
 
 export default function LoginScreen() {
@@ -34,8 +34,10 @@ export default function LoginScreen() {
 
       if (error) {
         Alert.alert("Sign In Failed", error.message || "Invalid credentials");
+      } else {
+        // Success: navigate to home
+        router.replace("/(app)/home");
       }
-      // Success: session state updates automatically via useSession hook
     } catch (err) {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
@@ -53,8 +55,10 @@ export default function LoginScreen() {
           "Google Sign In Failed",
           error.message || "Could not sign in with Google"
         );
+      } else {
+        // Success: navigate to home
+        router.replace("/(app)/home");
       }
-      // Success: session updates automatically
     } catch (err) {
       Alert.alert("Error", "Could not open Google sign-in. Please try again.");
     } finally {
