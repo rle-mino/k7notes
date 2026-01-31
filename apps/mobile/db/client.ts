@@ -26,6 +26,51 @@ export async function initDatabase(): Promise<void> {
     );
   `);
 
+  // Bootstrap: If schema_migrations is empty but tables exist, populate it
+  // This handles databases created before migration tracking was added
+  const migrationCount = await expoDb.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM schema_migrations'
+  );
+
+  if (migrationCount?.count === 0) {
+    // Check if notes table exists (indicates 0001 was run)
+    const notesExists = await expoDb.getFirstAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='notes'"
+    );
+    if (notesExists) {
+      console.log('[DB] Bootstrapping: marking 0001_initial as applied');
+      await expoDb.runAsync(
+        'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)',
+        ['0001_initial', Date.now()]
+      );
+    }
+
+    // Check if notes_fts table exists (indicates 0002 was run)
+    const ftsExists = await expoDb.getFirstAsync<{ name: string }>(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='notes_fts'"
+    );
+    if (ftsExists) {
+      console.log('[DB] Bootstrapping: marking 0002_fts5 as applied');
+      await expoDb.runAsync(
+        'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)',
+        ['0002_fts5', Date.now()]
+      );
+    }
+
+    // Check if sync_status column exists on notes (indicates 0003 was run)
+    const columns = await expoDb.getAllAsync<{ name: string }>(
+      "PRAGMA table_info(notes)"
+    );
+    const hasSyncStatus = columns.some(col => col.name === 'sync_status');
+    if (hasSyncStatus) {
+      console.log('[DB] Bootstrapping: marking 0003_sync as applied');
+      await expoDb.runAsync(
+        'INSERT OR IGNORE INTO schema_migrations (version, applied_at) VALUES (?, ?)',
+        ['0003_sync', Date.now()]
+      );
+    }
+  }
+
   // Run migrations with tracking
   const migrations = [
     { version: '0001_initial', sql: migration0001 },
