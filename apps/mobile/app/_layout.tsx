@@ -31,8 +31,8 @@ export default function RootLayout() {
     router.replace(initialRoute as any);
   }, [dbReady, initialRoute, navigationState?.key]);
 
-  // Show loading while checking auth state or waiting for database
-  if (!dbReady || isPending) {
+  // Show loading while waiting for database
+  if (!dbReady) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" color="#007AFF" />
