@@ -1,13 +1,21 @@
+import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  // bodyParser: false is CRITICAL for better-auth to read request bodies
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false,
+  });
 
-  // Enable CORS for development
+  // Enable CORS for Expo development and production
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || "*",
-    methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+    origin: [
+      "http://localhost:8081", // Expo web
+      "http://localhost:19006", // Expo web alt
+      /^exp:\/\/.*/, // Expo dev scheme
+      /^k7notes:\/\/.*/, // App deep link scheme
+    ],
     credentials: true,
   });
 
