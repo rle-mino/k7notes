@@ -11,6 +11,7 @@ import {
 import { router, useLocalSearchParams, Stack } from 'expo-router';
 import { useLiveQuery, getNote, updateNote, deleteNote } from '../../../db';
 import { NoteEditor, NoteEditorRef } from '@/components/editor';
+import { MoveNoteModal } from '@/components/notes';
 
 export default function NoteEditorScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,6 +21,7 @@ export default function NoteEditorScreen() {
   const [title, setTitle] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
 
   // Initialize title when note loads
   useEffect(() => {
@@ -98,6 +100,9 @@ export default function NoteEditorScreen() {
                   )}
                 </TouchableOpacity>
               )}
+              <TouchableOpacity style={styles.moveButton} onPress={() => setShowMoveModal(true)}>
+                <Text style={styles.moveButtonText}>Move</Text>
+              </TouchableOpacity>
               <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
                 <Text style={styles.deleteButtonText}>Delete</Text>
               </TouchableOpacity>
@@ -121,6 +126,15 @@ export default function NoteEditorScreen() {
           />
         </View>
       </View>
+      <MoveNoteModal
+        visible={showMoveModal}
+        noteId={id}
+        currentFolderId={note?.folderId ?? null}
+        onClose={() => setShowMoveModal(false)}
+        onMoved={() => {
+          setHasChanges(false); // Reset changes since we're navigating away
+        }}
+      />
     </>
   );
 }
@@ -148,6 +162,14 @@ const styles = StyleSheet.create({
     color: '#007AFF',
     fontSize: 16,
     fontWeight: '600',
+  },
+  moveButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  moveButtonText: {
+    color: '#007AFF',
+    fontSize: 16,
   },
   deleteButton: {
     paddingHorizontal: 12,
