@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 1 of 6 (Foundation)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-01-31 — Completed 01-03-PLAN.md (Mobile App Scaffold)
+Last activity: 2026-01-31 — Completed 01-04-PLAN.md (Email/Password Auth)
 
-Progress: [███░░░░░░░] 12% (3/~25 total plans)
+Progress: [████░░░░░░] 16% (4/~25 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 6.7 min
-- Total execution time: 0.33 hours
+- Total plans completed: 4
+- Average duration: 7.5 min
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 3 | 20 min | 6.7 min |
+| 01-foundation | 4 | 30 min | 7.5 min |
 
 **Recent Trend:**
-- Last 5 plans: 2 min, 7 min, 11 min
-- Trend: Increasing (expected as tasks become more complex)
+- Last 5 plans: 2 min, 7 min, 11 min, 10 min
+- Trend: Stabilizing around 10 min for feature tasks
 
 *Updated after each plan completion*
 
@@ -54,6 +54,9 @@ Recent decisions affecting current work:
 - Expo SDK 52 with newArchEnabled — latest Expo with new RN architecture (01-03)
 - Typed routes for Expo Router — type-safe navigation (01-03)
 - Route groups (auth)/(app) — separate authenticated vs public layouts (01-03)
+- Custom NestJS better-auth integration — toNodeHandler approach for NestJS 10 compatibility (01-04)
+- Email verification disabled for v1 — simplify onboarding (01-04)
+- SecureStore for session tokens — expo-secure-store for persistent auth (01-04)
 
 ### Pending Todos
 
@@ -65,10 +68,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T13:30:41Z
-Stopped at: Completed 01-03-PLAN.md (Mobile App Scaffold)
+Last session: 2026-01-31T13:50:36Z
+Stopped at: Completed 01-04-PLAN.md (Email/Password Auth)
 Resume file: None
 
 ---
 *State initialized: 2026-01-31*
-*Last updated: 2026-01-31 after 01-03-PLAN.md completion*
+*Last updated: 2026-01-31 after 01-04-PLAN.md completion*
