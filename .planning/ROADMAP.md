@@ -50,10 +50,14 @@ Plans:
   3. User can move notes between folders
   4. User can search across all note content and find matches instantly
   5. Markdown renders correctly with headers, lists, code blocks, and formatting
-**Plans**: TBD
+**Plans**: 5 plans
 
 Plans:
-- (Plans will be created during Phase 2 planning)
+- [ ] 02-01-PLAN.md — Set up SQLite database with Drizzle ORM for local-first note storage
+- [ ] 02-02-PLAN.md — Implement CRUD operations for notes and folders with type-safe queries
+- [ ] 02-03-PLAN.md — Set up FTS5 full-text search with automatic index synchronization
+- [ ] 02-04-PLAN.md — Build note list, folder navigation, and note editor screens
+- [ ] 02-05-PLAN.md — Complete Phase 2 with search, markdown rendering, and move note functionality
 
 ### Phase 3: Audio & Transcription
 **Goal**: User can record meetings with live transcription and speaker identification
@@ -122,8 +126,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/5 | Planned | - |
-| 2. Core Note-Taking | 0/TBD | Not started | - |
+| 1. Foundation | 5/5 | Complete | 2026-01-31 |
+| 2. Core Note-Taking | 0/5 | Planned | - |
 | 3. Audio & Transcription | 0/TBD | Not started | - |
 | 4. Calendar Integration | 0/TBD | Not started | - |
 | 5. Cloud Sync | 0/TBD | Not started | - |
@@ -131,4 +135,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 ---
 *Roadmap created: 2026-01-31*
-*Last updated: 2026-01-31 after Phase 1 planning*
+*Last updated: 2026-01-31 after Phase 2 planning*
