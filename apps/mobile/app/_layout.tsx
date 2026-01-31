@@ -1,52 +1,35 @@
-import { Stack, router, useSegments } from "expo-router";
+import { Stack, router, useSegments, useRootNavigationState } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect, useState, useRef } from "react";
-import { View, ActivityIndicator, StyleSheet, Platform } from "react-native";
+import { useEffect, useState } from "react";
+import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { initDatabase } from "../db";
-import { authClient } from "@/lib/auth";
 
 export default function RootLayout() {
   const [dbReady, setDbReady] = useState(false);
-  const [authChecked, setAuthChecked] = useState(false);
-  const segments = useSegments();
-  const hasNavigated = useRef(false);
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
 
-  // Use auth session - wrap in try/catch for web compatibility
-  const authState = Platform.OS === 'web' ? { data: null, isPending: false } : authClient.useSession();
-  const session = authState.data;
-  const isPending = authState.isPending;
+  const navigationState = useRootNavigationState();
 
-  // Initialize database on app start
+  // Initialize database on app start - only once
   useEffect(() => {
+    let mounted = true;
     initDatabase()
-      .then(() => setDbReady(true))
+      .then(() => {
+        if (mounted) {
+          setDbReady(true);
+          // For now, always go to login - auth will be handled there
+          setInitialRoute("/(auth)/login");
+        }
+      })
       .catch((err) => console.error('[DB] Migration failed:', err));
+    return () => { mounted = false; };
   }, []);
 
-  // Mark auth as checked once isPending becomes false
+  // Navigate once when ready
   useEffect(() => {
-    if (!isPending && !authChecked) {
-      setAuthChecked(true);
-    }
-  }, [isPending, authChecked]);
-
-  // Handle navigation based on auth state - only run once when ready
-  const firstSegment = segments[0];
-
-  useEffect(() => {
-    if (!authChecked || !dbReady || hasNavigated.current) return;
-
-    const inAuthGroup = firstSegment === "(auth)";
-    const inAppGroup = firstSegment === "(app)";
-
-    if (session && !inAppGroup) {
-      hasNavigated.current = true;
-      router.replace("/(app)/home");
-    } else if (!session && !inAuthGroup) {
-      hasNavigated.current = true;
-      router.replace("/(auth)/login");
-    }
-  }, [session, authChecked, dbReady, firstSegment]);
+    if (!dbReady || !initialRoute || !navigationState?.key) return;
+    router.replace(initialRoute as any);
+  }, [dbReady, initialRoute, navigationState?.key]);
 
   // Show loading while checking auth state or waiting for database
   if (!dbReady || isPending) {
