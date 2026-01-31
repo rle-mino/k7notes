@@ -7,6 +7,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
+import { router } from "expo-router";
 import { authClient } from "@/lib/auth";
 
 export default function HomeScreen() {
@@ -43,13 +44,26 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <Text style={styles.subtitle}>Your meeting notes will appear here</Text>
+        <View style={styles.navGrid}>
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push("/notes")}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.navIcon}>notes</Text>
+            <Text style={styles.navTitle}>Notes</Text>
+            <Text style={styles.navSubtitle}>View and create notes</Text>
+          </TouchableOpacity>
 
-        <View style={styles.placeholder}>
-          <Text style={styles.placeholderText}>No meetings yet</Text>
-          <Text style={styles.placeholderHint}>
-            Note-taking features coming in Phase 2
-          </Text>
+          <TouchableOpacity
+            style={styles.navCard}
+            onPress={() => router.push("/search")}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.navIcon}>search</Text>
+            <Text style={styles.navTitle}>Search</Text>
+            <Text style={styles.navSubtitle}>Find notes quickly</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -86,7 +100,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   userInfo: {
-    marginBottom: 16,
+    marginBottom: 24,
   },
   userName: {
     fontSize: 18,
@@ -98,26 +112,29 @@ const styles = StyleSheet.create({
     color: "#666",
     marginTop: 2,
   },
-  subtitle: {
-    fontSize: 16,
-    color: "#666",
-    marginBottom: 32,
+  navGrid: {
+    gap: 16,
   },
-  placeholder: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
+  navCard: {
+    backgroundColor: "#f8f8f8",
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: "#eee",
   },
-  placeholderText: {
-    fontSize: 18,
-    color: "#999",
+  navIcon: {
+    fontSize: 32,
     marginBottom: 8,
   },
-  placeholderHint: {
+  navTitle: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  navSubtitle: {
     fontSize: 14,
-    color: "#bbb",
-    textAlign: "center",
+    color: "#666",
   },
   footer: {
     padding: 24,
