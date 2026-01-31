@@ -10,17 +10,17 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 2 of 6 (Core Note-Taking)
-Plan: 1 of 6 in current phase
+Plan: 3 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-31 — Completed 02-01-PLAN.md (SQLite Database Setup)
+Last activity: 2026-01-31 — Completed 02-03-PLAN.md (FTS5 Search)
 
-Progress: [██████░░░░] 24% (6/~25 total plans)
+Progress: [███████░░░] 28% (7/~25 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 7.7 min
+- Total plans completed: 7
+- Average duration: 6.9 min
 - Total execution time: 0.8 hours
 
 **By Phase:**
@@ -28,10 +28,10 @@ Progress: [██████░░░░] 24% (6/~25 total plans)
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 44 min | 8.8 min |
-| 02-core-note-taking | 1 | 2 min | 2.0 min |
+| 02-core-note-taking | 2 | 4 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 7 min, 11 min, 10 min, 14 min, 2 min
+- Last 5 plans: 11 min, 10 min, 14 min, 2 min, 2 min
 - Trend: Fast execution with simple dependency setup
 
 *Updated after each plan completion*
@@ -64,6 +64,10 @@ Recent decisions affecting current work:
 - Drizzle ORM for type-safe SQLite — schema inference and migration tooling (02-01)
 - Adjacency list for folders — simple parentId pattern for nested structure (02-01)
 - babel-plugin-inline-import for SQL migrations — no runtime file system access (02-01)
+- FTS5 external content table — avoid data duplication in search index (02-03)
+- Trigger-based FTS5 sync — automatic index maintenance on CRUD (02-03)
+- Raw SQL for FTS5 queries — Drizzle doesn't support FTS5 syntax (02-03)
+- bm25 ranking for search — relevance-based ordering (02-03)
 
 ### Pending Todos
 
@@ -75,10 +79,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:13:27Z
-Stopped at: Completed 02-01-PLAN.md (SQLite Database Setup)
+Last session: 2026-01-31T15:19:14Z
+Stopped at: Completed 02-03-PLAN.md (FTS5 Search)
 Resume file: None
 
 ---
 *State initialized: 2026-01-31*
-*Last updated: 2026-01-31 after 02-01-PLAN.md completion*
+*Last updated: 2026-01-31 after 02-03-PLAN.md completion*
