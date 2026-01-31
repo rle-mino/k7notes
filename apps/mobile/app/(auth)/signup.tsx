@@ -12,28 +12,38 @@ import {
 import { Link } from "expo-router";
 import { authClient } from "@/lib/auth";
 
-export default function LoginScreen() {
+export default function SignUpScreen() {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSignIn = async () => {
-    if (!email || !password) {
+  const handleSignUp = async () => {
+    if (!name || !email || !password) {
       Alert.alert("Error", "Please fill in all fields");
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert("Error", "Password must be at least 8 characters");
       return;
     }
 
     setLoading(true);
     try {
-      const { error } = await authClient.signIn.email({
+      const { error } = await authClient.signUp.email({
+        name,
         email,
         password,
       });
 
       if (error) {
-        Alert.alert("Sign In Failed", error.message || "Invalid credentials");
+        Alert.alert(
+          "Sign Up Failed",
+          error.message || "Could not create account"
+        );
       }
-      // Success: session state updates automatically via useSession hook
+      // Success: user is automatically signed in, session updates via useSession
     } catch (err) {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
@@ -47,10 +57,18 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>K7Notes</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Sign up to get started</Text>
 
         <View style={styles.form}>
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            autoCapitalize="words"
+            autoCorrect={false}
+          />
           <TextInput
             style={styles.input}
             placeholder="Email"
@@ -62,7 +80,7 @@ export default function LoginScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="Password (min 8 characters)"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -71,20 +89,20 @@ export default function LoginScreen() {
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
-            onPress={handleSignIn}
+            onPress={handleSignUp}
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? "Signing in..." : "Sign In"}
+              {loading ? "Creating account..." : "Create Account"}
             </Text>
           </TouchableOpacity>
         </View>
 
-        <Link href="/(auth)/signup" asChild>
+        <Link href="/(auth)/login" asChild>
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkText}>
-              Don't have an account?{" "}
-              <Text style={styles.linkBold}>Sign up</Text>
+              Already have an account?{" "}
+              <Text style={styles.linkBold}>Sign in</Text>
             </Text>
           </TouchableOpacity>
         </Link>
