@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-01-31)
 ## Current Position
 
 Phase: 2 of 6 (Core Note-Taking)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: In progress
-Last activity: 2026-01-31 — Completed 02-04-PLAN.md (Note Editor Component)
+Last activity: 2026-01-31 — Completed 02-05-PLAN.md (Note List and Navigation Screens)
 
-Progress: [████████░░] 32% (8/~25 total plans)
+Progress: [████████░░] 36% (9/~25 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 6.3 min
-- Total execution time: 0.84 hours
+- Total plans completed: 9
+- Average duration: 5.8 min
+- Total execution time: 0.87 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 5 | 44 min | 8.8 min |
-| 02-core-note-taking | 3 | 6 min | 2.0 min |
+| 02-core-note-taking | 4 | 8 min | 2.0 min |
 
 **Recent Trend:**
-- Last 5 plans: 10 min, 14 min, 2 min, 2 min, 2 min
-- Trend: Fast execution with simple dependency setup
+- Last 5 plans: 14 min, 2 min, 2 min, 2 min, 2 min
+- Trend: Fast execution with simple component/screen creation
 
 *Updated after each plan completion*
 
@@ -75,6 +75,10 @@ Recent decisions affecting current work:
 - 10tap-editor for WYSIWYG — Tiptap/Prosemirror based, renders in WebView (02-04)
 - Showdown for md-to-HTML (loading), Turndown for HTML-to-md (saving) (02-04)
 - Built-in Toolbar used initially — custom EditorToolbar.tsx can be added later (02-04)
+- Relative imports for db module — db folder at root, not under @/ alias path (02-05)
+- FAB menu for creation actions — two buttons: folder (green), note (blue) (02-05)
+- Breadcrumb shows ancestor folders only — current folder shown in header title (02-05)
+- Save button visibility — only shown when hasChanges is true (02-05)
 
 ### Pending Todos
 
@@ -86,10 +90,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-01-31T15:24:25Z
-Stopped at: Completed 02-04-PLAN.md (Note Editor Component)
+Last session: 2026-01-31T15:26:40Z
+Stopped at: Completed 02-05-PLAN.md (Note List and Navigation Screens)
 Resume file: None
 
 ---
 *State initialized: 2026-01-31*
-*Last updated: 2026-01-31 after 02-04-PLAN.md completion*
+*Last updated: 2026-01-31 after 02-05-PLAN.md completion*
