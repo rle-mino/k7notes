@@ -8,14 +8,16 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Link } from "expo-router";
-import { authClient } from "@/lib/auth";
+import { authClient, signInWithGoogle } from "@/lib/auth";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -38,6 +40,25 @@ export default function LoginScreen() {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const { error } = await signInWithGoogle();
+
+      if (error) {
+        Alert.alert(
+          "Google Sign In Failed",
+          error.message || "Could not sign in with Google"
+        );
+      }
+      // Success: session updates automatically
+    } catch (err) {
+      Alert.alert("Error", "Could not open Google sign-in. Please try again.");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -72,13 +93,37 @@ export default function LoginScreen() {
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
             onPress={handleSignIn}
-            disabled={loading}
+            disabled={loading || googleLoading}
           >
-            <Text style={styles.buttonText}>
-              {loading ? "Signing in..." : "Sign In"}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
           </TouchableOpacity>
         </View>
+
+        <View style={styles.divider}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.dividerText}>or</Text>
+          <View style={styles.dividerLine} />
+        </View>
+
+        <TouchableOpacity
+          style={[
+            styles.button,
+            styles.googleButton,
+            googleLoading && styles.buttonDisabled,
+          ]}
+          onPress={handleGoogleSignIn}
+          disabled={loading || googleLoading}
+        >
+          {googleLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Sign in with Google</Text>
+          )}
+        </TouchableOpacity>
 
         <Link href="/(auth)/signup" asChild>
           <TouchableOpacity style={styles.linkButton}>
@@ -139,6 +184,23 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  googleButton: {
+    backgroundColor: "#4285F4",
+  },
+  divider: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 24,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#ddd",
+  },
+  dividerText: {
+    marginHorizontal: 16,
+    color: "#666",
   },
   linkButton: {
     marginTop: 24,

@@ -26,6 +26,18 @@ export const authClient = createAuthClient({
 // Export hooks and utilities for use in components
 export const { useSession, signIn, signUp, signOut } = authClient;
 
+/**
+ * Google sign-in helper.
+ * Opens OAuth flow in browser and redirects back to app.
+ * Note: Requires GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET on backend.
+ */
+export const signInWithGoogle = async () => {
+  return authClient.signIn.social({
+    provider: "google",
+    callbackURL: "/", // Redirect back to app root
+  });
+};
+
 // Type exports
 export type Session = typeof authClient.$Infer.Session;
 export type User = typeof authClient.$Infer.Session.user;
