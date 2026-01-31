@@ -1,0 +1,24 @@
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native builds
+ios/
+android/
+
+# Metro bundler
+.metro-health-check*
+
+# Environment
+.env
+.env.local
+
+# Dependencies are handled at monorepo root
+node_modules/
+
+# TypeScript
+*.tsbuildinfo
+
+# Testing
+coverage/
