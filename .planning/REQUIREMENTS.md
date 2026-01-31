@@ -133,6 +133,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTH-02 | Phase 1 | Pending |
 | AUTH-03 | Phase 1 | Pending |
 | AUTH-04 | Phase 1 | Pending |
+| BACK-01 | Phase 1 | Pending |
+| BACK-02 | Phase 1 | Pending |
+| BACK-03 | Phase 1 | Pending |
 | NOTE-01 | Phase 2 | Pending |
 | NOTE-02 | Phase 2 | Pending |
 | NOTE-03 | Phase 2 | Pending |
@@ -158,17 +161,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-03 | Phase 6 | Pending |
 | AI-04 | Phase 6 | Pending |
 | AI-05 | Phase 6 | Pending |
-| BACK-01 | Phase 1 | Pending |
-| BACK-02 | Phase 1 | Pending |
-| BACK-03 | Phase 1 | Pending |
 | BACK-04 | Phase 6 | Pending |
 | BACK-05 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 35 total
-- Mapped to phases: 35
+- v1 requirements: 39 total
+- Mapped to phases: 39
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after initial definition*
+*Last updated: 2026-01-31 after roadmap creation*
