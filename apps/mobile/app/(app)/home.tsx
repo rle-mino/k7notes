@@ -1,31 +1,70 @@
-import { StyleSheet, Text, View, Pressable } from "react-native";
-import { router } from "expo-router";
+import { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
+import { authClient } from "@/lib/auth";
 
 export default function HomeScreen() {
-  const handleLogout = () => {
-    // TODO: Implement actual logout with better-auth
-    // For now, navigate back to login
-    router.replace("/(auth)/login");
+  const { data: session } = authClient.useSession();
+  const [loggingOut, setLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await authClient.signOut();
+      // Session clears automatically, _layout.tsx will redirect to auth
+    } catch (err) {
+      Alert.alert("Error", "Could not sign out. Please try again.");
+      setLoggingOut(false);
+    }
+  };
+
+  const confirmLogout = () => {
+    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: handleLogout },
+    ]);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>K7Notes</Text>
+
+        {session?.user && (
+          <View style={styles.userInfo}>
+            <Text style={styles.userName}>{session.user.name}</Text>
+            <Text style={styles.userEmail}>{session.user.email}</Text>
+          </View>
+        )}
+
         <Text style={styles.subtitle}>Your meeting notes will appear here</Text>
 
         <View style={styles.placeholder}>
           <Text style={styles.placeholderText}>No meetings yet</Text>
           <Text style={styles.placeholderHint}>
-            Start a new meeting to begin capturing notes
+            Note-taking features coming in Phase 2
           </Text>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Pressable style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Sign Out</Text>
-        </Pressable>
+        <TouchableOpacity
+          style={[styles.logoutButton, loggingOut && styles.buttonDisabled]}
+          onPress={confirmLogout}
+          disabled={loggingOut}
+        >
+          {loggingOut ? (
+            <ActivityIndicator color="#FF3B30" />
+          ) : (
+            <Text style={styles.logoutButtonText}>Sign Out</Text>
+          )}
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -45,6 +84,19 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#1a1a1a",
     marginBottom: 4,
+  },
+  userInfo: {
+    marginBottom: 16,
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  userEmail: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 2,
   },
   subtitle: {
     fontSize: 16,
@@ -73,14 +125,17 @@ const styles = StyleSheet.create({
     borderTopColor: "#eee",
   },
   logoutButton: {
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#FEE2E2",
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
   },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
   logoutButtonText: {
-    color: "#666",
+    color: "#FF3B30",
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
   },
 });
