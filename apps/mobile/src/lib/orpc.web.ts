@@ -1,7 +1,8 @@
 /**
- * oRPC client for type-safe API calls
+ * oRPC client for type-safe API calls (Web version)
  *
- * Import this module only when you need to make API calls.
+ * On web, cookies are handled automatically by the browser.
+ * No need to manually manage auth cookies like in the native version.
  */
 
 import { createORPCClient } from "@orpc/client";
@@ -16,39 +17,6 @@ import type {
   FolderContentsResponse as ContractFolderContents,
 } from "@k7notes/contracts";
 import { getApiUrl } from "./api";
-import * as SecureStore from "expo-secure-store";
-
-// Storage key matching the better-auth expo client configuration
-const AUTH_COOKIE_KEY = "k7notes_auth_cookie";
-
-/**
- * Get the auth cookie from SecureStore (same format as better-auth expo client)
- */
-function getAuthCookie(): string {
-  try {
-    const storedCookie = SecureStore.getItem(AUTH_COOKIE_KEY);
-    if (!storedCookie) return "";
-
-    const parsed = JSON.parse(storedCookie);
-    const cookieString = Object.entries(parsed).reduce(
-      (acc, [key, value]) => {
-        const cookieValue = value as { value: string; expires?: string };
-        // Skip expired cookies
-        if (
-          cookieValue.expires &&
-          new Date(cookieValue.expires) < new Date()
-        ) {
-          return acc;
-        }
-        return acc ? `${acc}; ${key}=${cookieValue.value}` : `${key}=${cookieValue.value}`;
-      },
-      ""
-    );
-    return cookieString;
-  } catch {
-    return "";
-  }
-}
 
 // Create OpenAPI link that maps contract routes to HTTP requests
 const link = new OpenAPILink(contract, {
@@ -61,12 +29,7 @@ const link = new OpenAPILink(contract, {
       headers.set("Content-Type", "application/json");
     }
 
-    // Add auth cookie from SecureStore
-    const cookie = getAuthCookie();
-    if (cookie) {
-      headers.set("Cookie", cookie);
-    }
-
+    // On web, cookies are sent automatically with credentials: include
     return fetch(input, {
       ...init,
       headers,
