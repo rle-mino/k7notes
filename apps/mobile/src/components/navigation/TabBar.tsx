@@ -9,6 +9,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import {
+  FolderOpen,
+  Search,
+  Clock,
+  Settings,
+  Mic,
+  Pencil,
+  Plus,
+  type LucideIcon,
+} from "lucide-react-native";
 
 type RecordType = "audio" | "text";
 
@@ -16,11 +26,11 @@ interface TabBarProps extends BottomTabBarProps {
   onRecord: (type: RecordType) => void;
 }
 
-const TAB_ICONS: Record<string, string> = {
-  "notes/index": "📁",
-  "search/index": "🔍",
-  "recents/index": "🕐",
-  "settings/index": "⚙️",
+const TAB_ICONS: Record<string, LucideIcon> = {
+  "notes/index": FolderOpen,
+  "search/index": Search,
+  "recents/index": Clock,
+  "settings/index": Settings,
 };
 
 const TAB_LABELS: Record<string, string> = {
@@ -79,6 +89,8 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
       });
     };
 
+    const IconComponent = TAB_ICONS[route.name];
+
     return (
       <TouchableOpacity
         key={route.key}
@@ -91,9 +103,15 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
         style={styles.tabButton}
         activeOpacity={0.7}
       >
-        <Text style={[styles.tabIcon, isFocused && styles.tabIconActive]}>
-          {TAB_ICONS[route.name]}
-        </Text>
+        <View style={styles.tabIconContainer}>
+          {IconComponent && (
+            <IconComponent
+              size={24}
+              color={isFocused ? "#007AFF" : "#999"}
+              strokeWidth={isFocused ? 2.5 : 2}
+            />
+          )}
+        </View>
         <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>
           {TAB_LABELS[route.name]}
         </Text>
@@ -117,7 +135,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               onPress={handleRecordPress}
               activeOpacity={0.8}
             >
-              <Text style={styles.recordIcon}>+</Text>
+              <Plus size={32} color="#fff" strokeWidth={2} />
             </TouchableOpacity>
           </View>
 
@@ -145,7 +163,9 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               onPress={() => handleRecordSelect("audio")}
               activeOpacity={0.7}
             >
-              <Text style={styles.recordOptionIcon}>🎤</Text>
+              <View style={styles.recordOptionIcon}>
+                <Mic size={32} color="#007AFF" strokeWidth={2} />
+              </View>
               <Text style={styles.recordOptionLabel}>Audio</Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -153,7 +173,9 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               onPress={() => handleRecordSelect("text")}
               activeOpacity={0.7}
             >
-              <Text style={styles.recordOptionIcon}>✏️</Text>
+              <View style={styles.recordOptionIcon}>
+                <Pencil size={32} color="#007AFF" strokeWidth={2} />
+              </View>
               <Text style={styles.recordOptionLabel}>Text</Text>
             </TouchableOpacity>
           </View>
@@ -188,13 +210,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     minWidth: 64,
   },
-  tabIcon: {
-    fontSize: 24,
+  tabIconContainer: {
     marginBottom: 2,
-    opacity: 0.5,
-  },
-  tabIconActive: {
-    opacity: 1,
   },
   tabLabel: {
     fontSize: 11,
@@ -223,12 +240,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
     marginTop: -20,
-  },
-  recordIcon: {
-    fontSize: 32,
-    color: "#fff",
-    fontWeight: "300",
-    marginTop: -2,
   },
   modalOverlay: {
     flex: 1,
@@ -259,8 +270,9 @@ const styles = StyleSheet.create({
     minWidth: 100,
   },
   recordOptionIcon: {
-    fontSize: 32,
     marginBottom: 8,
+    alignItems: "center",
+    justifyContent: "center",
   },
   recordOptionLabel: {
     fontSize: 14,
