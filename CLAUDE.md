@@ -34,15 +34,15 @@ pnpm type-check   # Type check all TypeScript
 
 # API
 pnpm turbo dev --filter=@k7notes/api       # Start API with hot reload (builds deps first)
-pnpm -F @k7notes/api db:push               # Push schema to database (dev)
-pnpm -F @k7notes/api db:migrate            # Run migrations
-pnpm -F @k7notes/api db:studio             # Open Drizzle Studio
+pnpm turbo db:push --filter=@k7notes/api   # Push schema to database (dev)
+pnpm turbo db:migrate --filter=@k7notes/api # Run migrations
+pnpm turbo db:studio --filter=@k7notes/api # Open Drizzle Studio
 
 # Mobile
 pnpm turbo dev --filter=@k7notes/mobile    # Start Expo CLI (builds deps first)
-pnpm -F @k7notes/mobile ios                # Start iOS simulator
-pnpm -F @k7notes/mobile android            # Start Android emulator
-pnpm -F @k7notes/mobile web                # Start web version
+pnpm turbo ios --filter=@k7notes/mobile    # Start iOS simulator (builds deps first)
+pnpm turbo android --filter=@k7notes/mobile # Start Android emulator (builds deps first)
+pnpm turbo web --filter=@k7notes/mobile    # Start web version (builds deps first)
 
 # Landing
 pnpm turbo dev --filter=@k7notes/landing   # Start Vite dev server (builds deps first)
