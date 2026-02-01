@@ -5,7 +5,7 @@ import {
   UnauthorizedException,
 } from "@nestjs/common";
 import { Request } from "express";
-import { auth } from "./auth.config";
+import { auth } from "./auth.config.js";
 
 export interface AuthenticatedRequest extends Request {
   user: {

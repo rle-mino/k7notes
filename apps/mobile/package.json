@@ -15,9 +15,13 @@
     "@10play/react-native-web-webview": "^0.0.3",
     "@10play/tentap-editor": "^1.0.1",
     "@babel/runtime": "^7.28.6",
-    "@better-auth/expo": "^1.4.15",
+    "@better-auth/expo": "1.2.12",
     "@expo/metro-runtime": "^4.0.1",
-    "better-auth": "^1.4.15",
+    "@k7notes/contracts": "workspace:*",
+    "@orpc/client": "^1.13.0",
+    "@orpc/contract": "^1.13.0",
+    "@orpc/openapi-client": "^1.13.0",
+    "better-auth": "1.2.12",
     "expo": "~52.0.49",
     "expo-constants": "~17.0.0",
     "expo-linking": "~7.0.5",
@@ -33,7 +37,8 @@
     "react-native-web": "~0.19.13",
     "react-native-webview": "^13.12.5",
     "showdown": "^2.1.0",
-    "turndown": "^7.2.2"
+    "turndown": "^7.2.2",
+    "zod": "^3.24.0"
   },
   "devDependencies": {
     "@babel/core": "^7.26.0",

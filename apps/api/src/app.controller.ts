@@ -1,5 +1,5 @@
 import { Controller, Get } from "@nestjs/common";
-import { pool } from "./db";
+import { pool } from "./db/index.js";
 
 @Controller()
 export class AppController {

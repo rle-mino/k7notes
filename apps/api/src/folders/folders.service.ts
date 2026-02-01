@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, and, desc, isNull, asc } from "drizzle-orm";
-import { db } from "../db";
-import { folders, notes } from "../db/schema";
+import { db } from "../db/index.js";
+import { folders, notes } from "../db/schema.js";
 
 export interface CreateFolderDto {
   name: string;

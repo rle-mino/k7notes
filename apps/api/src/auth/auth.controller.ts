@@ -1,7 +1,7 @@
 import { All, Controller, Req, Res } from "@nestjs/common";
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import { toNodeHandler } from "better-auth/node";
-import { auth } from "./auth.config";
+import { auth } from "./auth.config.js";
 
 /**
  * Auth controller that proxies all /api/auth/* requests to better-auth.

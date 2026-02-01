@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
 import { eq, and, desc, sql, isNull } from "drizzle-orm";
-import { db } from "../db";
-import { notes } from "../db/schema";
+import { db } from "../db/index.js";
+import { notes } from "../db/schema.js";
 
 export interface CreateNoteDto {
   title: string;

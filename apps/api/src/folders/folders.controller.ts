@@ -1,88 +1,71 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Delete,
-  Body,
-  Param,
-  Query,
-  UseGuards,
-  Req,
-} from "@nestjs/common";
-import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard";
-import {
-  FoldersService,
-  CreateFolderDto,
-  UpdateFolderDto,
-} from "./folders.service";
+import { Controller, UseGuards } from "@nestjs/common";
+import { Implement, implement } from "@orpc/nest";
+import { contract } from "@k7notes/contracts";
+import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
+import { FoldersService } from "./folders.service.js";
 
-@Controller("api/folders")
+@Controller()
 @UseGuards(AuthGuard)
 export class FoldersController {
   constructor(private readonly foldersService: FoldersService) {}
 
-  @Post()
-  async create(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: CreateFolderDto,
-  ) {
-    return this.foldersService.create(req.user.id, dto);
+  @Implement(contract.folders.create)
+  create() {
+    return implement(contract.folders.create).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      return this.foldersService.create(req.user.id, input);
+    });
   }
 
-  @Get("contents")
-  async getContents(
-    @Req() req: AuthenticatedRequest,
-    @Query("folderId") folderId?: string,
-  ) {
-    // Convert "null" string to null, undefined to null (root)
-    const parsedFolderId =
-      folderId === "null" || folderId === undefined ? null : folderId;
-    return this.foldersService.getContents(req.user.id, parsedFolderId);
+  @Implement(contract.folders.list)
+  list() {
+    return implement(contract.folders.list).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      return this.foldersService.findAll(req.user.id, input.parentId);
+    });
   }
 
-  @Get(":id/path")
-  async getPath(
-    @Req() req: AuthenticatedRequest,
-    @Param("id") id: string,
-  ) {
-    return this.foldersService.getPath(req.user.id, id);
+  @Implement(contract.folders.getContents)
+  getContents() {
+    return implement(contract.folders.getContents).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      // Convert undefined to null for root folder
+      const folderId = input.folderId === undefined ? null : input.folderId;
+      return this.foldersService.getContents(req.user.id, folderId);
+    });
   }
 
-  @Get(":id")
-  async findOne(
-    @Req() req: AuthenticatedRequest,
-    @Param("id") id: string,
-  ) {
-    return this.foldersService.findOne(req.user.id, id);
+  @Implement(contract.folders.getPath)
+  getPath() {
+    return implement(contract.folders.getPath).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      return this.foldersService.getPath(req.user.id, input.id);
+    });
   }
 
-  @Get()
-  async findAll(
-    @Req() req: AuthenticatedRequest,
-    @Query("parentId") parentId?: string,
-  ) {
-    // Convert "null" string to null, undefined stays undefined
-    const parsedParentId =
-      parentId === "null" ? null : parentId === undefined ? undefined : parentId;
-    return this.foldersService.findAll(req.user.id, parsedParentId);
+  @Implement(contract.folders.findOne)
+  findOne() {
+    return implement(contract.folders.findOne).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      return this.foldersService.findOne(req.user.id, input.id);
+    });
   }
 
-  @Put(":id")
-  async update(
-    @Req() req: AuthenticatedRequest,
-    @Param("id") id: string,
-    @Body() dto: UpdateFolderDto,
-  ) {
-    return this.foldersService.update(req.user.id, id, dto);
+  @Implement(contract.folders.update)
+  update() {
+    return implement(contract.folders.update).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      const { id, ...updateData } = input;
+      return this.foldersService.update(req.user.id, id, updateData);
+    });
   }
 
-  @Delete(":id")
-  async delete(
-    @Req() req: AuthenticatedRequest,
-    @Param("id") id: string,
-  ) {
-    await this.foldersService.delete(req.user.id, id);
-    return { success: true };
+  @Implement(contract.folders.delete)
+  delete() {
+    return implement(contract.folders.delete).handler(async ({ input, context }) => {
+      const req = context.request as unknown as AuthenticatedRequest;
+      await this.foldersService.delete(req.user.id, input.id);
+      return { success: true as const };
+    });
   }
 }
