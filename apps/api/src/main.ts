@@ -12,8 +12,11 @@ async function bootstrap() {
   // Add JSON body parsing for non-auth routes
   // better-auth needs raw bodies, but our API endpoints need parsed JSON
   const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.use("/api/notes", bodyParser.json());
-  expressApp.use("/api/folders", bodyParser.json());
+
+  // Parse JSON with explicit type matching - handles both standard and text content types
+  const jsonParser = bodyParser.json({ type: ["application/json", "text/plain"] });
+  expressApp.use("/api/notes", jsonParser);
+  expressApp.use("/api/folders", jsonParser);
 
   // Enable CORS for Expo development and production
   app.enableCors({

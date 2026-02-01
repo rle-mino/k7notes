@@ -11,12 +11,13 @@ import {
   Platform,
   ScrollView,
 } from "react-native";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { orpc } from "@/lib/orpc";
 
 export default function NewNoteScreen() {
   const insets = useSafeAreaInsets();
+  const { folderId } = useLocalSearchParams<{ folderId?: string }>();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
@@ -32,7 +33,7 @@ export default function NewNoteScreen() {
       const newNote = await orpc.notes.create({
         title: title.trim() || "Untitled",
         content: content.trim(),
-        folderId: null, // Root folder
+        folderId: folderId || null,
       });
 
       // Navigate to the new note for editing
@@ -45,7 +46,7 @@ export default function NewNoteScreen() {
       );
       setSaving(false);
     }
-  }, [title, content]);
+  }, [title, content, folderId]);
 
   const handleCancel = useCallback(() => {
     if (title.trim() || content.trim()) {
