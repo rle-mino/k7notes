@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Trash2 } from "lucide-react-native";
 import { orpc, type Note } from "@/lib/orpc";
 import { NoteEditor, type NoteEditorRef } from "@/components/editor/NoteEditor";
 
@@ -27,6 +28,7 @@ export default function NoteEditorScreen() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Track pending changes for debounced save
   const pendingContentRef = useRef<string | null>(null);
@@ -154,6 +156,46 @@ export default function NoteEditorScreen() {
     router.back();
   }, [saveNote]);
 
+  // Handle delete
+  const handleDelete = useCallback(() => {
+    if (!id) return;
+
+    Alert.alert(
+      "Delete Note?",
+      "This action cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              setDeleting(true);
+              // Cancel any pending save
+              if (saveTimeoutRef.current) {
+                clearTimeout(saveTimeoutRef.current);
+                saveTimeoutRef.current = null;
+              }
+              // Clear pending changes so unmount doesn't try to save
+              pendingContentRef.current = null;
+              pendingTitleRef.current = null;
+
+              await orpc.notes.delete({ id });
+              router.back();
+            } catch (err) {
+              console.error("Failed to delete note:", err);
+              setDeleting(false);
+              Alert.alert(
+                "Delete Failed",
+                err instanceof Error ? err.message : "Could not delete the note. Please try again."
+              );
+            }
+          },
+        },
+      ]
+    );
+  }, [id]);
+
   // Loading state
   if (loading) {
     return (
@@ -212,6 +254,20 @@ export default function NoteEditorScreen() {
           ),
           headerRight: () => (
             <View style={styles.headerRight}>
+              <TouchableOpacity
+                onPress={handleDelete}
+                disabled={saving || deleting}
+                style={[
+                  styles.deleteButton,
+                  (saving || deleting) && styles.deleteButtonDisabled,
+                ]}
+              >
+                {deleting ? (
+                  <ActivityIndicator size="small" color="#FF3B30" />
+                ) : (
+                  <Trash2 size={20} color="#FF3B30" />
+                )}
+              </TouchableOpacity>
               {saving ? (
                 <View style={styles.savingIndicator}>
                   <ActivityIndicator size="small" color="#007AFF" />
@@ -305,6 +361,13 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingRight: 8,
+    gap: 12,
+  },
+  deleteButton: {
+    padding: 4,
+  },
+  deleteButtonDisabled: {
+    opacity: 0.5,
   },
   savingIndicator: {
     flexDirection: "row",
