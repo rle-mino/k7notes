@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -9,81 +9,52 @@ import {
   RefreshControl,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
-import { orpc } from "@/lib/orpc";
-import type { Note, Folder } from "@/lib/orpc";
-import { NoteCard } from "@/components/notes/NoteCard";
-import { FolderCard } from "@/components/notes/FolderCard";
+import { useTreeData, type TreeNode } from "@/hooks/useTreeData";
+import { TreeItem } from "@/components/notes/TreeItem";
 import { EmptyState } from "@/components/notes/EmptyState";
-
-type ListItem =
-  | { type: "folder"; data: Folder }
-  | { type: "note"; data: Note };
+import type { Note } from "@/lib/orpc";
 
 export default function NotesIndexScreen() {
-  const [folders, setFolders] = useState<Folder[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchData = useCallback(async (isRefresh = false) => {
-    try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-      setError(null);
-
-      // Fetch root folder contents (folderId: null means root)
-      const contents = await orpc.folders.getContents({ folderId: null });
-      setFolders(contents.folders);
-      setNotes(contents.notes);
-    } catch (err) {
-      console.error("Failed to fetch notes:", err);
-      setError(err instanceof Error ? err.message : "Failed to load notes");
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+  const {
+    treeData,
+    loading,
+    refreshing,
+    error,
+    fetchRootData,
+    toggleExpand,
+    refresh,
+  } = useTreeData();
 
   // Refetch when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      fetchData();
-    }, [fetchData])
+      fetchRootData();
+    }, [fetchRootData])
   );
-
-  const handleRefresh = () => {
-    fetchData(true);
-  };
 
   const handleNotePress = (note: Note) => {
     router.push(`/notes/${note.id}`);
   };
 
-  const handleFolderPress = (folder: Folder) => {
-    router.push(`/notes/folder/${folder.id}`);
+  const handleToggleExpand = (folderId: string) => {
+    toggleExpand(folderId);
   };
 
-  // Combine folders and notes into a single list
-  const listItems: ListItem[] = [
-    ...folders.map((folder) => ({ type: "folder" as const, data: folder })),
-    ...notes.map((note) => ({ type: "note" as const, data: note })),
-  ];
-
-  const renderItem = ({ item }: { item: ListItem }) => {
+  const renderItem = ({ item }: { item: TreeNode }) => {
     if (item.type === "folder") {
       return (
-        <FolderCard
-          folder={item.data}
-          onPress={() => handleFolderPress(item.data)}
+        <TreeItem
+          item={item}
+          onPress={() => {}}
+          onToggleExpand={() => handleToggleExpand(item.id)}
         />
       );
     }
     return (
-      <NoteCard note={item.data} onPress={() => handleNotePress(item.data)} />
+      <TreeItem
+        item={item}
+        onPress={() => handleNotePress(item.data as Note)}
+      />
     );
   };
 
@@ -99,14 +70,17 @@ export default function NotesIndexScreen() {
     return (
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
-        <TouchableOpacity style={styles.retryButton} onPress={() => fetchData()}>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => fetchRootData()}
+        >
           <Text style={styles.retryButtonText}>Retry</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  if (listItems.length === 0) {
+  if (treeData.length === 0) {
     return (
       <View style={styles.container}>
         <EmptyState
@@ -120,14 +94,14 @@ export default function NotesIndexScreen() {
   return (
     <View style={styles.container}>
       <FlatList
-        data={listItems}
+        data={treeData}
         renderItem={renderItem}
         keyExtractor={(item) =>
-          item.type === "folder" ? `folder-${item.data.id}` : `note-${item.data.id}`
+          item.type === "folder" ? `folder-${item.id}` : `note-${item.id}`
         }
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
         }
       />
     </View>
@@ -147,7 +121,7 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   listContent: {
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
   errorText: {
     fontSize: 16,
