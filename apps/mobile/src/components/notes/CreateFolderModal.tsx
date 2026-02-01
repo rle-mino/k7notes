@@ -10,7 +10,36 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { ORPCError } from "@orpc/client";
 import { orpc } from "@/lib/orpc";
+
+type ValidationIssue = { message: string; path?: (string | number)[] };
+
+/**
+ * Extract a user-friendly error message from an API error
+ */
+function getErrorMessage(err: unknown): string {
+  if (err instanceof ORPCError) {
+    // Check for validation errors in the data field (sent over the wire)
+    const data = err.data as { issues?: ValidationIssue[] } | undefined;
+    if (data?.issues && Array.isArray(data.issues) && data.issues.length > 0) {
+      return data.issues
+        .map((issue) => {
+          const path = issue.path?.join(".") || "";
+          return path ? `${path}: ${issue.message}` : issue.message;
+        })
+        .join("\n");
+    }
+    // Use the oRPC error message
+    return err.message || `Error: ${err.code}`;
+  }
+
+  if (err instanceof Error) {
+    return err.message;
+  }
+
+  return "Failed to create folder";
+}
 
 interface CreateFolderModalProps {
   visible: boolean;
@@ -54,10 +83,18 @@ export function CreateFolderModal({
       onCreated();
       onClose();
     } catch (err) {
-      console.error("Failed to create folder:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to create folder"
-      );
+      if (err instanceof ORPCError) {
+        console.error("Failed to create folder (ORPCError):", {
+          code: err.code,
+          status: err.status,
+          message: err.message,
+          data: err.data,
+          defined: err.defined,
+        });
+      } else {
+        console.error("Failed to create folder:", err);
+      }
+      setError(getErrorMessage(err));
     } finally {
       setCreating(false);
     }
