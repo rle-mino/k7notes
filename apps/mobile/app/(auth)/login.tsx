@@ -35,8 +35,8 @@ export default function LoginScreen() {
       if (error) {
         Alert.alert("Sign In Failed", error.message || "Invalid credentials");
       } else {
-        // Success: navigate to home
-        router.replace("/(app)/home");
+        // Success: navigate to notes tab
+        router.replace("/(app)/notes");
       }
     } catch (err) {
       Alert.alert("Error", "Network error. Please try again.");
@@ -56,8 +56,8 @@ export default function LoginScreen() {
           error.message || "Could not sign in with Google"
         );
       } else {
-        // Success: navigate to home
-        router.replace("/(app)/home");
+        // Success: navigate to notes tab
+        router.replace("/(app)/notes");
       }
     } catch (err) {
       Alert.alert("Error", "Could not open Google sign-in. Please try again.");

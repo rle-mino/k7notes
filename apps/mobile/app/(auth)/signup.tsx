@@ -9,7 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import { authClient } from "@/lib/auth";
 
 export default function SignUpScreen() {
@@ -42,8 +42,10 @@ export default function SignUpScreen() {
           "Sign Up Failed",
           error.message || "Could not create account"
         );
+      } else {
+        // Success: navigate to notes tab
+        router.replace("/(app)/notes");
       }
-      // Success: user is automatically signed in, session updates via useSession
     } catch (err) {
       Alert.alert("Error", "Network error. Please try again.");
     } finally {

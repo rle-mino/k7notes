@@ -24,10 +24,10 @@ interface MoveNoteModalProps {
  */
 export function MoveNoteModal({
   visible,
-  noteId,
-  currentFolderId,
+  noteId: _noteId,
+  currentFolderId: _currentFolderId,
   onClose,
-  onMoved,
+  onMoved: _onMoved,
 }: MoveNoteModalProps) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>

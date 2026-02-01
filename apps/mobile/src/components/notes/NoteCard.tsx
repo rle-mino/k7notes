@@ -11,7 +11,7 @@ export function NoteCard({ note, onPress }: NoteCardProps) {
   // Get first line of content as preview (strip markdown)
   const preview = note.content
     .split('\n')[0]
-    .replace(/[#*`_~\[\]]/g, '')
+    .replace(/[#*`_~[\]]/g, '')
     .trim()
     .slice(0, 100);
 
