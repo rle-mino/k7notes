@@ -1,13 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-export interface Folder {
-  id: string;
-  name: string;
-  parentId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Folder } from '@/lib/orpc';
 
 interface FolderCardProps {
   folder: Folder;

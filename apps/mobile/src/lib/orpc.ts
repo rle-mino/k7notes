@@ -9,31 +9,89 @@ import { OpenAPILink } from "@orpc/openapi-client/fetch";
 import type { ContractRouterClient } from "@orpc/contract";
 import type { JsonifiedClient } from "@orpc/openapi-client";
 import { contract } from "@k7notes/contracts";
+import type {
+  Note as ContractNote,
+  Folder as ContractFolder,
+  SearchResult as ContractSearchResult,
+  FolderContentsResponse as ContractFolderContents,
+} from "@k7notes/contracts";
 import { getApiUrl } from "./api";
+import * as SecureStore from "expo-secure-store";
+
+// Storage key matching the better-auth expo client configuration
+const AUTH_COOKIE_KEY = "k7notes_auth_cookie";
+
+/**
+ * Get the auth cookie from SecureStore (same format as better-auth expo client)
+ */
+function getAuthCookie(): string {
+  try {
+    const storedCookie = SecureStore.getItem(AUTH_COOKIE_KEY);
+    if (!storedCookie) return "";
+
+    const parsed = JSON.parse(storedCookie);
+    const cookieString = Object.entries(parsed).reduce(
+      (acc, [key, value]) => {
+        const cookieValue = value as { value: string; expires?: string };
+        // Skip expired cookies
+        if (
+          cookieValue.expires &&
+          new Date(cookieValue.expires) < new Date()
+        ) {
+          return acc;
+        }
+        return acc ? `${acc}; ${key}=${cookieValue.value}` : `${key}=${cookieValue.value}`;
+      },
+      ""
+    );
+    return cookieString;
+  } catch {
+    return "";
+  }
+}
 
 // Create OpenAPI link that maps contract routes to HTTP requests
 const link = new OpenAPILink(contract, {
   url: getApiUrl(),
-  fetch: (input: RequestInfo | URL, init?: RequestInit) =>
-    fetch(input, {
+  fetch: (input: RequestInfo | URL, init?: RequestInit) => {
+    const headers = new Headers(init?.headers);
+
+    // Add auth cookie from SecureStore
+    const cookie = getAuthCookie();
+    if (cookie) {
+      headers.set("Cookie", cookie);
+    }
+
+    return fetch(input, {
       ...init,
-      credentials: "include", // Include cookies for auth
-    }),
+      headers,
+      credentials: "include",
+    });
+  },
 });
 
 // Create type-safe oRPC client
 export const orpc: JsonifiedClient<ContractRouterClient<typeof contract>> =
   createORPCClient(link);
 
-// Re-export types
+// JSON-serialized types (Date becomes string over the wire)
+type Jsonify<T> = T extends Date
+  ? string
+  : T extends object
+    ? { [K in keyof T]: Jsonify<T[K]> }
+    : T;
+
+// Re-export types with Date fields converted to strings for JSON responses
+export type Note = Jsonify<ContractNote>;
+export type Folder = Jsonify<ContractFolder>;
+export type SearchResult = Jsonify<ContractSearchResult>;
+export type FolderContents = Jsonify<ContractFolderContents>;
+
+// Re-export input types (these don't need jsonification)
 export type {
-  Note,
   CreateNote,
   UpdateNote,
-  SearchResult,
-  Folder,
   CreateFolder,
   UpdateFolder,
-  FolderContentsResponse as FolderContents,
   FolderPathItem,
 } from "@k7notes/contracts";

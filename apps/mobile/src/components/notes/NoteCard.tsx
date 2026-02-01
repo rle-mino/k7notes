@@ -1,14 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  folderId: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Note } from '@/lib/orpc';
 
 interface NoteCardProps {
   note: Note;
