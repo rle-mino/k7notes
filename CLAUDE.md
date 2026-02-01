@@ -33,19 +33,19 @@ pnpm lint         # Lint all workspaces
 pnpm type-check   # Type check all TypeScript
 
 # API
-pnpm -F @k7notes/api dev           # Start API with hot reload
-pnpm -F @k7notes/api db:push       # Push schema to database (dev)
-pnpm -F @k7notes/api db:migrate    # Run migrations
-pnpm -F @k7notes/api db:studio     # Open Drizzle Studio
+pnpm turbo dev --filter=@k7notes/api       # Start API with hot reload (builds deps first)
+pnpm -F @k7notes/api db:push               # Push schema to database (dev)
+pnpm -F @k7notes/api db:migrate            # Run migrations
+pnpm -F @k7notes/api db:studio             # Open Drizzle Studio
 
 # Mobile
-pnpm -F @k7notes/mobile start      # Start Expo CLI
-pnpm -F @k7notes/mobile ios        # Start iOS simulator
-pnpm -F @k7notes/mobile android    # Start Android emulator
-pnpm -F @k7notes/mobile web        # Start web version
+pnpm turbo dev --filter=@k7notes/mobile    # Start Expo CLI (builds deps first)
+pnpm -F @k7notes/mobile ios                # Start iOS simulator
+pnpm -F @k7notes/mobile android            # Start Android emulator
+pnpm -F @k7notes/mobile web                # Start web version
 
 # Landing
-pnpm -F @k7notes/landing dev       # Start Vite dev server
+pnpm turbo dev --filter=@k7notes/landing   # Start Vite dev server (builds deps first)
 ```
 
 ## Architecture
