@@ -1,0 +1,20 @@
+{
+  "name": "@k7notes/e2e",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "lint": "eslint . --ext .ts",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@k7notes/eslint-config": "workspace:*",
+    "@k7notes/typescript-config": "workspace:*",
+    "@playwright/test": "^1.50.0",
+    "@types/node": "^22.10.7",
+    "eslint": "^8.57.0",
+    "typescript": "^5.7.3"
+  }
+}
