@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,24 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { authClient } from "@/lib/auth";
 
 export default function SignUpScreen() {
+  const { data: session, isPending } = authClient.useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Redirect to app if already authenticated
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      router.replace("/(app)/notes");
+    }
+  }, [isPending, session]);
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
@@ -52,6 +61,15 @@ export default function SignUpScreen() {
       setLoading(false);
     }
   };
+
+  // Show loading while checking session
+  if (isPending) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -117,6 +135,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     flex: 1,

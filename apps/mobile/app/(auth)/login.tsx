@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -14,10 +14,18 @@ import { Link, router } from "expo-router";
 import { authClient, signInWithGoogle } from "@/lib/auth";
 
 export default function LoginScreen() {
+  const { data: session, isPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+
+  // Redirect to app if already authenticated
+  useEffect(() => {
+    if (!isPending && session?.user) {
+      router.replace("/(app)/notes");
+    }
+  }, [isPending, session]);
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -65,6 +73,15 @@ export default function LoginScreen() {
       setGoogleLoading(false);
     }
   };
+
+  // Show loading while checking session
+  if (isPending) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -146,6 +163,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: {
     flex: 1,

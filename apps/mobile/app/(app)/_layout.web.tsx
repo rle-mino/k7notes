@@ -1,11 +1,14 @@
-import React, { useCallback } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useCallback, useEffect } from "react";
+import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
+import { authClient } from "@/lib/auth";
 
 type RecordType = "audio" | "text";
 
 export default function AppLayoutWeb() {
+  const { data: session, isPending } = authClient.useSession();
+
   const handleRecord = useCallback((type: RecordType) => {
     if (type === "text") {
       router.push("/notes/new");
@@ -14,6 +17,22 @@ export default function AppLayoutWeb() {
       console.log("Audio recording requested");
     }
   }, []);
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!isPending && !session?.user) {
+      router.replace("/(auth)/login");
+    }
+  }, [isPending, session]);
+
+  // Show loading while checking session
+  if (isPending || !session?.user) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -86,5 +105,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: "#fff",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
