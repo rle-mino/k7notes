@@ -12,6 +12,8 @@ import {
   FileText,
   ChevronRight,
   ChevronDown,
+  FilePlus,
+  FolderPlus,
 } from "lucide-react-native";
 import type { TreeNode } from "@/hooks/useTreeData";
 import type { Note } from "@/lib/orpc";
@@ -22,10 +24,43 @@ interface TreeItemProps {
   item: TreeNode;
   onPress: () => void;
   onToggleExpand?: () => void;
+  onAddNote?: (folderId: string | null) => void;
+  onAddFolder?: (parentFolderId: string | null) => void;
 }
 
-export function TreeItem({ item, onPress, onToggleExpand }: TreeItemProps) {
+export function TreeItem({
+  item,
+  onPress,
+  onToggleExpand,
+  onAddNote,
+  onAddFolder,
+}: TreeItemProps) {
   const indentStyle = { paddingLeft: item.depth * INDENT_WIDTH + 12 };
+
+  // Add item row (inside expanded folders)
+  if (item.type === "add-item") {
+    return (
+      <View style={[styles.container, styles.addItemContainer, indentStyle]}>
+        <View style={styles.expandPlaceholder} />
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => onAddNote?.(item.parentFolderId)}
+          activeOpacity={0.7}
+        >
+          <FilePlus size={16} color="#007AFF" strokeWidth={2} />
+          <Text style={styles.addButtonText}>Add note</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => onAddFolder?.(item.parentFolderId)}
+          activeOpacity={0.7}
+        >
+          <FolderPlus size={16} color="#F5A623" strokeWidth={2} />
+          <Text style={styles.addButtonText}>Add folder</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (item.type === "folder") {
     return (
@@ -113,6 +148,27 @@ const styles = StyleSheet.create({
   },
   noteContainer: {
     backgroundColor: "#fff",
+  },
+  addItemContainer: {
+    backgroundColor: "#f5f5f5",
+    paddingVertical: 8,
+    gap: 8,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#e5e5e5",
+  },
+  addButtonText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: "#666",
   },
   expandIcon: {
     width: 24,

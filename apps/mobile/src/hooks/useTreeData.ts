@@ -2,7 +2,7 @@ import { useCallback, useState, useRef } from "react";
 import { orpc } from "@/lib/orpc";
 import type { Note, Folder } from "@/lib/orpc";
 
-export type TreeItemType = "folder" | "note";
+export type TreeItemType = "folder" | "note" | "add-item";
 
 export interface TreeNode {
   id: string;
@@ -12,7 +12,8 @@ export interface TreeNode {
   isExpanded: boolean;
   isLoading: boolean;
   hasChildren: boolean;
-  data: Folder | Note;
+  parentFolderId: string | null;
+  data: Folder | Note | null;
 }
 
 interface ExpandedState {
@@ -116,7 +117,8 @@ export function useTreeData() {
     const addItems = (
       folders: Folder[],
       notes: Note[],
-      depth: number
+      depth: number,
+      parentFolderId: string | null
     ) => {
       // Add folders first
       for (const folder of folders) {
@@ -136,12 +138,26 @@ export function useTreeData() {
           isExpanded,
           isLoading,
           hasChildren,
+          parentFolderId,
           data: folder,
         });
 
         // If expanded and has loaded children, add them recursively
         if (isExpanded && childData) {
-          addItems(childData.folders, childData.notes, depth + 1);
+          addItems(childData.folders, childData.notes, depth + 1, folder.id);
+
+          // Add "add item" row at the end of expanded folder's children
+          result.push({
+            id: `add-${folder.id}`,
+            type: "add-item",
+            name: "",
+            depth: depth + 1,
+            isExpanded: false,
+            isLoading: false,
+            hasChildren: false,
+            parentFolderId: folder.id,
+            data: null,
+          });
         }
       }
 
@@ -155,12 +171,13 @@ export function useTreeData() {
           isExpanded: false,
           isLoading: false,
           hasChildren: false,
+          parentFolderId,
           data: note,
         });
       }
     };
 
-    addItems(rootFolders, rootNotes, 0);
+    addItems(rootFolders, rootNotes, 0, null);
     return result;
   }, [rootFolders, rootNotes, expandedIds, loadingIds, expandedState]);
 

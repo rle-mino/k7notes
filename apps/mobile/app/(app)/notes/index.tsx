@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import {
   StyleSheet,
   View,
@@ -9,9 +9,11 @@ import {
   RefreshControl,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import { FolderPlus, FilePlus } from "lucide-react-native";
 import { useTreeData, type TreeNode } from "@/hooks/useTreeData";
 import { TreeItem } from "@/components/notes/TreeItem";
 import { EmptyState } from "@/components/notes/EmptyState";
+import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
 import type { Note } from "@/lib/orpc";
 
 export default function NotesIndexScreen() {
@@ -24,6 +26,11 @@ export default function NotesIndexScreen() {
     toggleExpand,
     refresh,
   } = useTreeData();
+
+  const [folderModalVisible, setFolderModalVisible] = useState(false);
+  const [folderModalParentId, setFolderModalParentId] = useState<string | null>(
+    null
+  );
 
   // Refetch when screen comes into focus
   useFocusEffect(
@@ -40,20 +47,40 @@ export default function NotesIndexScreen() {
     toggleExpand(folderId);
   };
 
-  const renderItem = ({ item }: { item: TreeNode }) => {
-    if (item.type === "folder") {
-      return (
-        <TreeItem
-          item={item}
-          onPress={() => {}}
-          onToggleExpand={() => handleToggleExpand(item.id)}
-        />
-      );
+  const handleAddNote = (folderId: string | null) => {
+    if (folderId) {
+      router.push(`/notes/new?folderId=${folderId}`);
+    } else {
+      router.push("/notes/new");
     }
+  };
+
+  const handleAddFolder = (parentFolderId: string | null) => {
+    setFolderModalParentId(parentFolderId);
+    setFolderModalVisible(true);
+  };
+
+  const handleFolderCreated = () => {
+    // Refresh to show the new folder
+    refresh();
+  };
+
+  const renderItem = ({ item }: { item: TreeNode }) => {
     return (
       <TreeItem
         item={item}
-        onPress={() => handleNotePress(item.data as Note)}
+        onPress={() => {
+          if (item.type === "note") {
+            handleNotePress(item.data as Note);
+          }
+        }}
+        onToggleExpand={
+          item.type === "folder"
+            ? () => handleToggleExpand(item.id)
+            : undefined
+        }
+        onAddNote={handleAddNote}
+        onAddFolder={handleAddFolder}
       />
     );
   };
@@ -80,29 +107,55 @@ export default function NotesIndexScreen() {
     );
   }
 
-  if (treeData.length === 0) {
-    return (
-      <View style={styles.container}>
-        <EmptyState
-          title="No notes yet"
-          message="Create your first note to get started."
-        />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={treeData}
-        renderItem={renderItem}
-        keyExtractor={(item) =>
-          item.type === "folder" ? `folder-${item.id}` : `note-${item.id}`
-        }
-        contentContainerStyle={styles.listContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={refresh} />
-        }
+      {/* Header with add buttons */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Notes</Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => handleAddFolder(null)}
+          >
+            <FolderPlus size={22} color="#F5A623" strokeWidth={2} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.headerButton}
+            onPress={() => handleAddNote(null)}
+          >
+            <FilePlus size={22} color="#007AFF" strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {treeData.length === 0 ? (
+        <EmptyState
+          title="No notes yet"
+          message="Create your first note or folder to get started."
+        />
+      ) : (
+        <FlatList
+          data={treeData}
+          renderItem={renderItem}
+          keyExtractor={(item) =>
+            item.type === "folder"
+              ? `folder-${item.id}`
+              : item.type === "note"
+                ? `note-${item.id}`
+                : item.id
+          }
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+          }
+        />
+      )}
+
+      <CreateFolderModal
+        visible={folderModalVisible}
+        parentFolderId={folderModalParentId}
+        onClose={() => setFolderModalVisible(false)}
+        onCreated={handleFolderCreated}
       />
     </View>
   );
@@ -119,6 +172,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f5f5f5",
     padding: 32,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#fff",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#e5e5e5",
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1a1a1a",
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  headerButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#f5f5f5",
   },
   listContent: {
     paddingVertical: 4,
