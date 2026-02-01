@@ -16,6 +16,34 @@
     "type-check": {
       "dependsOn": ["^build"],
       "outputs": []
+    },
+    "ios": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "android": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "web": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
+    "db:push": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "db:migrate": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "db:studio": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
     }
   }
 }
