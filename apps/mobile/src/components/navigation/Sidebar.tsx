@@ -8,6 +8,16 @@ import {
   Pressable,
 } from "react-native";
 import { usePathname, router } from "expo-router";
+import {
+  FolderOpen,
+  Search,
+  Clock,
+  Settings,
+  Mic,
+  Pencil,
+  Plus,
+  type LucideIcon,
+} from "lucide-react-native";
 
 type RecordType = "audio" | "text";
 
@@ -18,15 +28,15 @@ interface SidebarProps {
 interface NavItem {
   name: string;
   path: string;
-  icon: string;
+  icon: LucideIcon;
   label: string;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { name: "notes", path: "/notes", icon: "📁", label: "Notes" },
-  { name: "search", path: "/search", icon: "🔍", label: "Search" },
-  { name: "recents", path: "/recents", icon: "🕐", label: "Recents" },
-  { name: "settings", path: "/settings", icon: "⚙️", label: "Settings" },
+  { name: "notes", path: "/notes", icon: FolderOpen, label: "Notes" },
+  { name: "search", path: "/search", icon: Search, label: "Search" },
+  { name: "recents", path: "/recents", icon: Clock, label: "Recents" },
+  { name: "settings", path: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar({ onRecord }: SidebarProps) {
@@ -61,21 +71,29 @@ export function Sidebar({ onRecord }: SidebarProps) {
         </View>
 
         <View style={styles.nav}>
-          {NAV_ITEMS.map((item) => (
-            <TouchableOpacity
-              key={item.name}
-              style={[styles.navItem, isActive(item.path) && styles.navItemActive]}
-              onPress={() => handleNavPress(item.path)}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.navIcon}>{item.icon}</Text>
-              <Text
-                style={[styles.navLabel, isActive(item.path) && styles.navLabelActive]}
+          {NAV_ITEMS.map((item) => {
+            const IconComponent = item.icon;
+            const active = isActive(item.path);
+            return (
+              <TouchableOpacity
+                key={item.name}
+                style={[styles.navItem, active && styles.navItemActive]}
+                onPress={() => handleNavPress(item.path)}
+                activeOpacity={0.7}
               >
-                {item.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                <IconComponent
+                  size={20}
+                  color={active ? "#007AFF" : "#666"}
+                  strokeWidth={active ? 2.5 : 2}
+                />
+                <Text
+                  style={[styles.navLabel, active && styles.navLabelActive]}
+                >
+                  {item.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
 
         <View style={styles.footer}>
@@ -89,7 +107,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
         onPress={handleRecordPress}
         activeOpacity={0.8}
       >
-        <Text style={styles.floatingRecordIcon}>+</Text>
+        <Plus size={32} color="#fff" strokeWidth={2} />
       </TouchableOpacity>
 
       {/* Record type selection modal */}
@@ -110,7 +128,9 @@ export function Sidebar({ onRecord }: SidebarProps) {
               onPress={() => handleRecordSelect("audio")}
               activeOpacity={0.7}
             >
-              <Text style={styles.recordOptionIcon}>🎤</Text>
+              <View style={styles.recordOptionIcon}>
+                <Mic size={32} color="#007AFF" strokeWidth={2} />
+              </View>
               <View style={styles.recordOptionText}>
                 <Text style={styles.recordOptionLabel}>Audio Note</Text>
                 <Text style={styles.recordOptionDesc}>Record voice memo</Text>
@@ -121,7 +141,9 @@ export function Sidebar({ onRecord }: SidebarProps) {
               onPress={() => handleRecordSelect("text")}
               activeOpacity={0.7}
             >
-              <Text style={styles.recordOptionIcon}>✏️</Text>
+              <View style={styles.recordOptionIcon}>
+                <Pencil size={32} color="#007AFF" strokeWidth={2} />
+              </View>
               <View style={styles.recordOptionText}>
                 <Text style={styles.recordOptionLabel}>Text Note</Text>
                 <Text style={styles.recordOptionDesc}>Write a new note</Text>
@@ -167,9 +189,6 @@ const styles = StyleSheet.create({
   navItemActive: {
     backgroundColor: "#e8f4ff",
   },
-  navIcon: {
-    fontSize: 20,
-  },
   navLabel: {
     fontSize: 15,
     color: "#666",
@@ -207,12 +226,6 @@ const styles = StyleSheet.create({
     elevation: 8,
     zIndex: 100,
   },
-  floatingRecordIcon: {
-    fontSize: 36,
-    color: "#fff",
-    fontWeight: "300",
-    marginTop: -2,
-  },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.4)",
@@ -247,7 +260,8 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   recordOptionIcon: {
-    fontSize: 32,
+    alignItems: "center",
+    justifyContent: "center",
   },
   recordOptionText: {
     flex: 1,

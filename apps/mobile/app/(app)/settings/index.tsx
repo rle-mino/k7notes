@@ -10,9 +10,22 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { authClient } from "@/lib/auth";
+import {
+  User,
+  Mail,
+  Palette,
+  Bell,
+  Cloud,
+  Package,
+  Info,
+  FileText,
+  ClipboardList,
+  ChevronRight,
+  type LucideIcon,
+} from "lucide-react-native";
 
 interface SettingItemProps {
-  icon: string;
+  icon: LucideIcon;
   label: string;
   value?: string;
   onPress?: () => void;
@@ -21,7 +34,7 @@ interface SettingItemProps {
 }
 
 function SettingItem({
-  icon,
+  icon: IconComponent,
   label,
   value,
   onPress,
@@ -35,14 +48,18 @@ function SettingItem({
       activeOpacity={onPress ? 0.7 : 1}
       disabled={disabled || !onPress}
     >
-      <Text style={styles.settingIcon}>{icon}</Text>
+      <View style={styles.settingIcon}>
+        <IconComponent size={20} color={destructive ? "#FF3B30" : "#666"} strokeWidth={2} />
+      </View>
       <View style={styles.settingContent}>
         <Text style={[styles.settingLabel, destructive && styles.settingLabelDestructive]}>
           {label}
         </Text>
         {value && <Text style={styles.settingValue}>{value}</Text>}
       </View>
-      {onPress && <Text style={styles.settingChevron}>›</Text>}
+      {onPress && (
+        <ChevronRight size={20} color="#ccc" strokeWidth={2} />
+      )}
     </TouchableOpacity>
   );
 }
@@ -77,12 +94,12 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Account</Text>
         <View style={styles.sectionContent}>
           <SettingItem
-            icon="👤"
+            icon={User}
             label="Name"
             value={session.data?.user?.name || "—"}
           />
           <SettingItem
-            icon="✉️"
+            icon={Mail}
             label="Email"
             value={session.data?.user?.email || "—"}
           />
@@ -94,13 +111,13 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Preferences</Text>
         <View style={styles.sectionContent}>
           <SettingItem
-            icon="🎨"
+            icon={Palette}
             label="Appearance"
             value="System"
             onPress={() => Alert.alert("Coming Soon", "Theme settings will be available in a future update.")}
           />
           <SettingItem
-            icon="🔔"
+            icon={Bell}
             label="Notifications"
             value="On"
             onPress={() => Alert.alert("Coming Soon", "Notification settings will be available in a future update.")}
@@ -113,12 +130,12 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>Storage</Text>
         <View style={styles.sectionContent}>
           <SettingItem
-            icon="☁️"
+            icon={Cloud}
             label="Sync Status"
             value="Synced"
           />
           <SettingItem
-            icon="📦"
+            icon={Package}
             label="Clear Cache"
             onPress={() => Alert.alert("Coming Soon", "Cache clearing will be available in a future update.")}
           />
@@ -130,17 +147,17 @@ export default function SettingsScreen() {
         <Text style={styles.sectionTitle}>About</Text>
         <View style={styles.sectionContent}>
           <SettingItem
-            icon="ℹ️"
+            icon={Info}
             label="Version"
             value="0.0.1"
           />
           <SettingItem
-            icon="📄"
+            icon={FileText}
             label="Privacy Policy"
             onPress={() => Alert.alert("Coming Soon", "Privacy policy will be available soon.")}
           />
           <SettingItem
-            icon="📋"
+            icon={ClipboardList}
             label="Terms of Service"
             onPress={() => Alert.alert("Coming Soon", "Terms of service will be available soon.")}
           />
@@ -204,7 +221,6 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   settingIcon: {
-    fontSize: 20,
     marginRight: 12,
   },
   settingContent: {
@@ -221,11 +237,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#999",
     marginTop: 2,
-  },
-  settingChevron: {
-    fontSize: 20,
-    color: "#ccc",
-    marginLeft: 8,
   },
   signOutButton: {
     backgroundColor: "#FEE2E2",
