@@ -1,8 +1,32 @@
 import { defineConfig, devices } from "@playwright/test";
+import * as dotenv from "dotenv";
+import * as path from "path";
+
+// Load .env from e2e package
+dotenv.config({ path: path.resolve(__dirname, ".env") });
+
+// Validate TEST_DATABASE_URL is set
+const testDatabaseUrl = process.env.TEST_DATABASE_URL;
+if (!testDatabaseUrl) {
+  throw new Error(
+    "TEST_DATABASE_URL environment variable is required for e2e tests.\n" +
+      "Copy packages/e2e/.env.example to packages/e2e/.env and set TEST_DATABASE_URL"
+  );
+}
+
+// Safety check: prevent accidental use of production database
+if (testDatabaseUrl.includes("prod") || testDatabaseUrl.includes("production")) {
+  throw new Error(
+    "TEST_DATABASE_URL appears to point to a production database. Aborting."
+  );
+}
 
 /**
  * Playwright configuration for K7Notes e2e tests.
  * Configures separate projects for web and API testing.
+ *
+ * The webServer config automatically starts the API and web servers
+ * with the test database before running tests.
  */
 export default defineConfig({
   testDir: "./tests",
@@ -32,6 +56,7 @@ export default defineConfig({
         ...devices["Desktop Chrome"],
         baseURL: "http://localhost:4001",
       },
+      testIgnore: "**/api/**/*.spec.ts", // API tests run in api project only
     },
     {
       name: "api",
@@ -43,16 +68,21 @@ export default defineConfig({
   ],
 
   /* Run your local dev servers before starting the tests */
-  // webServer: [
-  //   {
-  //     command: "pnpm turbo dev --filter=@k7notes/api",
-  //     url: "http://localhost:4000/health",
-  //     reuseExistingServer: !process.env.CI,
-  //   },
-  //   {
-  //     command: "pnpm turbo web --filter=@k7notes/mobile",
-  //     url: "http://localhost:4001",
-  //     reuseExistingServer: !process.env.CI,
-  //   },
-  // ],
+  webServer: [
+    {
+      command: "pnpm turbo dev --filter=@k7notes/api",
+      url: "http://localhost:4000/health",
+      reuseExistingServer: !process.env.CI,
+      env: {
+        DATABASE_URL: testDatabaseUrl,
+      },
+      timeout: 120000, // 2 minutes for server startup
+    },
+    {
+      command: "pnpm turbo start --filter=@k7notes/mobile -- --web",
+      url: "http://localhost:4001",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+  ],
 });

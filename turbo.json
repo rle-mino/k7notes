@@ -10,6 +10,11 @@
       "cache": false,
       "persistent": true
     },
+    "start": {
+      "dependsOn": ["^build"],
+      "cache": false,
+      "persistent": true
+    },
     "lint": {
       "outputs": []
     },
@@ -44,6 +49,10 @@
       "dependsOn": ["^build"],
       "cache": false,
       "persistent": true
+    },
+    "test:e2e": {
+      "dependsOn": ["^build"],
+      "cache": false
     }
   }
 }
