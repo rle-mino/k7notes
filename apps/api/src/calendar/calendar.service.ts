@@ -73,12 +73,14 @@ export class CalendarService {
   ): Promise<{ url: string; state: string }> {
     const calendarProvider = this.getProvider(provider);
 
-    // Encode the provider in the state so the callback knows which provider to use
-    // Format: provider:uuid (e.g., "google:abc-123-def")
+    // Encode the provider and platform in the state so the callback knows where to redirect
+    // Format: provider:platform:uuid (e.g., "google:mobile:abc-123-def" or "google:web:abc-123-def")
     const stateId = randomUUID();
-    const state = `${provider}:${stateId}`;
+    // Determine platform from redirectUrl - if it contains a custom scheme, it's mobile
+    const platform = redirectUrl?.includes("://") && !redirectUrl?.startsWith("http") ? "mobile" : "web";
+    const state = `${provider}:${platform}:${stateId}`;
     const baseUrl = process.env.BASE_URL || "http://localhost:4000";
-    const callbackUrl = redirectUrl || `${baseUrl}/api/calendar/oauth/callback`;
+    const callbackUrl = `${baseUrl}/api/calendar/oauth/callback`;
 
     const url = calendarProvider.getOAuthUrl(callbackUrl, state);
 

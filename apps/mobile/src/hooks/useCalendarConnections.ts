@@ -1,9 +1,11 @@
 import { useCallback, useState, useRef } from "react";
+import { Platform } from "react-native";
 import { storage } from "@/lib/storage";
 import { orpc } from "@/lib/orpc";
 import type { CalendarConnection, CalendarProvider } from "@/lib/orpc";
 
 const PENDING_OAUTH_KEY = "k7notes_pending_oauth_provider";
+const APP_SCHEME = "k7notes";
 
 export function useCalendarConnections() {
   const [connections, setConnections] = useState<CalendarConnection[]>([]);
@@ -38,13 +40,17 @@ export function useCalendarConnections() {
   }, []);
 
   const getOAuthUrl = useCallback(
-    async (provider: CalendarProvider, redirectUrl?: string) => {
+    async (provider: CalendarProvider) => {
       try {
+        // On native platforms, pass the deep link scheme so the API knows to redirect back to the app
+        // On web, don't pass redirectUrl so it uses the web callback
+        const redirectUrl = Platform.OS !== "web" ? `${APP_SCHEME}://calendar/callback` : undefined;
+
         const result = await orpc.calendar.getOAuthUrl({
           provider,
           redirectUrl,
         });
-        // Store the provider so the callback knows which provider to use
+        // Store the provider so the callback knows which provider to use (fallback)
         await storage.setItem(PENDING_OAUTH_KEY, provider);
         return result;
       } catch (err) {

@@ -25,7 +25,21 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.k7notes.app"
+      "package": "com.k7notes.app",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "k7notes",
+              "host": "calendar",
+              "pathPrefix": "/callback"
+            }
+          ],
+          "category": ["DEFAULT", "BROWSABLE"]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",

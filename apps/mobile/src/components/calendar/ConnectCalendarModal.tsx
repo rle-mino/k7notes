@@ -9,18 +9,25 @@ import {
   KeyboardAvoidingView,
   Platform,
   Linking,
-  Alert,
 } from "react-native";
+import * as WebBrowser from "expo-web-browser";
 import { ORPCError } from "@orpc/client";
 import { Calendar } from "lucide-react-native";
-import type { CalendarProvider } from "@/lib/orpc";
+import type { CalendarProvider, CalendarConnection } from "@/lib/orpc";
+
+const APP_SCHEME = "k7notes";
 
 interface ConnectCalendarModalProps {
   visible: boolean;
   onClose: () => void;
-  onConnect: (
+  onGetOAuthUrl: (
     provider: CalendarProvider
   ) => Promise<{ url: string; state: string }>;
+  onHandleCallback: (
+    provider: CalendarProvider,
+    code: string,
+    state?: string
+  ) => Promise<CalendarConnection>;
 }
 
 const PROVIDERS: { id: CalendarProvider; name: string; color: string }[] = [
@@ -41,10 +48,29 @@ function getErrorMessage(err: unknown): string {
   return "Failed to connect calendar";
 }
 
+/**
+ * Parse callback URL to extract code and state parameters
+ */
+function parseCallbackUrl(url: string): { code?: string; state?: string; error?: string } {
+  try {
+    // Handle both http URLs and custom scheme URLs
+    const urlObj = new URL(url);
+    const params = urlObj.searchParams;
+    return {
+      code: params.get("code") || undefined,
+      state: params.get("state") || undefined,
+      error: params.get("error") || undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+
 export function ConnectCalendarModal({
   visible,
   onClose,
-  onConnect,
+  onGetOAuthUrl,
+  onHandleCallback,
 }: ConnectCalendarModalProps) {
   const [connecting, setConnecting] = useState<CalendarProvider | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,20 +89,46 @@ export function ConnectCalendarModal({
         setConnecting(provider);
         setError(null);
 
-        const { url } = await onConnect(provider);
+        const { url } = await onGetOAuthUrl(provider);
 
-        // Open the OAuth URL in the browser
-        const supported = await Linking.canOpenURL(url);
-        if (supported) {
-          await Linking.openURL(url);
+        if (Platform.OS === "web") {
+          // On web, open in same window (will redirect back)
+          const supported = await Linking.canOpenURL(url);
+          if (supported) {
+            await Linking.openURL(url);
+            onClose();
+          } else {
+            setError("Cannot open authorization URL");
+          }
+          return;
+        }
+
+        // On native, use in-app browser that returns the result
+        // The redirect URL should be our app's deep link scheme
+        const redirectUrl = `${APP_SCHEME}://calendar/callback`;
+
+        const result = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
+
+        if (result.type === "success" && result.url) {
+          // Parse the callback URL
+          const { code, state, error: oauthError } = parseCallbackUrl(result.url);
+
+          if (oauthError) {
+            setError(oauthError);
+            return;
+          }
+
+          if (!code) {
+            setError("Missing authorization code");
+            return;
+          }
+
+          // Complete the OAuth flow
+          await onHandleCallback(provider, code, state);
           onClose();
-          Alert.alert(
-            "Calendar Connection",
-            "Complete the sign-in in your browser. The calendar will be connected once you authorize access.",
-            [{ text: "OK" }]
-          );
-        } else {
-          setError("Cannot open authorization URL");
+        } else if (result.type === "cancel") {
+          // User cancelled - just close, no error
+          setConnecting(null);
         }
       } catch (err) {
         console.error("Failed to connect calendar:", err);
@@ -85,7 +137,7 @@ export function ConnectCalendarModal({
         setConnecting(null);
       }
     },
-    [onConnect, onClose]
+    [onGetOAuthUrl, onHandleCallback, onClose]
   );
 
   return (

@@ -12,11 +12,29 @@ export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
   /**
+   * Parse the state parameter to extract provider and platform
+   * State format: "provider:platform:uuid" (e.g., "google:mobile:abc-123-def")
+   */
+  private parseState(state: string): { provider: string; platform: "mobile" | "web"; stateId: string } | null {
+    if (!state) return null;
+    const parts = state.split(":");
+    if (parts.length < 3) return null;
+    const provider = parts[0];
+    const platform = parts[1];
+    const stateId = parts.slice(2).join(":");
+    if (!provider || !platform || !stateId) return null;
+    if (platform !== "mobile" && platform !== "web") return null;
+    return { provider, platform, stateId };
+  }
+
+  /**
    * OAuth callback endpoint - receives GET redirect from Google/Microsoft
    * This endpoint doesn't require auth since the user is coming back from OAuth provider
    *
    * For mobile: redirects to app deep link (k7notes://calendar/callback)
    * For web: redirects to frontend callback page (http://localhost:4001/calendar/callback)
+   *
+   * The platform is encoded in the state parameter (format: "provider:platform:uuid")
    */
   @Get("api/calendar/oauth/callback")
   async oauthCallback(
@@ -29,42 +47,42 @@ export class CalendarController {
     const webCallbackUrl =
       process.env.WEB_OAUTH_CALLBACK_URL || "http://localhost:4001/calendar/callback";
 
-    // Determine if this is likely a web or mobile request
-    // For now, use web callback for local development
-    const useWebCallback = process.env.NODE_ENV !== "production" || process.env.USE_WEB_OAUTH_CALLBACK === "true";
+    // Parse state to determine platform (mobile vs web)
+    const parsedState = this.parseState(state);
+    const isMobile = parsedState?.platform === "mobile";
 
     // Handle OAuth errors
     if (error) {
       this.logger.error(`OAuth error: ${error}`);
       const errorParam = `error=${encodeURIComponent(error)}`;
-      if (useWebCallback) {
-        return res.redirect(`${webCallbackUrl}?${errorParam}`);
+      if (isMobile) {
+        return res.redirect(`${mobileScheme}://calendar/callback?${errorParam}`);
       }
-      return res.redirect(`${mobileScheme}://calendar/callback?${errorParam}`);
+      return res.redirect(`${webCallbackUrl}?${errorParam}`);
     }
 
     if (!code || !state) {
       this.logger.error("Missing code or state in OAuth callback");
       const errorParam = `error=${encodeURIComponent("Missing authorization code")}`;
-      if (useWebCallback) {
-        return res.redirect(`${webCallbackUrl}?${errorParam}`);
+      if (isMobile) {
+        return res.redirect(`${mobileScheme}://calendar/callback?${errorParam}`);
       }
-      return res.redirect(`${mobileScheme}://calendar/callback?${errorParam}`);
+      return res.redirect(`${webCallbackUrl}?${errorParam}`);
     }
 
     // Build redirect URL with code and state
     const params = `code=${encodeURIComponent(code)}&state=${encodeURIComponent(state)}`;
 
-    if (useWebCallback) {
-      const redirectUrl = `${webCallbackUrl}?${params}`;
-      this.logger.log(`Redirecting to web callback: ${redirectUrl}`);
+    if (isMobile) {
+      // Redirect to mobile app deep link
+      const redirectUrl = `${mobileScheme}://calendar/callback?${params}`;
+      this.logger.log(`Redirecting to mobile: ${redirectUrl}`);
       return res.redirect(redirectUrl);
     }
 
-    // Redirect to mobile app with the code and state
-    // The mobile app will then call the handleOAuthCallback endpoint with auth
-    const redirectUrl = `${mobileScheme}://calendar/callback?${params}`;
-    this.logger.log(`Redirecting to mobile: ${redirectUrl}`);
+    // Redirect to web callback
+    const redirectUrl = `${webCallbackUrl}?${params}`;
+    this.logger.log(`Redirecting to web callback: ${redirectUrl}`);
     return res.redirect(redirectUrl);
   }
 

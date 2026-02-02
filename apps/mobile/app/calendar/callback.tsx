@@ -1,22 +1,42 @@
 import { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator, Linking, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
 import type { CalendarProvider } from "@/lib/orpc";
 
+const APP_SCHEME = "k7notes";
+
 /**
  * Parse the provider from the OAuth state
- * State format: "provider:uuid" (e.g., "google:abc-123-def")
+ * State format: "provider:platform:uuid" (e.g., "google:mobile:abc-123-def")
  */
 function parseProviderFromState(state: string | undefined): CalendarProvider | null {
   if (!state) return null;
   const parts = state.split(":");
-  if (parts.length < 2) return null;
+  if (parts.length < 3) return null;
   const provider = parts[0];
   if (provider === "google" || provider === "microsoft") {
     return provider;
   }
   return null;
+}
+
+/**
+ * Redirect to settings - uses deep link on web (to open the app),
+ * or router.replace on native
+ */
+function navigateToSettings(router: ReturnType<typeof useRouter>) {
+  if (Platform.OS === "web") {
+    // On web, redirect to the mobile app using deep link
+    const deepLink = `${APP_SCHEME}://settings`;
+    Linking.openURL(deepLink).catch(() => {
+      // If deep link fails, show a message (app might not be installed)
+      console.warn("Could not open app via deep link");
+    });
+  } else {
+    // On native, use router
+    router.replace("/(app)/settings");
+  }
 }
 
 /**
@@ -56,7 +76,7 @@ export default function CalendarCallbackScreen() {
         await clearPendingProvider();
         // Navigate back to settings after delay
         setTimeout(() => {
-          router.replace("/(app)/settings");
+          navigateToSettings(router);
         }, 2000);
         return;
       }
@@ -66,7 +86,7 @@ export default function CalendarCallbackScreen() {
         setErrorMessage("Missing authorization code");
         await clearPendingProvider();
         setTimeout(() => {
-          router.replace("/(app)/settings");
+          navigateToSettings(router);
         }, 2000);
         return;
       }
@@ -83,7 +103,7 @@ export default function CalendarCallbackScreen() {
         setStatus("success");
         // Navigate to settings to see the new connection
         setTimeout(() => {
-          router.replace("/(app)/settings");
+          navigateToSettings(router);
         }, 1500);
       } catch (err) {
         console.error("OAuth callback error:", err);
@@ -93,7 +113,7 @@ export default function CalendarCallbackScreen() {
           err instanceof Error ? err.message : "Failed to connect calendar"
         );
         setTimeout(() => {
-          router.replace("/(app)/settings");
+          navigateToSettings(router);
         }, 2000);
       }
     }

@@ -83,6 +83,7 @@ export default function SettingsScreen() {
     loading: loadingCalendars,
     fetchConnections,
     getOAuthUrl,
+    handleOAuthCallback,
     disconnect,
   } = useCalendarConnections();
 
@@ -258,7 +259,8 @@ export default function SettingsScreen() {
       <ConnectCalendarModal
         visible={showConnectModal}
         onClose={() => setShowConnectModal(false)}
-        onConnect={getOAuthUrl}
+        onGetOAuthUrl={getOAuthUrl}
+        onHandleCallback={handleOAuthCallback}
       />
     </ScrollView>
   );
