@@ -5,9 +5,9 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start --port 4001",
-    "ios": "expo start --ios --port 4001",
-    "android": "expo start --android --port 4001",
-    "web": "expo start --web --port 4001",
+    "ios": "expo run:ios --port 4001",
+    "android": "expo run:android --port 4001",
+    "web": "expo run:web --port 4001",
     "type-check": "tsc --noEmit",
     "lint": "eslint ."
   },
