@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -9,6 +9,7 @@ import {
   ScrollView,
 } from "react-native";
 import { router } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { authClient } from "@/lib/auth";
 import {
   User,
@@ -21,8 +22,16 @@ import {
   FileText,
   ClipboardList,
   ChevronRight,
+  Calendar,
+  Plus,
+  Settings2,
   type LucideIcon,
 } from "lucide-react-native";
+import { useCalendarConnections } from "@/hooks/useCalendarConnections";
+import {
+  ConnectCalendarModal,
+  CalendarConnectionItem,
+} from "@/components/calendar";
 
 interface SettingItemProps {
   icon: LucideIcon;
@@ -67,6 +76,23 @@ function SettingItem({
 export default function SettingsScreen() {
   const session = authClient.useSession();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [showConnectModal, setShowConnectModal] = useState(false);
+
+  const {
+    connections,
+    loading: loadingCalendars,
+    fetchConnections,
+    getOAuthUrl,
+    handleOAuthCallback,
+    disconnect,
+  } = useCalendarConnections();
+
+  // Fetch calendar connections when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchConnections();
+    }, [fetchConnections])
+  );
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -122,6 +148,52 @@ export default function SettingsScreen() {
             value="On"
             onPress={() => Alert.alert("Coming Soon", "Notification settings will be available in a future update.")}
           />
+        </View>
+      </View>
+
+      {/* Calendar Section */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Calendars</Text>
+        <View style={styles.sectionContent}>
+          {loadingCalendars && connections.length === 0 ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.loadingText}>Loading calendars...</Text>
+            </View>
+          ) : connections.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Calendar size={32} color="#ccc" />
+              <Text style={styles.emptyText}>No calendars connected</Text>
+              <Text style={styles.emptySubtext}>
+                Connect your calendar to see events alongside your notes
+              </Text>
+            </View>
+          ) : (
+            connections.map((connection) => (
+              <View key={connection.id}>
+                <CalendarConnectionItem
+                  connection={connection}
+                  onDisconnect={disconnect}
+                  onPress={() => router.push(`/(app)/calendar/${connection.id}`)}
+                />
+                <TouchableOpacity
+                  style={styles.selectCalendarsButton}
+                  onPress={() => router.push(`/(app)/calendar/select/${connection.id}`)}
+                >
+                  <Settings2 size={16} color="#007AFF" />
+                  <Text style={styles.selectCalendarsText}>Select calendars</Text>
+                  <ChevronRight size={16} color="#ccc" />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+          <TouchableOpacity
+            style={styles.addCalendarButton}
+            onPress={() => setShowConnectModal(true)}
+          >
+            <Plus size={20} color="#007AFF" />
+            <Text style={styles.addCalendarText}>Connect Calendar</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -183,6 +255,13 @@ export default function SettingsScreen() {
       <View style={styles.footer}>
         <Text style={styles.footerText}>Made with care for your notes</Text>
       </View>
+
+      <ConnectCalendarModal
+        visible={showConnectModal}
+        onClose={() => setShowConnectModal(false)}
+        onGetOAuthUrl={getOAuthUrl}
+        onHandleCallback={handleOAuthCallback}
+      />
     </ScrollView>
   );
 }
@@ -259,5 +338,62 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 13,
     color: "#999",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+    gap: 12,
+  },
+  loadingText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  emptyContainer: {
+    alignItems: "center",
+    padding: 24,
+    gap: 8,
+  },
+  emptyText: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#666",
+    marginTop: 8,
+  },
+  emptySubtext: {
+    fontSize: 13,
+    color: "#999",
+    textAlign: "center",
+  },
+  addCalendarButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    gap: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#eee",
+  },
+  addCalendarText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#007AFF",
+  },
+  selectCalendarsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingLeft: 68,
+    gap: 8,
+    backgroundColor: "#f9f9f9",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#eee",
+  },
+  selectCalendarsText: {
+    flex: 1,
+    fontSize: 14,
+    color: "#007AFF",
   },
 });

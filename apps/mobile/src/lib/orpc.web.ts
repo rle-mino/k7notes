@@ -15,6 +15,10 @@ import type {
   Folder as ContractFolder,
   SearchResult as ContractSearchResult,
   FolderContentsResponse as ContractFolderContents,
+  CalendarConnection as ContractCalendarConnection,
+  CalendarEvent as ContractCalendarEvent,
+  CalendarInfo as ContractCalendarInfo,
+  OAuthUrlResponse as ContractOAuthUrlResponse,
 } from "@k7notes/contracts";
 import { getApiUrl } from "./api";
 
@@ -54,6 +58,10 @@ export type Note = Jsonify<ContractNote>;
 export type Folder = Jsonify<ContractFolder>;
 export type SearchResult = Jsonify<ContractSearchResult>;
 export type FolderContents = Jsonify<ContractFolderContents>;
+export type CalendarConnection = Jsonify<ContractCalendarConnection>;
+export type CalendarEvent = Jsonify<ContractCalendarEvent>;
+export type CalendarInfo = Jsonify<ContractCalendarInfo>;
+export type OAuthUrlResponse = Jsonify<ContractOAuthUrlResponse>;
 
 // Re-export input types (these don't need jsonification)
 export type {
@@ -62,4 +70,7 @@ export type {
   CreateFolder,
   UpdateFolder,
   FolderPathItem,
+  CalendarProvider,
+  ConnectCalendar,
+  ListCalendarEvents,
 } from "@k7notes/contracts";

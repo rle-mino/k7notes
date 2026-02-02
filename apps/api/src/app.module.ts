@@ -5,6 +5,7 @@ import { AppController } from "./app.controller.js";
 import { AuthModule } from "./auth/auth.module.js";
 import { NotesModule } from "./notes/notes.module.js";
 import { FoldersModule } from "./folders/folders.module.js";
+import { CalendarModule } from "./calendar/calendar.module.js";
 
 declare module "@orpc/nest" {
   interface ORPCGlobalContext {
@@ -37,6 +38,7 @@ const logger = new Logger("oRPC");
     AuthModule,
     NotesModule,
     FoldersModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [],
