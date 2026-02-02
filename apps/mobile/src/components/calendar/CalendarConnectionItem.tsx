@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
+  Platform,
 } from "react-native";
 import { Calendar, Trash2, ChevronRight } from "lucide-react-native";
 import type { CalendarConnection } from "@/lib/orpc";
@@ -36,11 +37,26 @@ export function CalendarConnectionItem({
   const providerColor = PROVIDER_COLORS[connection.provider] || "#666";
   const providerName = PROVIDER_NAMES[connection.provider] || connection.provider;
 
-  const handleDisconnect = () => {
-    Alert.alert(
-      "Disconnect Calendar",
-      `Are you sure you want to disconnect ${connection.accountEmail}?`,
-      [
+  const handleDisconnect = async () => {
+    const message = `Are you sure you want to disconnect ${connection.accountEmail}?`;
+
+    if (Platform.OS === "web") {
+      // Use native browser confirm on web
+      if (!window.confirm(message)) {
+        return;
+      }
+      try {
+        setDisconnecting(true);
+        await onDisconnect(connection.id);
+      } catch (err) {
+        console.error("Failed to disconnect:", err);
+        window.alert("Failed to disconnect calendar");
+      } finally {
+        setDisconnecting(false);
+      }
+    } else {
+      // Use React Native Alert on native platforms
+      Alert.alert("Disconnect Calendar", message, [
         { text: "Cancel", style: "cancel" },
         {
           text: "Disconnect",
@@ -57,8 +73,8 @@ export function CalendarConnectionItem({
             }
           },
         },
-      ]
-    );
+      ]);
+    }
   };
 
   return (
