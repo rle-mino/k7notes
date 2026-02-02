@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "K7Notes",
-    "slug": "k7notes",
+    "slug": "k7-notes",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.k7notes.app"
+      "bundleIdentifier": "com.k7notes.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -35,6 +38,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "f22ad181-2756-4267-96d3-af36b0abf456"
+      }
+    },
+    "owner": "raphlemia"
   }
 }
