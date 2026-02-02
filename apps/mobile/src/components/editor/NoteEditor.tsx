@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, forwardRef } from 'react';
+import React, { useEffect, useImperativeHandle, forwardRef, useRef } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import {
   RichText,
@@ -24,6 +24,8 @@ export interface NoteEditorProps {
 
 export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
   ({ initialContent = '', onContentChange, editable = true }, ref) => {
+    const isReadyRef = useRef(false);
+
     const editor = useEditorBridge({
       autofocus: false,
       avoidIosKeyboard: true,
@@ -65,6 +67,14 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
       ],
     });
 
+    // Track editor ready state
+    useEffect(() => {
+      const unsubscribe = editor._subscribeToEditorStateUpdate((state) => {
+        isReadyRef.current = state.isReady;
+      });
+      return () => unsubscribe();
+    }, [editor]);
+
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
       getMarkdown: async () => {
@@ -79,14 +89,20 @@ export const NoteEditor = forwardRef<NoteEditorRef, NoteEditorProps>(
       },
     }));
 
-    // Track content changes
+    // Track content changes using content update subscription
     useEffect(() => {
       if (!onContentChange) return;
 
       const unsubscribe = editor._subscribeToContentUpdate(async () => {
-        const html = await editor.getHTML();
-        const markdown = htmlToMarkdown(html);
-        onContentChange(markdown);
+        if (!isReadyRef.current) return;
+
+        try {
+          const html = await editor.getHTML();
+          const markdown = htmlToMarkdown(html);
+          onContentChange(markdown);
+        } catch (e) {
+          console.error('[NoteEditor] Failed to get content:', e);
+        }
       });
 
       return () => {

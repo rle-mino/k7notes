@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -7,22 +7,38 @@ import {
   TouchableOpacity,
   Alert,
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { orpc } from "@/lib/orpc";
+import { NoteEditor, type NoteEditorRef } from "@/components/editor/NoteEditor";
 
 export default function NewNoteScreen() {
   const insets = useSafeAreaInsets();
   const { folderId } = useLocalSearchParams<{ folderId?: string }>();
+  const editorRef = useRef<NoteEditorRef>(null);
   const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
   const [saving, setSaving] = useState(false);
 
+  // Track editor content via callback (more reliable than getMarkdown on mobile)
+  const contentRef = useRef("");
+
+  const handleContentChange = useCallback((markdown: string) => {
+    contentRef.current = markdown;
+  }, []);
+
   const handleSave = useCallback(async () => {
+    // Try to get content from ref first (set by onContentChange),
+    // fall back to getMarkdown() if empty
+    let content = contentRef.current;
+    if (!content && editorRef.current) {
+      try {
+        content = await editorRef.current.getMarkdown();
+      } catch (e) {
+        console.error("[NewNote] Failed to get markdown:", e);
+      }
+    }
+
     if (!title.trim() && !content.trim()) {
       Alert.alert("Empty Note", "Please add a title or content to your note.");
       return;
@@ -46,10 +62,10 @@ export default function NewNoteScreen() {
       );
       setSaving(false);
     }
-  }, [title, content, folderId]);
+  }, [title, folderId]);
 
   const handleCancel = useCallback(() => {
-    if (title.trim() || content.trim()) {
+    if (title.trim() || contentRef.current) {
       Alert.alert(
         "Discard Note?",
         "You have unsaved changes. Are you sure you want to discard them?",
@@ -61,14 +77,10 @@ export default function NewNoteScreen() {
     } else {
       router.back();
     }
-  }, [title, content]);
+  }, [title]);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 88 : 0}
-    >
+    <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <TouchableOpacity onPress={handleCancel} style={styles.headerButton}>
           <Text style={styles.cancelText}>Cancel</Text>
@@ -87,14 +99,7 @@ export default function NewNoteScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 20 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
+      <View style={styles.titleContainer}>
         <TextInput
           style={styles.titleInput}
           placeholder="Title"
@@ -105,17 +110,17 @@ export default function NewNoteScreen() {
           returnKeyType="next"
           maxLength={200}
         />
-        <TextInput
-          style={styles.contentInput}
-          placeholder="Start writing..."
-          placeholderTextColor="#999"
-          value={content}
-          onChangeText={setContent}
-          multiline
-          textAlignVertical="top"
+      </View>
+
+      <View style={styles.editorContainer}>
+        <NoteEditor
+          ref={editorRef}
+          initialContent=""
+          onContentChange={handleContentChange}
+          editable={true}
         />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </View>
+    </View>
   );
 }
 
@@ -161,23 +166,19 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
   },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
+  titleContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
   },
   titleInput: {
     fontSize: 24,
     fontWeight: "600",
     color: "#1a1a1a",
-    marginBottom: 16,
     paddingVertical: 8,
   },
-  contentInput: {
-    fontSize: 16,
-    color: "#1a1a1a",
-    lineHeight: 24,
-    minHeight: 300,
+  editorContainer: {
+    flex: 1,
   },
 });

@@ -1,5 +1,6 @@
 import TurndownService from 'turndown';
 import Showdown from 'showdown';
+import { parseHTML } from 'linkedom';
 
 // HTML to Markdown converter (for saving)
 const turndownService = new TurndownService({
@@ -13,6 +14,14 @@ turndownService.addRule('strikethrough', {
   filter: ['del', 's', 'strike'] as (keyof HTMLElementTagNameMap)[],
   replacement: (content) => `~~${content}~~`,
 });
+
+/**
+ * Parse HTML string to a DOM node using linkedom (works in React Native)
+ */
+function parseHtmlToNode(html: string): Node {
+  const { document } = parseHTML(`<!DOCTYPE html><html><body>${html}</body></html>`);
+  return document.body;
+}
 
 // Markdown to HTML converter (for loading)
 const showdownConverter = new Showdown.Converter({
@@ -37,7 +46,9 @@ export function markdownToHtml(markdown: string): string {
  */
 export function htmlToMarkdown(html: string): string {
   if (!html || html === '<p></p>' || html === '<p><br></p>') return '';
-  return turndownService.turndown(html);
+  // Use linkedom to parse HTML since React Native doesn't have document
+  const node = parseHtmlToNode(html);
+  return turndownService.turndown(node as unknown as HTMLElement);
 }
 
 /**
