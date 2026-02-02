@@ -14,6 +14,7 @@ import { useTreeData, type TreeNode } from "@/hooks/useTreeData";
 import { TreeItem } from "@/components/notes/TreeItem";
 import { EmptyState } from "@/components/notes/EmptyState";
 import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
+import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import type { Note } from "@/lib/orpc";
 
 export default function NotesIndexScreen() {
@@ -29,6 +30,10 @@ export default function NotesIndexScreen() {
 
   const [folderModalVisible, setFolderModalVisible] = useState(false);
   const [folderModalParentId, setFolderModalParentId] = useState<string | null>(
+    null
+  );
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
+  const [noteModalFolderId, setNoteModalFolderId] = useState<string | null>(
     null
   );
 
@@ -48,11 +53,8 @@ export default function NotesIndexScreen() {
   };
 
   const handleAddNote = (folderId: string | null) => {
-    if (folderId) {
-      router.push(`/notes/new?folderId=${folderId}`);
-    } else {
-      router.push("/notes/new");
-    }
+    setNoteModalFolderId(folderId);
+    setNoteModalVisible(true);
   };
 
   const handleAddFolder = (parentFolderId: string | null) => {
@@ -156,6 +158,12 @@ export default function NotesIndexScreen() {
         parentFolderId={folderModalParentId}
         onClose={() => setFolderModalVisible(false)}
         onCreated={handleFolderCreated}
+      />
+
+      <CreateNoteModal
+        visible={noteModalVisible}
+        folderId={noteModalFolderId}
+        onClose={() => setNoteModalVisible(false)}
       />
     </View>
   );

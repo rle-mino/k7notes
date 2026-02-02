@@ -4,18 +4,14 @@ import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { authClient } from "@/lib/auth";
 
-type RecordType = "audio" | "text";
+type RecordType = "audio";
 
 export default function AppLayoutWeb() {
   const { data: session, isPending } = authClient.useSession();
 
   const handleRecord = useCallback((type: RecordType) => {
-    if (type === "text") {
-      router.push("/notes/new");
-    } else {
-      // Audio recording - to be implemented
-      console.log("Audio recording requested");
-    }
+    // Audio recording - to be implemented
+    console.log("Audio recording requested:", type);
   }, []);
 
   // Redirect to login if not authenticated

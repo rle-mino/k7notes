@@ -18,8 +18,9 @@ import {
   Plus,
   type LucideIcon,
 } from "lucide-react-native";
+import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 
-type RecordType = "audio" | "text";
+type RecordType = "audio";
 
 interface SidebarProps {
   onRecord: (type: RecordType) => void;
@@ -42,6 +43,7 @@ const NAV_ITEMS: NavItem[] = [
 export function Sidebar({ onRecord }: SidebarProps) {
   const pathname = usePathname();
   const [recordMenuVisible, setRecordMenuVisible] = useState(false);
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
 
   const handleNavPress = (path: string) => {
     router.push(path as "/" | "/notes" | "/search" | "/recents" | "/settings");
@@ -51,9 +53,13 @@ export function Sidebar({ onRecord }: SidebarProps) {
     setRecordMenuVisible(true);
   };
 
-  const handleRecordSelect = (type: RecordType) => {
+  const handleRecordSelect = (type: RecordType | "text") => {
     setRecordMenuVisible(false);
-    onRecord(type);
+    if (type === "text") {
+      setNoteModalVisible(true);
+    } else {
+      onRecord(type);
+    }
   };
 
   const isActive = (path: string) => {
@@ -152,6 +158,12 @@ export function Sidebar({ onRecord }: SidebarProps) {
           </View>
         </Pressable>
       </Modal>
+
+      <CreateNoteModal
+        visible={noteModalVisible}
+        folderId={null}
+        onClose={() => setNoteModalVisible(false)}
+      />
     </>
   );
 }

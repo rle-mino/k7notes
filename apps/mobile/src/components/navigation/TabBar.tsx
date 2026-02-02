@@ -19,8 +19,9 @@ import {
   Plus,
   type LucideIcon,
 } from "lucide-react-native";
+import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 
-type RecordType = "audio" | "text";
+type RecordType = "audio";
 
 interface TabBarProps extends BottomTabBarProps {
   onRecord: (type: RecordType) => void;
@@ -43,14 +44,19 @@ const TAB_LABELS: Record<string, string> = {
 export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps) {
   const insets = useSafeAreaInsets();
   const [recordMenuVisible, setRecordMenuVisible] = useState(false);
+  const [noteModalVisible, setNoteModalVisible] = useState(false);
 
   const handleRecordPress = () => {
     setRecordMenuVisible(true);
   };
 
-  const handleRecordSelect = (type: RecordType) => {
+  const handleRecordSelect = (type: RecordType | "text") => {
     setRecordMenuVisible(false);
-    onRecord(type);
+    if (type === "text") {
+      setNoteModalVisible(true);
+    } else {
+      onRecord(type);
+    }
   };
 
   // Filter out non-tab routes (like [id] routes)
@@ -181,6 +187,12 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
           </View>
         </Pressable>
       </Modal>
+
+      <CreateNoteModal
+        visible={noteModalVisible}
+        folderId={null}
+        onClose={() => setNoteModalVisible(false)}
+      />
     </>
   );
 }
