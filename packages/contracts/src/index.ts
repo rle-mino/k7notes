@@ -1,5 +1,5 @@
 // Re-export contracts
-export { contract, notesContract, foldersContract } from "./contracts/index";
+export { contract, notesContract, foldersContract, calendarContract } from "./contracts/index";
 export type { Contract } from "./contracts/index";
 
 // Re-export schemas
@@ -44,3 +44,28 @@ export type {
   FolderContentsResponse,
   FolderPathItem,
 } from "./schemas/folder";
+
+export {
+  CalendarProviderSchema,
+  CalendarConnectionSchema,
+  ConnectCalendarSchema,
+  CalendarOAuthCallbackSchema,
+  CalendarEventSchema,
+  ListCalendarEventsSchema,
+  CalendarInfoSchema,
+  ListCalendarsSchema,
+  OAuthUrlResponseSchema,
+  DisconnectCalendarSchema,
+} from "./schemas/calendar";
+export type {
+  CalendarProvider,
+  CalendarConnection,
+  ConnectCalendar,
+  CalendarOAuthCallback,
+  CalendarEvent,
+  ListCalendarEvents,
+  CalendarInfo,
+  ListCalendars,
+  OAuthUrlResponse,
+  DisconnectCalendar,
+} from "./schemas/calendar";

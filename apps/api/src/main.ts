@@ -17,6 +17,7 @@ async function bootstrap() {
   const jsonParser = bodyParser.json({ type: ["application/json", "text/plain"] });
   expressApp.use("/api/notes", jsonParser);
   expressApp.use("/api/folders", jsonParser);
+  expressApp.use("/api/calendar", jsonParser);
 
   // Enable CORS for Expo development and production
   app.enableCors({
