@@ -9,11 +9,18 @@
     "lint": "eslint . --ext .ts",
     "type-check": "tsc --noEmit"
   },
+  "dependencies": {
+    "@k7notes/api": "workspace:*",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.38.4",
+    "pg": "^8.13.1"
+  },
   "devDependencies": {
     "@k7notes/eslint-config": "workspace:*",
     "@k7notes/typescript-config": "workspace:*",
     "@playwright/test": "^1.50.0",
     "@types/node": "^22.10.7",
+    "@types/pg": "^8.11.10",
     "eslint": "^8.57.0",
     "typescript": "^5.7.3"
   }

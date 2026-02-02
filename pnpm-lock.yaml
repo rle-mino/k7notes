@@ -105,6 +105,19 @@ importers:
         version: 5.8.3
 
   packages/e2e:
+    dependencies:
+      '@k7notes/api':
+        specifier: workspace:*
+        version: link:../api
+      dotenv:
+        specifier: ^16.4.7
+        version: 16.6.1
+      drizzle-orm:
+        specifier: ^0.38.4
+        version: 0.38.4(@types/pg@8.16.0)(@types/react@18.3.27)(kysely@0.28.11)(pg@8.18.0)(react@19.2.4)
+      pg:
+        specifier: ^8.13.1
+        version: 8.18.0
     devDependencies:
       '@k7notes/eslint-config':
         specifier: workspace:*
@@ -118,6 +131,9 @@ importers:
       '@types/node':
         specifier: ^22.10.7
         version: 22.19.7
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.16.0
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
