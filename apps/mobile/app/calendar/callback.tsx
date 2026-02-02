@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, Linking, Platform } from "react-native";
+import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
 import type { CalendarProvider } from "@/lib/orpc";
-import { APP_SCHEME } from "@/constants/app";
 
 /**
  * Parse the provider from the OAuth state
@@ -21,37 +20,10 @@ function parseProviderFromState(state: string | undefined): CalendarProvider | n
 }
 
 /**
- * Redirect to settings - uses deep link on web (to open the app),
- * or router.replace on native
- * @returns Promise that resolves to true if navigation succeeded, false if deep link failed
+ * Redirect to settings - uses router.replace on all platforms
  */
-async function navigateToSettings(
-  router: ReturnType<typeof useRouter>,
-  onDeepLinkFailed?: () => void
-): Promise<boolean> {
-  if (Platform.OS === "web") {
-    // On web, redirect to the mobile app using deep link
-    const deepLink = `${APP_SCHEME}://settings`;
-    try {
-      const canOpen = await Linking.canOpenURL(deepLink);
-      if (canOpen) {
-        await Linking.openURL(deepLink);
-        return true;
-      } else {
-        console.warn("Cannot open app via deep link - app may not be installed");
-        onDeepLinkFailed?.();
-        return false;
-      }
-    } catch (err) {
-      console.error("Failed to open app via deep link:", err);
-      onDeepLinkFailed?.();
-      return false;
-    }
-  } else {
-    // On native, use router
-    router.replace("/(app)/settings");
-    return true;
-  }
+function navigateToSettings(router: ReturnType<typeof useRouter>): void {
+  router.replace("/(app)/settings");
 }
 
 /**
@@ -72,7 +44,7 @@ export default function CalendarCallbackScreen() {
   }>();
   const router = useRouter();
   const { handleOAuthCallback, clearPendingProvider } = useCalendarConnections();
-  const [status, setStatus] = useState<"loading" | "success" | "error" | "web-success">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const processedRef = useRef(false);
 
@@ -117,15 +89,8 @@ export default function CalendarCallbackScreen() {
         await clearPendingProvider();
         setStatus("success");
         // Navigate to settings to see the new connection
-        setTimeout(async () => {
-          const navigated = await navigateToSettings(router, () => {
-            // On web, if deep link fails, show a message to close the tab
-            setStatus("web-success");
-          });
-          // If navigation failed on web, status will be updated by callback
-          if (!navigated && Platform.OS === "web") {
-            setStatus("web-success");
-          }
+        setTimeout(() => {
+          navigateToSettings(router);
         }, 1500);
       } catch (err) {
         console.error("OAuth callback error:", err);
@@ -156,13 +121,6 @@ export default function CalendarCallbackScreen() {
           <Text style={styles.successIcon}>✓</Text>
           <Text style={styles.text}>Calendar connected!</Text>
           <Text style={styles.subtext}>Redirecting...</Text>
-        </>
-      )}
-      {status === "web-success" && (
-        <>
-          <Text style={styles.successIcon}>✓</Text>
-          <Text style={styles.text}>Calendar connected!</Text>
-          <Text style={styles.subtext}>You can close this tab and return to the app.</Text>
         </>
       )}
       {status === "error" && (

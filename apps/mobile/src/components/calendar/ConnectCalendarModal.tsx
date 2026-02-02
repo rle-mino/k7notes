@@ -8,7 +8,6 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
-  Linking,
 } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { ORPCError } from "@orpc/client";
@@ -91,14 +90,8 @@ export function ConnectCalendarModal({
         const { url } = await onGetOAuthUrl(provider);
 
         if (Platform.OS === "web") {
-          // On web, open in same window (will redirect back)
-          const supported = await Linking.canOpenURL(url);
-          if (supported) {
-            await Linking.openURL(url);
-            onClose();
-          } else {
-            setError("Cannot open authorization URL");
-          }
+          // On web, navigate in the same window (not a new tab)
+          window.location.href = url;
           return;
         }
 
