@@ -8,30 +8,35 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { useLocalSearchParams, Stack, router } from "expo-router";
+import { useLocalSearchParams, Stack } from "expo-router";
 import {
   Calendar,
-  Clock,
   MapPin,
   Users,
-  ChevronLeft,
-  ChevronRight,
   AlertCircle,
+  CalendarDays,
 } from "lucide-react-native";
 import { orpc } from "@/lib/orpc";
 import type { CalendarEvent, CalendarInfo } from "@/lib/orpc";
+import { storage } from "@/lib/storage";
 
-const PROVIDER_COLORS: Record<string, string> = {
-  google: "#4285F4",
-  microsoft: "#0078D4",
-};
+const SELECTED_CALENDARS_KEY = "k7notes_selected_calendars_";
 
-function formatTime(dateString: string): string {
-  const date = new Date(dateString);
+function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function formatDate(date: Date): string {
+function formatEventDate(date: Date): string {
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+
+  const isToday = date.toDateString() === today.toDateString();
+  const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+  if (isToday) return "Today";
+  if (isTomorrow) return "Tomorrow";
+
   return date.toLocaleDateString([], {
     weekday: "short",
     month: "short",
@@ -39,53 +44,73 @@ function formatDate(date: Date): string {
   });
 }
 
-function formatDateRange(startDate: Date, endDate: Date): string {
-  const start = formatDate(startDate);
-  const end = formatDate(endDate);
-  return `${start} - ${end}`;
+function getDateKey(date: Date): string {
+  return date.toDateString();
+}
+
+interface EventWithDate extends CalendarEvent {
+  dateKey: string;
+  dateLabel: string;
 }
 
 interface EventItemProps {
-  event: CalendarEvent;
+  event: EventWithDate;
+  showDateHeader: boolean;
 }
 
-function EventItem({ event }: EventItemProps) {
-  const startTime = formatTime(event.startTime);
-  const endTime = formatTime(event.endTime);
+function EventItem({ event, showDateHeader }: EventItemProps) {
+  const startDate = new Date(event.startTime);
+  const endDate = new Date(event.endTime);
+  const startTime = formatTime(startDate);
+  const endTime = formatTime(endDate);
 
   return (
-    <View style={styles.eventItem}>
-      <View style={styles.eventTime}>
-        <Text style={styles.eventTimeText}>{startTime}</Text>
-        <Text style={styles.eventTimeSeparator}>-</Text>
-        <Text style={styles.eventTimeText}>{endTime}</Text>
-      </View>
-      <View style={styles.eventContent}>
-        <Text style={styles.eventTitle} numberOfLines={2}>
-          {event.title}
-        </Text>
-        {event.location && (
-          <View style={styles.eventMeta}>
-            <MapPin size={12} color="#999" />
-            <Text style={styles.eventMetaText} numberOfLines={1}>
-              {event.location}
-            </Text>
-          </View>
-        )}
-        {event.attendees.length > 0 && (
-          <View style={styles.eventMeta}>
-            <Users size={12} color="#999" />
-            <Text style={styles.eventMetaText}>
-              {event.attendees.length} attendee
-              {event.attendees.length > 1 ? "s" : ""}
-            </Text>
-          </View>
-        )}
-        {event.status === "tentative" && (
-          <View style={styles.tentativeBadge}>
-            <Text style={styles.tentativeText}>Tentative</Text>
-          </View>
-        )}
+    <View>
+      {showDateHeader && (
+        <View style={styles.dateHeader}>
+          <CalendarDays size={14} color="#007AFF" />
+          <Text style={styles.dateHeaderText}>{event.dateLabel}</Text>
+        </View>
+      )}
+      <View style={styles.eventItem}>
+        <View style={styles.eventTime}>
+          {event.isAllDay ? (
+            <Text style={styles.allDayText}>All day</Text>
+          ) : (
+            <>
+              <Text style={styles.eventTimeText}>{startTime}</Text>
+              <Text style={styles.eventTimeSeparator}>-</Text>
+              <Text style={styles.eventTimeText}>{endTime}</Text>
+            </>
+          )}
+        </View>
+        <View style={styles.eventContent}>
+          <Text style={styles.eventTitle} numberOfLines={2}>
+            {event.title}
+          </Text>
+          {event.location && (
+            <View style={styles.eventMeta}>
+              <MapPin size={12} color="#999" />
+              <Text style={styles.eventMetaText} numberOfLines={1}>
+                {event.location}
+              </Text>
+            </View>
+          )}
+          {event.attendees.length > 0 && (
+            <View style={styles.eventMeta}>
+              <Users size={12} color="#999" />
+              <Text style={styles.eventMetaText}>
+                {event.attendees.length} attendee
+                {event.attendees.length > 1 ? "s" : ""}
+              </Text>
+            </View>
+          )}
+          {event.status === "tentative" && (
+            <View style={styles.tentativeBadge}>
+              <Text style={styles.tentativeText}>Tentative</Text>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -94,24 +119,28 @@ function EventItem({ event }: EventItemProps) {
 export default function CalendarEventsScreen() {
   const { id: connectionId } = useLocalSearchParams<{ id: string }>();
 
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [events, setEvents] = useState<EventWithDate[]>([]);
   const [calendars, setCalendars] = useState<CalendarInfo[]>([]);
+  const [selectedCalendarIds, setSelectedCalendarIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Date range state (show one week by default)
-  const [startDate, setStartDate] = useState(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return today;
-  });
-  const [endDate, setEndDate] = useState(() => {
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
-    return nextWeek;
-  });
+  // Load selected calendars from storage
+  useEffect(() => {
+    async function loadSelectedCalendars() {
+      if (!connectionId) return;
+      try {
+        const stored = await storage.getItem(SELECTED_CALENDARS_KEY + connectionId);
+        if (stored) {
+          setSelectedCalendarIds(new Set(JSON.parse(stored)));
+        }
+      } catch {
+        // Ignore errors, use defaults
+      }
+    }
+    loadSelectedCalendars();
+  }, [connectionId]);
 
   const fetchData = useCallback(
     async (isRefresh = false) => {
@@ -125,19 +154,77 @@ export default function CalendarEventsScreen() {
         }
         setError(null);
 
-        // Fetch calendars and events in parallel
-        const [calendarsResult, eventsResult] = await Promise.all([
-          orpc.calendar.listCalendars({ connectionId }),
-          orpc.calendar.listEvents({
-            connectionId,
-            startDate,
-            endDate,
-            maxResults: 50,
-          }),
-        ]);
-
+        // Fetch calendars first
+        const calendarsResult = await orpc.calendar.listCalendars({ connectionId });
         setCalendars(calendarsResult);
-        setEvents(eventsResult);
+
+        // Load selected calendars from storage or default to all
+        let selectedIds: Set<string>;
+        const stored = await storage.getItem(SELECTED_CALENDARS_KEY + connectionId);
+        if (stored) {
+          selectedIds = new Set(JSON.parse(stored));
+        } else {
+          // Default to all calendars
+          selectedIds = new Set(calendarsResult.map((c) => c.id));
+        }
+        setSelectedCalendarIds(selectedIds);
+
+        // Fetch events for the next 90 days (to get enough events)
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        const endDate = new Date(now);
+        endDate.setDate(endDate.getDate() + 90);
+
+        // Fetch events for all selected calendars
+        const allEvents: CalendarEvent[] = [];
+        const calendarIdsToFetch = Array.from(selectedIds).filter((id) =>
+          calendarsResult.some((c) => c.id === id)
+        );
+
+        // If no calendars selected, fetch primary
+        if (calendarIdsToFetch.length === 0 && calendarsResult.length > 0) {
+          const primary = calendarsResult.find((c) => c.isPrimary) || calendarsResult[0];
+          calendarIdsToFetch.push(primary.id);
+        }
+
+        // Fetch events from each selected calendar
+        await Promise.all(
+          calendarIdsToFetch.map(async (calendarId) => {
+            try {
+              const eventsResult = await orpc.calendar.listEvents({
+                connectionId,
+                calendarId,
+                startDate: now,
+                endDate,
+                maxResults: 20,
+              });
+              allEvents.push(...eventsResult);
+            } catch (err) {
+              console.warn(`Failed to fetch events for calendar ${calendarId}:`, err);
+            }
+          })
+        );
+
+        // Sort by start time and take first 20
+        const sortedEvents = allEvents
+          .filter((e) => e.status !== "cancelled")
+          .sort(
+            (a, b) =>
+              new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+          )
+          .slice(0, 20);
+
+        // Add date info for grouping
+        const eventsWithDates: EventWithDate[] = sortedEvents.map((event) => {
+          const startDate = new Date(event.startTime);
+          return {
+            ...event,
+            dateKey: getDateKey(startDate),
+            dateLabel: formatEventDate(startDate),
+          };
+        });
+
+        setEvents(eventsWithDates);
       } catch (err) {
         console.error("Failed to fetch calendar data:", err);
         setError(err instanceof Error ? err.message : "Failed to load calendar");
@@ -146,48 +233,12 @@ export default function CalendarEventsScreen() {
         setRefreshing(false);
       }
     },
-    [connectionId, startDate, endDate]
+    [connectionId]
   );
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const goToPreviousWeek = () => {
-    setStartDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(newDate.getDate() - 7);
-      return newDate;
-    });
-    setEndDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(newDate.getDate() - 7);
-      return newDate;
-    });
-  };
-
-  const goToNextWeek = () => {
-    setStartDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(newDate.getDate() + 7);
-      return newDate;
-    });
-    setEndDate((prev) => {
-      const newDate = new Date(prev);
-      newDate.setDate(newDate.getDate() + 7);
-      return newDate;
-    });
-  };
-
-  const goToToday = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const nextWeek = new Date();
-    nextWeek.setDate(nextWeek.getDate() + 7);
-    nextWeek.setHours(23, 59, 59, 999);
-    setStartDate(today);
-    setEndDate(nextWeek);
-  };
 
   const primaryCalendar = calendars.find((c) => c.isPrimary);
 
@@ -196,7 +247,7 @@ export default function CalendarEventsScreen() {
       <View style={styles.centered}>
         <Stack.Screen options={{ title: "Calendar" }} />
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Loading calendar...</Text>
+        <Text style={styles.loadingText}>Loading events...</Text>
       </View>
     );
   }
@@ -214,6 +265,9 @@ export default function CalendarEventsScreen() {
     );
   }
 
+  // Track which date headers have been shown
+  let lastDateKey = "";
+
   return (
     <View style={styles.container}>
       <Stack.Screen
@@ -223,26 +277,18 @@ export default function CalendarEventsScreen() {
         }}
       />
 
-      {/* Date Navigation */}
-      <View style={styles.dateNavigation}>
-        <TouchableOpacity style={styles.navButton} onPress={goToPreviousWeek}>
-          <ChevronLeft size={24} color="#007AFF" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.dateRange} onPress={goToToday}>
-          <Calendar size={16} color="#666" />
-          <Text style={styles.dateRangeText}>
-            {formatDateRange(startDate, endDate)}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navButton} onPress={goToNextWeek}>
-          <ChevronRight size={24} color="#007AFF" />
-        </TouchableOpacity>
+      {/* Header info */}
+      <View style={styles.header}>
+        <Calendar size={16} color="#666" />
+        <Text style={styles.headerText}>
+          Next {events.length} upcoming event{events.length !== 1 ? "s" : ""}
+        </Text>
       </View>
 
       {events.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Calendar size={48} color="#ccc" />
-          <Text style={styles.emptyText}>No events this week</Text>
+          <Text style={styles.emptyText}>No upcoming events</Text>
           <Text style={styles.emptySubtext}>
             Your calendar events will appear here
           </Text>
@@ -250,8 +296,12 @@ export default function CalendarEventsScreen() {
       ) : (
         <FlatList
           data={events}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <EventItem event={item} />}
+          keyExtractor={(item, index) => `${item.id}-${index}`}
+          renderItem={({ item }) => {
+            const showDateHeader = item.dateKey !== lastDateKey;
+            lastDateKey = item.dateKey;
+            return <EventItem event={item} showDateHeader={showDateHeader} />;
+          }}
           contentContainerStyle={styles.eventsList}
           refreshControl={
             <RefreshControl
@@ -260,7 +310,6 @@ export default function CalendarEventsScreen() {
               tintColor="#007AFF"
             />
           }
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
         />
       )}
     </View>
@@ -302,32 +351,33 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-  dateNavigation: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
+    gap: 8,
     backgroundColor: "#fff",
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 16,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#eee",
   },
-  navButton: {
-    padding: 8,
+  headerText: {
+    fontSize: 14,
+    color: "#666",
   },
-  dateRange: {
+  dateHeader: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    backgroundColor: "#f5f5f5",
-    borderRadius: 8,
+    gap: 6,
+    paddingTop: 16,
+    paddingBottom: 8,
+    paddingHorizontal: 4,
   },
-  dateRangeText: {
+  dateHeaderText: {
     fontSize: 14,
-    fontWeight: "500",
-    color: "#333",
+    fontWeight: "600",
+    color: "#007AFF",
   },
   emptyContainer: {
     flex: 1,
@@ -349,14 +399,12 @@ const styles = StyleSheet.create({
   eventsList: {
     padding: 16,
   },
-  separator: {
-    height: 12,
-  },
   eventItem: {
     flexDirection: "row",
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 16,
+    marginBottom: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -375,6 +423,11 @@ const styles = StyleSheet.create({
   eventTimeSeparator: {
     fontSize: 12,
     color: "#ccc",
+  },
+  allDayText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#007AFF",
   },
   eventContent: {
     flex: 1,

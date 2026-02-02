@@ -24,6 +24,7 @@ import {
   ChevronRight,
   Calendar,
   Plus,
+  Settings2,
   type LucideIcon,
 } from "lucide-react-native";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
@@ -168,12 +169,21 @@ export default function SettingsScreen() {
             </View>
           ) : (
             connections.map((connection) => (
-              <CalendarConnectionItem
-                key={connection.id}
-                connection={connection}
-                onDisconnect={disconnect}
-                onPress={() => router.push(`/calendar/${connection.id}`)}
-              />
+              <View key={connection.id}>
+                <CalendarConnectionItem
+                  connection={connection}
+                  onDisconnect={disconnect}
+                  onPress={() => router.push(`/(app)/calendar/${connection.id}`)}
+                />
+                <TouchableOpacity
+                  style={styles.selectCalendarsButton}
+                  onPress={() => router.push(`/(app)/calendar/select/${connection.id}`)}
+                >
+                  <Settings2 size={16} color="#007AFF" />
+                  <Text style={styles.selectCalendarsText}>Select calendars</Text>
+                  <ChevronRight size={16} color="#ccc" />
+                </TouchableOpacity>
+              </View>
             ))
           )}
           <TouchableOpacity
@@ -366,6 +376,22 @@ const styles = StyleSheet.create({
   addCalendarText: {
     fontSize: 15,
     fontWeight: "600",
+    color: "#007AFF",
+  },
+  selectCalendarsButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingLeft: 68,
+    gap: 8,
+    backgroundColor: "#f9f9f9",
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#eee",
+  },
+  selectCalendarsText: {
+    flex: 1,
+    fontSize: 14,
     color: "#007AFF",
   },
 });

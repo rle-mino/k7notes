@@ -1,6 +1,9 @@
 import { useCallback, useState, useRef } from "react";
+import { storage } from "@/lib/storage";
 import { orpc } from "@/lib/orpc";
 import type { CalendarConnection, CalendarProvider } from "@/lib/orpc";
+
+const PENDING_OAUTH_KEY = "k7notes_pending_oauth_provider";
 
 export function useCalendarConnections() {
   const [connections, setConnections] = useState<CalendarConnection[]>([]);
@@ -41,6 +44,8 @@ export function useCalendarConnections() {
           provider,
           redirectUrl,
         });
+        // Store the provider so the callback knows which provider to use
+        await storage.setItem(PENDING_OAUTH_KEY, provider);
         return result;
       } catch (err) {
         console.error("Failed to get OAuth URL:", err);
@@ -49,6 +54,29 @@ export function useCalendarConnections() {
     },
     []
   );
+
+  /**
+   * Get the pending OAuth provider from storage
+   */
+  const getPendingProvider = useCallback(async (): Promise<CalendarProvider | null> => {
+    try {
+      const provider = await storage.getItem(PENDING_OAUTH_KEY);
+      return provider as CalendarProvider | null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  /**
+   * Clear the pending OAuth provider from storage
+   */
+  const clearPendingProvider = useCallback(async () => {
+    try {
+      await storage.removeItem(PENDING_OAUTH_KEY);
+    } catch {
+      // Ignore errors
+    }
+  }, []);
 
   const handleOAuthCallback = useCallback(
     async (provider: CalendarProvider, code: string, state?: string) => {
@@ -93,6 +121,8 @@ export function useCalendarConnections() {
     error,
     fetchConnections,
     getOAuthUrl,
+    getPendingProvider,
+    clearPendingProvider,
     handleOAuthCallback,
     disconnect,
     refresh: () => fetchConnections(true),
