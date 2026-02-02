@@ -13,14 +13,15 @@ A cross-platform note-taking application with React Native (Expo) mobile app, we
 ## Project Structure
 
 ```
-apps/
+packages/
   api/           # NestJS backend (port 4000)
   mobile/        # React Native Expo app (port 4001)
   landing/       # Vite landing page (port 5173)
-packages/
+  e2e/           # Playwright end-to-end tests
   contracts/     # Shared oRPC contracts and Zod schemas
   eslint-config/ # Shared ESLint rules
   typescript-config/
+  stack-k7/      # Docker infrastructure
 ```
 
 ## Commands
@@ -82,15 +83,15 @@ pnpm turbo dev --filter=@k7notes/landing   # Start Vite dev server (builds deps 
 ## Key Files
 
 ### Backend
-- `apps/api/src/db/schema.ts` - Database tables (user, session, folders, notes)
-- `apps/api/src/auth/auth.config.ts` - Better-auth configuration
-- `apps/api/src/notes/notes.service.ts` - Notes business logic
-- `apps/api/src/folders/folders.service.ts` - Folders business logic
+- `packages/api/src/db/schema.ts` - Database tables (user, session, folders, notes)
+- `packages/api/src/auth/auth.config.ts` - Better-auth configuration
+- `packages/api/src/notes/notes.service.ts` - Notes business logic
+- `packages/api/src/folders/folders.service.ts` - Folders business logic
 
 ### Frontend
-- `apps/mobile/src/lib/orpc.ts` - oRPC client with auth cookie handling
-- `apps/mobile/src/lib/auth.ts` - Better-auth mobile client
-- `apps/mobile/src/components/editor/NoteEditor.tsx` - Rich text editor
+- `packages/mobile/src/lib/orpc.ts` - oRPC client with auth cookie handling
+- `packages/mobile/src/lib/auth.ts` - Better-auth mobile client
+- `packages/mobile/src/components/editor/NoteEditor.tsx` - Rich text editor
 
 ### Contracts
 - `packages/contracts/src/contracts/notes.ts` - Notes RPC routes
@@ -108,7 +109,7 @@ Full-text search uses PostgreSQL `tsvector`/`tsquery` with ranking and highlight
 
 ## Environment Variables
 
-### API (`apps/api/.env`)
+### API (`packages/api/.env`)
 ```
 PORT=4000
 BASE_URL=http://localhost:4000
@@ -117,7 +118,7 @@ GOOGLE_CLIENT_ID=...
 GOOGLE_CLIENT_SECRET=...
 ```
 
-### Mobile (`apps/mobile/.env`)
+### Mobile (`packages/mobile/.env`)
 ```
 EXPO_PUBLIC_API_URL=http://localhost:4000
 ```
@@ -134,7 +135,7 @@ EXPO_PUBLIC_API_URL=http://localhost:4000
 ## Development Setup
 
 1. Install dependencies: `pnpm install`
-2. Copy `.env.example` to `.env` in `apps/api` and `apps/mobile`
+2. Copy `.env.example` to `.env` in `packages/api` and `packages/mobile`
 3. Set up PostgreSQL and configure `DATABASE_URL`
 4. Push database schema: `pnpm -F @k7notes/api db:push`
 5. Start development: `pnpm dev`

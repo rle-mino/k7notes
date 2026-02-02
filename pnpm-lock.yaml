@@ -12,14 +12,14 @@ importers:
         specifier: ^2.3.4
         version: 2.8.1
 
-  apps/api:
+  packages/api:
     dependencies:
       '@better-auth/expo':
         specifier: 1.2.12
         version: 1.2.12(better-auth@1.2.12)
       '@k7notes/contracts':
         specifier: workspace:*
-        version: link:../../packages/contracts
+        version: link:../contracts
       '@nestjs/common':
         specifier: ^11.0.0
         version: 11.1.12(reflect-metadata@0.2.2)(rxjs@7.8.2)
@@ -62,10 +62,10 @@ importers:
     devDependencies:
       '@k7notes/eslint-config':
         specifier: workspace:*
-        version: link:../../packages/eslint-config
+        version: link:../eslint-config
       '@k7notes/typescript-config':
         specifier: workspace:*
-        version: link:../../packages/typescript-config
+        version: link:../typescript-config
       '@nestjs/cli':
         specifier: ^10.4.9
         version: 10.4.9(esbuild@0.19.12)
@@ -88,14 +88,30 @@ importers:
         specifier: ^5.7.3
         version: 5.8.3
 
-  apps/e2e:
+  packages/contracts:
+    dependencies:
+      '@orpc/contract':
+        specifier: ^1.13.0
+        version: 1.13.4
+      zod:
+        specifier: ^3.24.0
+        version: 3.25.76
+    devDependencies:
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)
+      typescript:
+        specifier: ^5.7.0
+        version: 5.8.3
+
+  packages/e2e:
     devDependencies:
       '@k7notes/eslint-config':
         specifier: workspace:*
-        version: link:../../packages/eslint-config
+        version: link:../eslint-config
       '@k7notes/typescript-config':
         specifier: workspace:*
-        version: link:../../packages/typescript-config
+        version: link:../typescript-config
       '@playwright/test':
         specifier: ^1.50.0
         version: 1.58.1
@@ -109,7 +125,22 @@ importers:
         specifier: ^5.7.3
         version: 5.8.3
 
-  apps/landing:
+  packages/eslint-config:
+    dependencies:
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^7.0.0
+        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^7.0.0
+        version: 7.18.0(eslint@8.57.1)(typescript@5.8.3)
+      eslint:
+        specifier: ^8.0.0
+        version: 8.57.1
+      eslint-config-prettier:
+        specifier: ^9.0.0
+        version: 9.1.2(eslint@8.57.1)
+
+  packages/landing:
     dependencies:
       i18next:
         specifier: 23.10.0
@@ -143,7 +174,7 @@ importers:
         specifier: ^6.2.0
         version: 6.4.1(@types/node@22.19.7)(lightningcss@1.27.0)(terser@5.46.0)
 
-  apps/mobile:
+  packages/mobile:
     dependencies:
       '@10play/react-native-web-webview':
         specifier: ^0.0.3
@@ -162,7 +193,7 @@ importers:
         version: 4.0.1(react-native@0.76.9(@babel/core@7.29.0)(@babel/preset-env@7.29.0(@babel/core@7.29.0))(@types/react@18.3.27)(react@18.3.1))
       '@k7notes/contracts':
         specifier: workspace:*
-        version: link:../../packages/contracts
+        version: link:../contracts
       '@orpc/client':
         specifier: ^1.13.0
         version: 1.13.4
@@ -250,10 +281,10 @@ importers:
         version: 7.29.0
       '@k7notes/eslint-config':
         specifier: workspace:*
-        version: link:../../packages/eslint-config
+        version: link:../eslint-config
       '@k7notes/typescript-config':
         specifier: workspace:*
-        version: link:../../packages/typescript-config
+        version: link:../typescript-config
       '@types/react':
         specifier: ~18.3.0
         version: 18.3.27
@@ -267,36 +298,7 @@ importers:
         specifier: ~5.7.0
         version: 5.7.3
 
-  packages/contracts:
-    dependencies:
-      '@orpc/contract':
-        specifier: ^1.13.0
-        version: 1.13.4
-      zod:
-        specifier: ^3.24.0
-        version: 3.25.76
-    devDependencies:
-      tsup:
-        specifier: ^8.0.0
-        version: 8.5.1(postcss@8.5.6)(typescript@5.8.3)
-      typescript:
-        specifier: ^5.7.0
-        version: 5.8.3
-
-  packages/eslint-config:
-    dependencies:
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^7.0.0
-        version: 7.18.0(@typescript-eslint/parser@7.18.0(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
-      '@typescript-eslint/parser':
-        specifier: ^7.0.0
-        version: 7.18.0(eslint@8.57.1)(typescript@5.8.3)
-      eslint:
-        specifier: ^8.0.0
-        version: 8.57.1
-      eslint-config-prettier:
-        specifier: ^9.0.0
-        version: 9.1.2(eslint@8.57.1)
+  packages/stack-k7: {}
 
   packages/typescript-config: {}
 
@@ -10459,7 +10461,7 @@ snapshots:
 
   dotenv-expand@11.0.7:
     dependencies:
-      dotenv: 16.4.7
+      dotenv: 16.6.1
 
   dotenv@16.4.7: {}
 
