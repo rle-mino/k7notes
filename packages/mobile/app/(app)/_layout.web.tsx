@@ -1,17 +1,20 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
+import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
 import { authClient } from "@/lib/auth";
 
 type RecordType = "audio";
 
 export default function AppLayoutWeb() {
   const { data: session, isPending } = authClient.useSession();
+  const [audioModalVisible, setAudioModalVisible] = useState(false);
 
   const handleRecord = useCallback((type: RecordType) => {
-    // Audio recording - to be implemented
-    console.log("Audio recording requested:", type);
+    if (type === "audio") {
+      setAudioModalVisible(true);
+    }
   }, []);
 
   // Redirect to login if not authenticated
@@ -31,66 +34,73 @@ export default function AppLayoutWeb() {
   }
 
   return (
-    <View style={styles.container}>
-      <Sidebar onRecord={handleRecord} />
-      <View style={styles.content}>
-        <Stack
-          screenOptions={{
-            headerShown: true,
-            headerTitleAlign: "center",
-          }}
-        >
-          <Stack.Screen
-            name="notes/index"
-            options={{
-              title: "Notes",
+    <>
+      <View style={styles.container}>
+        <Sidebar onRecord={handleRecord} />
+        <View style={styles.content}>
+          <Stack
+            screenOptions={{
+              headerShown: true,
+              headerTitleAlign: "center",
             }}
-          />
-          <Stack.Screen
-            name="notes/[id]"
-            options={{
-              title: "Edit Note",
-            }}
-          />
-          <Stack.Screen
-            name="notes/folder/[id]"
-            options={{
-              title: "Folder",
-            }}
-          />
-          <Stack.Screen
-            name="notes/new"
-            options={{
-              title: "New Note",
-            }}
-          />
-          <Stack.Screen
-            name="search/index"
-            options={{
-              title: "Search",
-            }}
-          />
-          <Stack.Screen
-            name="recents/index"
-            options={{
-              title: "Recents",
-            }}
-          />
-          <Stack.Screen
-            name="settings/index"
-            options={{
-              title: "Settings",
-            }}
-          />
-          <Stack.Screen
-            name="home"
-            options={{
-              headerShown: false,
-            }}
-          />
-        </Stack>
+          >
+            <Stack.Screen
+              name="notes/index"
+              options={{
+                title: "Notes",
+              }}
+            />
+            <Stack.Screen
+              name="notes/[id]"
+              options={{
+                title: "Edit Note",
+              }}
+            />
+            <Stack.Screen
+              name="notes/folder/[id]"
+              options={{
+                title: "Folder",
+              }}
+            />
+            <Stack.Screen
+              name="notes/new"
+              options={{
+                title: "New Note",
+              }}
+            />
+            <Stack.Screen
+              name="search/index"
+              options={{
+                title: "Search",
+              }}
+            />
+            <Stack.Screen
+              name="recents/index"
+              options={{
+                title: "Recents",
+              }}
+            />
+            <Stack.Screen
+              name="settings/index"
+              options={{
+                title: "Settings",
+              }}
+            />
+            <Stack.Screen
+              name="home"
+              options={{
+                headerShown: false,
+              }}
+            />
+          </Stack>
+        </View>
       </View>
-    </View>
+
+      <AudioRecordingModal
+        visible={audioModalVisible}
+        onClose={() => setAudioModalVisible(false)}
+      />
+    </>
   );
 }
 
