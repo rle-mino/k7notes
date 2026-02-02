@@ -73,7 +73,10 @@ export class CalendarService {
   ): Promise<{ url: string; state: string }> {
     const calendarProvider = this.getProvider(provider);
 
-    const state = randomUUID();
+    // Encode the provider in the state so the callback knows which provider to use
+    // Format: provider:uuid (e.g., "google:abc-123-def")
+    const stateId = randomUUID();
+    const state = `${provider}:${stateId}`;
     const baseUrl = process.env.BASE_URL || "http://localhost:4000";
     const callbackUrl = redirectUrl || `${baseUrl}/api/calendar/oauth/callback`;
 

@@ -2,6 +2,22 @@ import { useEffect, useState, useRef } from "react";
 import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
+import type { CalendarProvider } from "@/lib/orpc";
+
+/**
+ * Parse the provider from the OAuth state
+ * State format: "provider:uuid" (e.g., "google:abc-123-def")
+ */
+function parseProviderFromState(state: string | undefined): CalendarProvider | null {
+  if (!state) return null;
+  const parts = state.split(":");
+  if (parts.length < 2) return null;
+  const provider = parts[0];
+  if (provider === "google" || provider === "microsoft") {
+    return provider;
+  }
+  return null;
+}
 
 /**
  * OAuth callback handler for calendar connections
@@ -10,6 +26,8 @@ import { useCalendarConnections } from "@/hooks/useCalendarConnections";
  *
  * Or web callback:
  * http://localhost:4001/calendar/callback?code=xxx&state=xxx
+ *
+ * The provider is encoded in the state parameter (format: "provider:uuid")
  */
 export default function CalendarCallbackScreen() {
   const params = useLocalSearchParams<{
@@ -18,7 +36,7 @@ export default function CalendarCallbackScreen() {
     error?: string;
   }>();
   const router = useRouter();
-  const { handleOAuthCallback, getPendingProvider, clearPendingProvider } = useCalendarConnections();
+  const { handleOAuthCallback, clearPendingProvider } = useCalendarConnections();
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const processedRef = useRef(false);
@@ -54,10 +72,10 @@ export default function CalendarCallbackScreen() {
       }
 
       try {
-        // Get the provider that initiated the OAuth flow
-        const provider = await getPendingProvider();
+        // Extract the provider from the state parameter
+        const provider = parseProviderFromState(state);
         if (!provider) {
-          throw new Error("Could not determine calendar provider. Please try again.");
+          throw new Error("Could not determine calendar provider from state. Please try again.");
         }
 
         await handleOAuthCallback(provider, code, state);
@@ -81,7 +99,7 @@ export default function CalendarCallbackScreen() {
     }
 
     processCallback();
-  }, [params, handleOAuthCallback, getPendingProvider, clearPendingProvider, router]);
+  }, [params, handleOAuthCallback, clearPendingProvider, router]);
 
   return (
     <View style={styles.container}>
