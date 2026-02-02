@@ -5,6 +5,11 @@ import { contract } from "@k7notes/contracts";
 import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
 import { CalendarService } from "./calendar.service.js";
 
+// TODO: Add rate limiting to OAuth endpoints to prevent abuse
+// Consider using @nestjs/throttler with configuration like:
+// - OAuth callback: 10 requests per minute per IP
+// - Token exchange: 5 requests per minute per user
+
 @Controller()
 export class CalendarController {
   private readonly logger = new Logger(CalendarController.name);
@@ -12,19 +17,20 @@ export class CalendarController {
   constructor(private readonly calendarService: CalendarService) {}
 
   /**
-   * Parse the state parameter to extract provider and platform
-   * State format: "provider:platform:uuid" (e.g., "google:mobile:abc-123-def")
+   * Parse the state parameter to extract provider, platform, and userId
+   * State format: "provider:platform:userId:uuid" (e.g., "google:mobile:user123:abc-123-def")
    */
-  private parseState(state: string): { provider: string; platform: "mobile" | "web"; stateId: string } | null {
+  private parseState(state: string): { provider: string; platform: "mobile" | "web"; userId: string; stateId: string } | null {
     if (!state) return null;
     const parts = state.split(":");
-    if (parts.length < 3) return null;
+    if (parts.length < 4) return null;
     const provider = parts[0];
     const platform = parts[1];
-    const stateId = parts.slice(2).join(":");
-    if (!provider || !platform || !stateId) return null;
+    const userId = parts[2];
+    const stateId = parts.slice(3).join(":");
+    if (!provider || !platform || !userId || !stateId) return null;
     if (platform !== "mobile" && platform !== "web") return null;
-    return { provider, platform, stateId };
+    return { provider, platform, userId, stateId };
   }
 
   /**

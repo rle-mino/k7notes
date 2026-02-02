@@ -14,6 +14,18 @@ import { MockCalendarProvider } from "./providers/mock-calendar.provider.js";
 import type { ICalendarProvider } from "./providers/calendar-provider.interface.js";
 import { randomUUID } from "crypto";
 
+// Type for raw calendar connection from database
+interface RawCalendarConnection {
+  id: string;
+  userId: string;
+  provider: string;
+  accountEmail: string;
+  accountName: string | null;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 @Injectable()
 export class CalendarService {
   private readonly logger = new Logger(CalendarService.name);
@@ -45,6 +57,22 @@ export class CalendarService {
     return p;
   }
 
+  /**
+   * Convert raw database result to CalendarConnection type
+   */
+  private toCalendarConnection(raw: RawCalendarConnection): CalendarConnection {
+    return {
+      id: raw.id,
+      userId: raw.userId,
+      provider: raw.provider as CalendarProvider,
+      accountEmail: raw.accountEmail,
+      accountName: raw.accountName,
+      isActive: raw.isActive,
+      createdAt: raw.createdAt,
+      updatedAt: raw.updatedAt,
+    };
+  }
+
   async listConnections(userId: string): Promise<CalendarConnection[]> {
     const connections = await db
       .select({
@@ -60,25 +88,23 @@ export class CalendarService {
       .from(calendarConnections)
       .where(eq(calendarConnections.userId, userId));
 
-    return connections.map((c) => ({
-      ...c,
-      provider: c.provider as CalendarProvider,
-    }));
+    return connections.map((c) => this.toCalendarConnection(c));
   }
 
   async getOAuthUrl(
     userId: string,
     provider: CalendarProvider,
-    redirectUrl?: string
+    /** Client redirect scheme (e.g., "k7notes://calendar/callback") - used only for platform detection */
+    clientScheme?: string
   ): Promise<{ url: string; state: string }> {
     const calendarProvider = this.getProvider(provider);
 
-    // Encode the provider and platform in the state so the callback knows where to redirect
-    // Format: provider:platform:uuid (e.g., "google:mobile:abc-123-def" or "google:web:abc-123-def")
+    // Encode provider, platform, userId, and a unique ID in the state for security validation
+    // Format: provider:platform:userId:uuid (e.g., "google:mobile:user123:abc-123-def")
     const stateId = randomUUID();
-    // Determine platform from redirectUrl - if it contains a custom scheme, it's mobile
-    const platform = redirectUrl?.includes("://") && !redirectUrl?.startsWith("http") ? "mobile" : "web";
-    const state = `${provider}:${platform}:${stateId}`;
+    // Determine platform from clientScheme - if it contains a custom scheme, it's mobile
+    const platform = clientScheme?.includes("://") && !clientScheme?.startsWith("http") ? "mobile" : "web";
+    const state = `${provider}:${platform}:${userId}:${stateId}`;
     const baseUrl = process.env.BASE_URL || "http://localhost:4000";
     const callbackUrl = `${baseUrl}/api/calendar/oauth/callback`;
 
@@ -93,6 +119,19 @@ export class CalendarService {
     code: string,
     state?: string
   ): Promise<CalendarConnection> {
+    // Validate userId matches the state parameter for security
+    if (state) {
+      const stateParts = state.split(":");
+      // State format: provider:platform:userId:uuid
+      if (stateParts.length >= 4) {
+        const stateUserId = stateParts[2];
+        if (stateUserId !== userId) {
+          this.logger.warn(`OAuth state userId mismatch: expected ${userId}, got ${stateUserId}`);
+          throw new BadRequestException("Invalid OAuth state: user mismatch");
+        }
+      }
+    }
+
     const calendarProvider = this.getProvider(provider);
     const baseUrl = process.env.BASE_URL || "http://localhost:4000";
     const callbackUrl = `${baseUrl}/api/calendar/oauth/callback`;
@@ -143,19 +182,10 @@ export class CalendarService {
 
       const updated = updateResult[0];
       if (!updated) {
-        throw new Error("Failed to update calendar connection");
+        throw new BadRequestException("Failed to update calendar connection");
       }
 
-      return {
-        id: updated.id,
-        userId: updated.userId,
-        provider: updated.provider as CalendarProvider,
-        accountEmail: updated.accountEmail,
-        accountName: updated.accountName,
-        isActive: updated.isActive,
-        createdAt: updated.createdAt,
-        updatedAt: updated.updatedAt,
-      };
+      return this.toCalendarConnection(updated);
     }
 
     // Create new connection
@@ -183,19 +213,10 @@ export class CalendarService {
 
     const connection = insertResult[0];
     if (!connection) {
-      throw new Error("Failed to create calendar connection");
+      throw new BadRequestException("Failed to create calendar connection");
     }
 
-    return {
-      id: connection.id,
-      userId: connection.userId,
-      provider: connection.provider as CalendarProvider,
-      accountEmail: connection.accountEmail,
-      accountName: connection.accountName,
-      isActive: connection.isActive,
-      createdAt: connection.createdAt,
-      updatedAt: connection.updatedAt,
-    };
+    return this.toCalendarConnection(connection);
   }
 
   async disconnect(userId: string, connectionId: string): Promise<void> {
@@ -291,22 +312,33 @@ export class CalendarService {
       connection.refreshToken
     ) {
       const provider = this.getProvider(connection.provider as CalendarProvider);
-      const newTokens = await provider.refreshAccessToken(connection.refreshToken);
 
-      await db
-        .update(calendarConnections)
-        .set({
+      try {
+        const newTokens = await provider.refreshAccessToken(connection.refreshToken);
+
+        await db
+          .update(calendarConnections)
+          .set({
+            accessToken: newTokens.accessToken,
+            refreshToken: newTokens.refreshToken || connection.refreshToken,
+            tokenExpiresAt: newTokens.expiresAt,
+            updatedAt: new Date(),
+          })
+          .where(eq(calendarConnections.id, connectionId));
+
+        return {
+          ...connection,
           accessToken: newTokens.accessToken,
-          refreshToken: newTokens.refreshToken || connection.refreshToken,
-          tokenExpiresAt: newTokens.expiresAt,
-          updatedAt: new Date(),
-        })
-        .where(eq(calendarConnections.id, connectionId));
-
-      return {
-        ...connection,
-        accessToken: newTokens.accessToken,
-      };
+        };
+      } catch (err) {
+        this.logger.error(`Token refresh failed for connection ${connectionId}`, err);
+        // Mark connection as inactive since tokens are invalid
+        await db
+          .update(calendarConnections)
+          .set({ isActive: false, updatedAt: new Date() })
+          .where(eq(calendarConnections.id, connectionId));
+        throw new BadRequestException("Calendar connection expired. Please reconnect your calendar.");
+      }
     }
 
     return connection;

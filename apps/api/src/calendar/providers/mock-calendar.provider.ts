@@ -140,7 +140,7 @@ export class MockCalendarProvider implements ICalendarProvider {
 
   async exchangeCodeForTokens(
     code: string,
-    redirectUrl: string
+    _redirectUrl: string
   ): Promise<OAuthTokens> {
     this.logger.log(`Mock: exchanging code for tokens (code: ${code})`);
 
@@ -166,7 +166,7 @@ export class MockCalendarProvider implements ICalendarProvider {
     };
   }
 
-  async getUserInfo(accessToken: string): Promise<OAuthUserInfo> {
+  async getUserInfo(_accessToken: string): Promise<OAuthUserInfo> {
     this.logger.log(`Mock: getting user info`);
 
     await new Promise((resolve) => setTimeout(resolve, 100));
@@ -177,7 +177,7 @@ export class MockCalendarProvider implements ICalendarProvider {
     };
   }
 
-  async listCalendars(accessToken: string): Promise<CalendarInfo[]> {
+  async listCalendars(_accessToken: string): Promise<CalendarInfo[]> {
     this.logger.log(`Mock: listing calendars`);
 
     await new Promise((resolve) => setTimeout(resolve, 100));

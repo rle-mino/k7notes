@@ -121,7 +121,8 @@ export default function CalendarEventsScreen() {
 
   const [events, setEvents] = useState<EventWithDate[]>([]);
   const [calendars, setCalendars] = useState<CalendarInfo[]>([]);
-  const [selectedCalendarIds, setSelectedCalendarIds] = useState<Set<string>>(new Set());
+  // Track selected calendar IDs for UI purposes (loaded from storage)
+  const [, setSelectedCalendarIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);

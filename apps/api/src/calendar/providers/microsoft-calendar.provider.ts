@@ -108,7 +108,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     if (!response.ok) {
       const error = await response.text();
       this.logger.error(`Failed to exchange code for tokens: ${error}`);
-      throw new Error("Failed to exchange authorization code");
+      throw new Error("Failed to connect to Microsoft Outlook. Please try again.");
     }
 
     const data = (await response.json()) as MicrosoftTokenResponse;
@@ -138,7 +138,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     if (!response.ok) {
       const error = await response.text();
       this.logger.error(`Failed to refresh token: ${error}`);
-      throw new Error("Failed to refresh access token");
+      throw new Error("Failed to refresh Microsoft Outlook access. Please reconnect your calendar.");
     }
 
     const data = (await response.json()) as MicrosoftTokenResponse;
@@ -158,7 +158,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to get user info");
+      throw new Error("Failed to retrieve Microsoft account information.");
     }
 
     const data = (await response.json()) as MicrosoftUserInfoResponse;
@@ -175,7 +175,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to list calendars");
+      throw new Error("Failed to retrieve calendars from Microsoft Outlook.");
     }
 
     const data = (await response.json()) as MicrosoftCalendarListResponse;
@@ -212,7 +212,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to list events");
+      throw new Error("Failed to retrieve events from Microsoft Outlook.");
     }
 
     const data = (await response.json()) as MicrosoftEventsResponse;
@@ -265,11 +265,11 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
       case "busy":
       case "oof":
       case "workingElsewhere":
+      case "free":
+        // "free" means the user shows as available during this event, not that it's cancelled
         return "confirmed";
       case "tentative":
         return "tentative";
-      case "free":
-        return "cancelled";
       default:
         return "confirmed";
     }

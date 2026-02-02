@@ -11,7 +11,7 @@ import {
   OAuthUrlResponseSchema,
   DisconnectCalendarSchema,
 } from "../schemas/calendar";
-import { IdParamSchema, SuccessResponseSchema } from "../schemas/common";
+import { SuccessResponseSchema } from "../schemas/common";
 
 export const calendarContract = {
   // List all connected calendars for the user
@@ -34,7 +34,7 @@ export const calendarContract = {
   // Disconnect a calendar
   disconnect: oc
     .route({ method: "DELETE", path: "/api/calendar/connections/{connectionId}" })
-    .input(z.object({ connectionId: z.string().uuid() }))
+    .input(DisconnectCalendarSchema)
     .output(SuccessResponseSchema),
 
   // List calendars from a connected account

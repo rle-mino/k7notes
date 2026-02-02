@@ -9,7 +9,7 @@ import {
   Switch,
 } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
-import { Calendar, AlertCircle, Check } from "lucide-react-native";
+import { AlertCircle } from "lucide-react-native";
 import { orpc } from "@/lib/orpc";
 import type { CalendarInfo } from "@/lib/orpc";
 import { storage } from "@/lib/storage";

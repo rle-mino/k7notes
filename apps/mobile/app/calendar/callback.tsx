@@ -3,17 +3,16 @@ import { View, Text, StyleSheet, ActivityIndicator, Linking, Platform } from "re
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
 import type { CalendarProvider } from "@/lib/orpc";
-
-const APP_SCHEME = "k7notes";
+import { APP_SCHEME } from "@/constants/app";
 
 /**
  * Parse the provider from the OAuth state
- * State format: "provider:platform:uuid" (e.g., "google:mobile:abc-123-def")
+ * State format: "provider:platform:userId:uuid" (e.g., "google:mobile:user123:abc-123-def")
  */
 function parseProviderFromState(state: string | undefined): CalendarProvider | null {
   if (!state) return null;
   const parts = state.split(":");
-  if (parts.length < 3) return null;
+  if (parts.length < 4) return null;
   const provider = parts[0];
   if (provider === "google" || provider === "microsoft") {
     return provider;
@@ -24,18 +23,34 @@ function parseProviderFromState(state: string | undefined): CalendarProvider | n
 /**
  * Redirect to settings - uses deep link on web (to open the app),
  * or router.replace on native
+ * @returns Promise that resolves to true if navigation succeeded, false if deep link failed
  */
-function navigateToSettings(router: ReturnType<typeof useRouter>) {
+async function navigateToSettings(
+  router: ReturnType<typeof useRouter>,
+  onDeepLinkFailed?: () => void
+): Promise<boolean> {
   if (Platform.OS === "web") {
     // On web, redirect to the mobile app using deep link
     const deepLink = `${APP_SCHEME}://settings`;
-    Linking.openURL(deepLink).catch(() => {
-      // If deep link fails, show a message (app might not be installed)
-      console.warn("Could not open app via deep link");
-    });
+    try {
+      const canOpen = await Linking.canOpenURL(deepLink);
+      if (canOpen) {
+        await Linking.openURL(deepLink);
+        return true;
+      } else {
+        console.warn("Cannot open app via deep link - app may not be installed");
+        onDeepLinkFailed?.();
+        return false;
+      }
+    } catch (err) {
+      console.error("Failed to open app via deep link:", err);
+      onDeepLinkFailed?.();
+      return false;
+    }
   } else {
     // On native, use router
     router.replace("/(app)/settings");
+    return true;
   }
 }
 
@@ -47,7 +62,7 @@ function navigateToSettings(router: ReturnType<typeof useRouter>) {
  * Or web callback:
  * http://localhost:4001/calendar/callback?code=xxx&state=xxx
  *
- * The provider is encoded in the state parameter (format: "provider:uuid")
+ * The provider is encoded in the state parameter (format: "provider:platform:userId:uuid")
  */
 export default function CalendarCallbackScreen() {
   const params = useLocalSearchParams<{
@@ -57,7 +72,7 @@ export default function CalendarCallbackScreen() {
   }>();
   const router = useRouter();
   const { handleOAuthCallback, clearPendingProvider } = useCalendarConnections();
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [status, setStatus] = useState<"loading" | "success" | "error" | "web-success">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const processedRef = useRef(false);
 
@@ -95,15 +110,22 @@ export default function CalendarCallbackScreen() {
         // Extract the provider from the state parameter
         const provider = parseProviderFromState(state);
         if (!provider) {
-          throw new Error("Could not determine calendar provider from state. Please try again.");
+          throw new Error("Could not determine calendar provider. Please try again.");
         }
 
         await handleOAuthCallback(provider, code, state);
         await clearPendingProvider();
         setStatus("success");
         // Navigate to settings to see the new connection
-        setTimeout(() => {
-          navigateToSettings(router);
+        setTimeout(async () => {
+          const navigated = await navigateToSettings(router, () => {
+            // On web, if deep link fails, show a message to close the tab
+            setStatus("web-success");
+          });
+          // If navigation failed on web, status will be updated by callback
+          if (!navigated && Platform.OS === "web") {
+            setStatus("web-success");
+          }
         }, 1500);
       } catch (err) {
         console.error("OAuth callback error:", err);
@@ -136,6 +158,13 @@ export default function CalendarCallbackScreen() {
           <Text style={styles.subtext}>Redirecting...</Text>
         </>
       )}
+      {status === "web-success" && (
+        <>
+          <Text style={styles.successIcon}>✓</Text>
+          <Text style={styles.text}>Calendar connected!</Text>
+          <Text style={styles.subtext}>You can close this tab and return to the app.</Text>
+        </>
+      )}
       {status === "error" && (
         <>
           <Text style={styles.errorIcon}>✗</Text>
@@ -165,6 +194,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
     marginTop: 8,
+    textAlign: "center",
   },
   successIcon: {
     fontSize: 48,

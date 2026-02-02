@@ -108,7 +108,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     if (!response.ok) {
       const error = await response.text();
       this.logger.error(`Failed to exchange code for tokens: ${error}`);
-      throw new Error("Failed to exchange authorization code");
+      throw new Error("Failed to connect to Google Calendar. Please try again.");
     }
 
     const data = (await response.json()) as GoogleTokenResponse;
@@ -137,7 +137,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     if (!response.ok) {
       const error = await response.text();
       this.logger.error(`Failed to refresh token: ${error}`);
-      throw new Error("Failed to refresh access token");
+      throw new Error("Failed to refresh Google Calendar access. Please reconnect your calendar.");
     }
 
     const data = (await response.json()) as GoogleTokenResponse;
@@ -157,7 +157,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to get user info");
+      throw new Error("Failed to retrieve Google account information.");
     }
 
     const data = (await response.json()) as GoogleUserInfoResponse;
@@ -174,7 +174,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to list calendars");
+      throw new Error("Failed to retrieve calendars from Google Calendar.");
     }
 
     const data = (await response.json()) as GoogleCalendarListResponse;
@@ -210,7 +210,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     );
 
     if (!response.ok) {
-      throw new Error("Failed to list events");
+      throw new Error("Failed to retrieve events from Google Calendar.");
     }
 
     const data = (await response.json()) as GoogleEventsResponse;

@@ -3,9 +3,9 @@ import { Platform } from "react-native";
 import { storage } from "@/lib/storage";
 import { orpc } from "@/lib/orpc";
 import type { CalendarConnection, CalendarProvider } from "@/lib/orpc";
+import { CALENDAR_CALLBACK_URL } from "@/constants/app";
 
 const PENDING_OAUTH_KEY = "k7notes_pending_oauth_provider";
-const APP_SCHEME = "k7notes";
 
 export function useCalendarConnections() {
   const [connections, setConnections] = useState<CalendarConnection[]>([]);
@@ -44,7 +44,7 @@ export function useCalendarConnections() {
       try {
         // On native platforms, pass the deep link scheme so the API knows to redirect back to the app
         // On web, don't pass redirectUrl so it uses the web callback
-        const redirectUrl = Platform.OS !== "web" ? `${APP_SCHEME}://calendar/callback` : undefined;
+        const redirectUrl = Platform.OS !== "web" ? CALENDAR_CALLBACK_URL : undefined;
 
         const result = await orpc.calendar.getOAuthUrl({
           provider,
@@ -68,7 +68,8 @@ export function useCalendarConnections() {
     try {
       const provider = await storage.getItem(PENDING_OAUTH_KEY);
       return provider as CalendarProvider | null;
-    } catch {
+    } catch (err) {
+      console.error("Failed to get pending OAuth provider:", err);
       return null;
     }
   }, []);
@@ -79,8 +80,8 @@ export function useCalendarConnections() {
   const clearPendingProvider = useCallback(async () => {
     try {
       await storage.removeItem(PENDING_OAUTH_KEY);
-    } catch {
-      // Ignore errors
+    } catch (err) {
+      console.error("Failed to clear pending OAuth provider:", err);
     }
   }, []);
 

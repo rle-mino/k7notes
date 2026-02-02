@@ -14,8 +14,7 @@ import * as WebBrowser from "expo-web-browser";
 import { ORPCError } from "@orpc/client";
 import { Calendar } from "lucide-react-native";
 import type { CalendarProvider, CalendarConnection } from "@/lib/orpc";
-
-const APP_SCHEME = "k7notes";
+import { CALENDAR_CALLBACK_URL } from "@/constants/app";
 
 interface ConnectCalendarModalProps {
   visible: boolean;
@@ -105,9 +104,7 @@ export function ConnectCalendarModal({
 
         // On native, use in-app browser that returns the result
         // The redirect URL should be our app's deep link scheme
-        const redirectUrl = `${APP_SCHEME}://calendar/callback`;
-
-        const result = await WebBrowser.openAuthSessionAsync(url, redirectUrl);
+        const result = await WebBrowser.openAuthSessionAsync(url, CALENDAR_CALLBACK_URL);
 
         if (result.type === "success" && result.url) {
           // Parse the callback URL
