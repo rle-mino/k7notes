@@ -1,5 +1,5 @@
 // Re-export contracts
-export { contract, notesContract, foldersContract, calendarContract } from "./contracts/index";
+export { contract, notesContract, foldersContract, calendarContract, transcriptionsContract } from "./contracts/index";
 export type { Contract } from "./contracts/index";
 
 // Re-export schemas
@@ -69,3 +69,24 @@ export type {
   OAuthUrlResponse,
   DisconnectCalendar,
 } from "./schemas/calendar";
+
+export {
+  TranscriptionProviderSchema,
+  TranscriptionSegmentSchema,
+  TranscriptionResultSchema,
+  TranscriptionOptionsSchema,
+  TranscribeRequestSchema,
+  TranscribeResponseSchema,
+  ProviderInfoSchema,
+  ListProvidersResponseSchema,
+} from "./schemas/transcription";
+export type {
+  TranscriptionProvider,
+  TranscriptionSegment,
+  TranscriptionResult,
+  TranscriptionOptions,
+  TranscribeRequest,
+  TranscribeResponse,
+  ProviderInfo,
+  ListProvidersResponse,
+} from "./schemas/transcription";
