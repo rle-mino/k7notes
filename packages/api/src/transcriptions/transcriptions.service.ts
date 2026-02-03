@@ -83,38 +83,20 @@ export class TranscriptionsService {
    * Get list of available transcription providers
    */
   getProviders(): { providers: ProviderInfo[]; defaultProvider: string } {
-    const allTypes: TranscriptionProviderType[] = [
-      "openai",
-      "assemblyai",
-      "deepgram",
-      "whisper",
-    ];
-
-    const providers: ProviderInfo[] = allTypes.map((type) => {
-      try {
-        const provider = TranscriptionProviderFactory.getProvider(type);
-        return {
-          name: provider.name,
-          supportsDiarization: provider.supportsDiarization,
-          supportedFormats: provider.supportedFormats,
-          maxFileSizeMB: Math.round(provider.maxFileSizeBytes / (1024 * 1024)),
-          available: provider.isAvailable(),
-        };
-      } catch {
-        // Provider not implemented yet
-        return {
-          name: type,
-          supportsDiarization: false,
-          supportedFormats: [],
-          maxFileSizeMB: 0,
-          available: false,
-        };
-      }
+    const providers: ProviderInfo[] = TranscriptionProviderFactory.getAllProviderTypes().map((type) => {
+      const provider = TranscriptionProviderFactory.getProvider(type);
+      return {
+        name: provider.name,
+        supportsDiarization: provider.supportsDiarization,
+        supportedFormats: provider.supportedFormats,
+        maxFileSizeMB: Math.round(provider.maxFileSizeBytes / (1024 * 1024)),
+        available: provider.isAvailable(),
+      };
     });
 
-    const defaultProvider =
-      process.env.TRANSCRIPTION_PROVIDER || "openai";
-
-    return { providers, defaultProvider };
+    return {
+      providers,
+      defaultProvider: TranscriptionProviderFactory.getDefaultProvider().name,
+    };
   }
 }
