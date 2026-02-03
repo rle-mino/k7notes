@@ -128,7 +128,7 @@ export class CalendarService {
       if (stateParts.length >= 4) {
         const stateUserId = stateParts[2];
         if (stateUserId !== userId) {
-          this.logger.warn(`OAuth state userId mismatch: expected ${userId}, got ${stateUserId}`);
+          this.logger.warn("OAuth state userId mismatch");
           throw new BadRequestException("Invalid OAuth state: user mismatch");
         }
       }
@@ -333,7 +333,7 @@ export class CalendarService {
           accessToken: newTokens.accessToken,
         };
       } catch (err) {
-        this.logger.error(`Token refresh failed for connection ${connectionId}`, err);
+        this.logger.error(`Token refresh failed for connection ${connectionId}: ${err instanceof Error ? err.message : "Unknown error"}`);
         // Mark connection as inactive since tokens are invalid
         await this.db
           .update(calendarConnections)

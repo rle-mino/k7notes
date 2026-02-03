@@ -107,8 +107,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      this.logger.error(`Failed to exchange code for tokens: ${error}`);
+      this.logger.error(`Failed to exchange code for tokens: HTTP ${response.status}`);
       throw new Error("Failed to connect to Microsoft Outlook. Please try again.");
     }
 
@@ -137,8 +136,7 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      this.logger.error(`Failed to refresh token: ${error}`);
+      this.logger.error(`Failed to refresh token: HTTP ${response.status}`);
       throw new Error("Failed to refresh Microsoft Outlook access. Please reconnect your calendar.");
     }
 

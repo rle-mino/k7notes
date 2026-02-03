@@ -26,11 +26,10 @@ const logger = new Logger("oRPC");
           onError((error) => {
             if (error instanceof ORPCError) {
               logger.error(
-                `${error.code} (${error.status}): ${error.message}`,
-                error.data ? JSON.stringify(error.data, null, 2) : undefined
+                `${error.code} (${error.status}): ${error.message}`
               );
             } else if (error instanceof Error) {
-              logger.error(error.message, error.stack);
+              logger.error(error.message);
             }
           }),
         ],

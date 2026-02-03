@@ -107,8 +107,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      this.logger.error(`Failed to exchange code for tokens: ${error}`);
+      this.logger.error(`Failed to exchange code for tokens: HTTP ${response.status}`);
       throw new Error("Failed to connect to Google Calendar. Please try again.");
     }
 
@@ -136,8 +135,7 @@ export class GoogleCalendarProvider implements ICalendarProvider {
     });
 
     if (!response.ok) {
-      const error = await response.text();
-      this.logger.error(`Failed to refresh token: ${error}`);
+      this.logger.error(`Failed to refresh token: HTTP ${response.status}`);
       throw new Error("Failed to refresh Google Calendar access. Please reconnect your calendar.");
     }
 

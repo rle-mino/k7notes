@@ -81,13 +81,13 @@ export class CalendarController {
     if (isMobile) {
       // Redirect to mobile app deep link
       const redirectUrl = `${mobileScheme}://calendar/callback?${params}`;
-      this.logger.log(`Redirecting to mobile: ${redirectUrl}`);
+      this.logger.log("Redirecting OAuth callback to mobile app");
       return res.redirect(redirectUrl);
     }
 
     // Redirect to web callback
     const redirectUrl = `${webCallbackUrl}?${params}`;
-    this.logger.log(`Redirecting to web callback: ${redirectUrl}`);
+    this.logger.log("Redirecting OAuth callback to web app");
     return res.redirect(redirectUrl);
   }
 
