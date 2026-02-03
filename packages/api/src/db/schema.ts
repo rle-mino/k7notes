@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, uuid, boolean, real, jsonb, AnyPgColumn } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // Better-auth tables
@@ -80,6 +80,27 @@ export const folders = pgTable("folders", {
   }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Transcriptions table for storing speech-to-text results
+export const transcriptions = pgTable("transcriptions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  /** Provider used (e.g. "openai") */
+  provider: text("provider").notNull(),
+  /** Full transcribed text */
+  text: text("text").notNull(),
+  /** Diarized segments as JSON array */
+  segments: jsonb("segments").notNull().default([]),
+  /** Audio duration in seconds */
+  durationSeconds: real("duration_seconds").notNull(),
+  /** Detected or requested language */
+  language: text("language"),
+  /** The note created from this transcription, if any */
+  noteId: uuid("note_id").references(() => notes.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
 // Notes table for storing user notes

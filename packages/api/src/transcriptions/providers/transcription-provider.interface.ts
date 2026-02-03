@@ -75,5 +75,5 @@ export interface TranscriptionProvider {
   isAvailable(): boolean;
 }
 
-/** Supported provider types */
-export type TranscriptionProviderType = "openai" | "assemblyai" | "deepgram" | "whisper";
+/** Supported provider types. Add new providers here as they are implemented. */
+export type TranscriptionProviderType = "openai";

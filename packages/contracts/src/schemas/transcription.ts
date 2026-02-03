@@ -6,13 +6,8 @@ import { z } from "zod";
  * Defines the input/output types for speech-to-text operations
  */
 
-/** Supported transcription providers */
-export const TranscriptionProviderSchema = z.enum([
-  "openai",
-  "assemblyai",
-  "deepgram",
-  "whisper",
-]);
+/** Supported transcription providers. Add new providers here as they are implemented. */
+export const TranscriptionProviderSchema = z.enum(["openai"]);
 
 /** A single segment of transcribed audio with speaker info */
 export const TranscriptionSegmentSchema = z.object({
@@ -28,6 +23,8 @@ export const TranscriptionSegmentSchema = z.object({
 
 /** Full transcription result */
 export const TranscriptionResultSchema = z.object({
+  /** Persisted transcription ID */
+  id: z.string().uuid(),
   /** Full transcribed text (plain, without speaker labels) */
   text: z.string(),
   /** Segments with speaker diarization */
@@ -48,8 +45,6 @@ export const TranscriptionOptionsSchema = z.object({
   diarization: z.boolean().optional(),
   /** Known speaker names for better labeling */
   speakerNames: z.array(z.string()).optional(),
-  /** Specific provider to use (uses default if not specified) */
-  provider: TranscriptionProviderSchema.optional(),
 });
 
 /** Request schema for transcription endpoint (metadata only, file sent separately) */

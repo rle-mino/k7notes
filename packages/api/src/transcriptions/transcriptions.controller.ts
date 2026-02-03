@@ -1,7 +1,7 @@
 import { Controller, UseGuards } from "@nestjs/common";
 import { Implement, implement } from "@orpc/nest";
 import { contract } from "@k7notes/contracts";
-import { AuthGuard } from "../auth/auth.guard.js";
+import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
 import { TranscriptionsService } from "./transcriptions.service.js";
 
 @Controller()
@@ -9,26 +9,26 @@ import { TranscriptionsService } from "./transcriptions.service.js";
 export class TranscriptionsController {
   constructor(private readonly transcriptionsService: TranscriptionsService) {}
 
-  /**
-   * Transcribe audio from base64-encoded data
-   * For smaller files where base64 overhead is acceptable
-   */
   @Implement(contract.transcriptions.transcribe)
   transcribe() {
     return implement(contract.transcriptions.transcribe).handler(
-      async ({ input }) => {
+      async ({ input, context }) => {
+        const req = context.request as unknown as AuthenticatedRequest;
+        const userId = req.user.id;
+
         const result = await this.transcriptionsService.transcribeBase64(
+          userId,
           input.audioBase64,
           input.mimeType,
           {
             language: input.language,
             diarization: input.diarization,
             speakerNames: input.speakerNames,
-            provider: input.provider,
           }
         );
 
         return {
+          id: result.id,
           text: result.text,
           segments: result.segments,
           durationSeconds: result.durationSeconds,
@@ -39,9 +39,6 @@ export class TranscriptionsController {
     );
   }
 
-  /**
-   * List available transcription providers
-   */
   @Implement(contract.transcriptions.listProviders)
   listProviders() {
     return implement(contract.transcriptions.listProviders).handler(async () => {
