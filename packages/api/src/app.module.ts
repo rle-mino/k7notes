@@ -1,5 +1,6 @@
 import { Module, Logger } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { ORPCModule, ORPCError, onError } from "@orpc/nest";
 import { AppController } from "./app.controller.js";
 import { DatabaseModule } from "./db/db.module.js";
@@ -19,6 +20,9 @@ const logger = new Logger("oRPC");
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: "default", ttl: 60_000, limit: 60 }],
+    }),
     ORPCModule.forRootAsync({
       useFactory: (request: Request) => ({
         context: { request },

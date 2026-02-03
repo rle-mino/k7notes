@@ -14,13 +14,14 @@ export const auth = betterAuth({
   trustedOrigins: [
     "k7notes://", // App deep link scheme
     "exp://", // Expo dev scheme
-    "http://localhost:4001", // Expo web
-    "http://localhost:19006", // Expo web alt
     "https://*.ngrok-free.dev", // ngrok tunnels for real device testing
+    ...(process.env.TRUSTED_ORIGINS
+      ? process.env.TRUSTED_ORIGINS.split(",").map((o) => o.trim())
+      : ["http://localhost:4001"]),
   ],
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false, // Simplify for v1
+    requireEmailVerification: true,
   },
   socialProviders: {
     google: {
