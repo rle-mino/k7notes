@@ -7,7 +7,7 @@
 
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { schema } from "@k7notes/api/dist/db/index.js";
+import * as schema from "@k7notes/api/dist/db/schema.js";
 
 let pool: Pool | null = null;
 let db: ReturnType<typeof drizzle<typeof schema>> | null = null;
