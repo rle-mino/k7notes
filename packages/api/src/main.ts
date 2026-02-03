@@ -32,7 +32,7 @@ async function bootstrap() {
   // Enable CORS for Expo development and production
   const corsOrigins = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(",").map((o) => o.trim())
-    : ["http://localhost:4001", "http://localhost:19006"];
+    : ["http://localhost:4001"];
 
   app.enableCors({
     origin: [
