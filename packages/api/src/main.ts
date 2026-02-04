@@ -14,10 +14,16 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
 
   // Parse JSON with explicit type matching - handles both standard and text content types
+  // Increased limit for transcriptions which send base64-encoded audio
   const jsonParser = bodyParser.json({ type: ["application/json", "text/plain"] });
+  const largeJsonParser = bodyParser.json({
+    type: ["application/json", "text/plain"],
+    limit: "25mb", // Allow larger payloads for base64 audio
+  });
   expressApp.use("/api/notes", jsonParser);
   expressApp.use("/api/folders", jsonParser);
   expressApp.use("/api/calendar", jsonParser);
+  expressApp.use("/api/transcriptions", largeJsonParser);
 
   // Enable CORS for Expo development and production
   app.enableCors({

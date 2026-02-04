@@ -1,17 +1,20 @@
-import React, { useCallback, useEffect } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Tabs, router } from "expo-router";
 import { TabBar } from "@/components/navigation/TabBar";
+import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
 import { authClient } from "@/lib/auth";
 
 type RecordType = "audio";
 
 export default function AppLayout() {
   const { data: session, isPending } = authClient.useSession();
+  const [audioModalVisible, setAudioModalVisible] = useState(false);
 
   const handleRecord = useCallback((type: RecordType) => {
-    // Audio recording - to be implemented
-    console.log("Audio recording requested:", type);
+    if (type === "audio") {
+      setAudioModalVisible(true);
+    }
   }, []);
 
   // Redirect to login if not authenticated
@@ -41,66 +44,73 @@ export default function AppLayout() {
 
   // Mobile uses bottom tabs
   return (
-    <Tabs
-      tabBar={(props) => <TabBar {...props} onRecord={handleRecord} />}
-      screenOptions={{
-        headerShown: true,
-        headerTitleAlign: "center",
-      }}
-    >
-      <Tabs.Screen
-        name="notes/index"
-        options={{
-          title: "Notes",
+    <>
+      <Tabs
+        tabBar={(props) => <TabBar {...props} onRecord={handleRecord} />}
+        screenOptions={{
+          headerShown: true,
+          headerTitleAlign: "center",
         }}
+      >
+        <Tabs.Screen
+          name="notes/index"
+          options={{
+            title: "Notes",
+          }}
+        />
+        <Tabs.Screen
+          name="search/index"
+          options={{
+            title: "Search",
+          }}
+        />
+        <Tabs.Screen
+          name="recents/index"
+          options={{
+            title: "Recents",
+          }}
+        />
+        <Tabs.Screen
+          name="settings/index"
+          options={{
+            title: "Settings",
+          }}
+        />
+        {/* Hidden screens - not shown in tab bar but accessible via navigation */}
+        <Tabs.Screen
+          name="notes/[id]"
+          options={{
+            href: null,
+            title: "Edit Note",
+          }}
+        />
+        <Tabs.Screen
+          name="notes/folder/[id]"
+          options={{
+            href: null,
+            title: "Folder",
+          }}
+        />
+        <Tabs.Screen
+          name="notes/new"
+          options={{
+            href: null,
+            title: "New Note",
+          }}
+        />
+        <Tabs.Screen
+          name="home"
+          options={{
+            href: null,
+          }}
+        />
+      </Tabs>
+
+      <AudioRecordingModal
+        visible={audioModalVisible}
+        onClose={() => setAudioModalVisible(false)}
       />
-      <Tabs.Screen
-        name="search/index"
-        options={{
-          title: "Search",
-        }}
-      />
-      <Tabs.Screen
-        name="recents/index"
-        options={{
-          title: "Recents",
-        }}
-      />
-      <Tabs.Screen
-        name="settings/index"
-        options={{
-          title: "Settings",
-        }}
-      />
-      {/* Hidden screens - not shown in tab bar but accessible via navigation */}
-      <Tabs.Screen
-        name="notes/[id]"
-        options={{
-          href: null,
-          title: "Edit Note",
-        }}
-      />
-      <Tabs.Screen
-        name="notes/folder/[id]"
-        options={{
-          href: null,
-          title: "Folder",
-        }}
-      />
-      <Tabs.Screen
-        name="notes/new"
-        options={{
-          href: null,
-          title: "New Note",
-        }}
-      />
-      <Tabs.Screen
-        name="home"
-        options={{
-          href: null,
-        }}
-      />
-    </Tabs>
+    </>
   );
 }
 
