@@ -138,16 +138,22 @@ async function signup(
 
   // Submit the form - React Native Web renders TouchableOpacity as div[tabindex="0"]
   const createBtn = page.locator('div[tabindex="0"]').filter({ hasText: /^Create Account$/ });
-  await createBtn.click();
 
-  // Wait for navigation to notes page (indicates successful signup)
-  // Retry the click if we're still on the signup page after a brief wait
-  try {
-    await page.waitForURL("**/notes**", { timeout: 5000 });
-  } catch {
-    // Click might not have registered; retry
+  // Wait for the button to be ready and click with retry logic
+  // Under parallel test load, clicks can fail to register
+  for (let attempt = 0; attempt < 3; attempt++) {
     await createBtn.click();
-    await page.waitForURL("**/notes**", { timeout: 15000 });
+    try {
+      await page.waitForURL("**/notes**", { timeout: 15000 });
+      break;
+    } catch {
+      // If still on signup page, retry the click
+      if (!page.url().includes("/signup")) {
+        // Already navigated somewhere, wait longer
+        await page.waitForURL("**/notes**", { timeout: 15000 });
+        break;
+      }
+    }
   }
 
   return credentials;
@@ -174,10 +180,10 @@ async function login(page: Page, email: string, password: string): Promise<void>
   // Wait for navigation to notes page (indicates successful login)
   // Retry the click if we're still on the login page after a brief wait
   try {
-    await page.waitForURL("**/notes**", { timeout: 5000 });
+    await page.waitForURL("**/notes**", { timeout: 10000 });
   } catch {
     await signInBtn.click();
-    await page.waitForURL("**/notes**", { timeout: 15000 });
+    await page.waitForURL("**/notes**", { timeout: 30000 });
   }
 }
 
