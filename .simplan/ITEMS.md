@@ -28,14 +28,7 @@
 - **Slug**: precommit-hook-tests
 - **Plan**: `.simplan/plans/4-precommit-hook-tests.md`
 
-## Item #5: Setup local stack with Docker Compose for PostgreSQL
-- **Type**: ✨ Feature
-- **Status**: 📋 BACKLOG
-- **Description**: Setup local stack with docker compose for PostgreSQL database
-- **Slug**: docker-compose-postgres
-- **Plan**: None
-
-## Item #6: Remove console clear on NestJS server start
+## Item #5: Remove console clear on NestJS server start
 - **Type**: 🐛 Fix
 - **Status**: 📋 BACKLOG
 - **Description**: Remove the console clear that happens when starting the NestJS server
