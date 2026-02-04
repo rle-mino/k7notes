@@ -147,16 +147,18 @@ A: All core features - auth, notes CRUD, folders, search, and recents
 - **Validation results**: `pnpm turbo type-check --filter=@k7notes/e2e` passed (exit 0, no TypeScript errors). `pnpm turbo lint --filter=@k7notes/e2e` passed (exit 0, no linting errors). Note: `test:e2e` turbo task not yet available (Phase 8), so Playwright test run validation was skipped per instructions.
 - **Review**: Approved - 16 tests across 3 files covering folder creation (modal, validation, cancellation), organization (notes in folders, subfolders, expand action buttons), and nested hierarchy (2-level, 3-level nesting, expand/collapse toggle, parent collapse hides children). Tests follow established auth fixture patterns and properly document RN Web locator strategies.
 
-### ⬜ Phase 7: Create search and recents tests
+### ✅ Phase 7: Create search and recents tests
 - **Step**: 5
 - **Complexity**: 3
-- [ ] Create `apps/e2e/tests/search/search.spec.ts` testing full-text search
-- [ ] Test search with results, no results, and empty query states
-- [ ] Create `apps/e2e/tests/recents/recents.spec.ts` testing recently modified view
-- [ ] Test that recently edited notes appear in recents
-- **Files**: `apps/e2e/tests/search/search.spec.ts`, `apps/e2e/tests/recents/recents.spec.ts`
+- [x] Create `apps/e2e/tests/search/search.spec.ts` testing full-text search
+- [x] Test search with results, no results, and empty query states
+- [x] Create `apps/e2e/tests/recents/recents.spec.ts` testing recently modified view
+- [x] Test that recently edited notes appear in recents
+- **Files**: `packages/e2e/tests/search/search.spec.ts`, `packages/e2e/tests/recents/recents.spec.ts`
 - **Commit message**: `feat(e2e): add search and recents tests`
 - **Bisect note**: Requires seeded notes data to search; depends on notes creation working
+- **Implementation notes**: Created `packages/e2e/tests/search/search.spec.ts` with 10 tests across 4 describe blocks: **Search - Initial State** (3 tests): displays search page with input field, shows initial empty state prompt ("Search your notes"), sidebar navigation to search. **Search - With Results** (4 tests): finds a note by title via full-text search, displays result with note title, clicking result navigates to editor, finds multiple notes matching a query. **Search - No Results** (2 tests): shows "No results" message for unmatched query, shows no results when query does not match existing notes. **Search - Empty Query** (1 test): clearing search input and submitting returns to initial state. Created `packages/e2e/tests/recents/recents.spec.ts` with 8 tests across 2 describe blocks: **Recents - Empty State** (2 tests): shows empty state with "No recent notes" for fresh user, sidebar navigation to recents. **Recents - With Notes** (6 tests): recently created note appears in recents, displays note title, shows relative time indicator (Just now/Xm ago), multiple notes sorted by most recent first, clicking note navigates to editor, edited note appears with updated title. All tests use the established auth fixture pattern with `auth.signup()` in `beforeEach`. Notes are created via `createNoteViaModal()` helper (defined locally per file, consistent with notes test pattern). Search tests trigger search via `searchInput.press("Enter")` matching the `onSubmitEditing` handler. Used `packages/e2e/` path (not `apps/e2e/`) consistent with actual codebase structure.
+- **Validation results**: `pnpm turbo type-check` passed (exit 0, 6 tasks successful). `pnpm turbo lint` passed (exit 0, 3 tasks successful). `pnpm turbo test:e2e --filter=@k7notes/e2e` fails with TEST_DATABASE_URL not set error (expected -- requires running database and servers which are not available in this environment; consistent with all previous phases).
 
 ### ⬜ Phase 8: Integrate with Turbo and CI
 - **Step**: 6
@@ -180,5 +182,5 @@ A: All core features - auth, notes CRUD, folders, search, and recents
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 7 (Step 5)
-- **Progress**: 6/8
+- **Current Phase**: Phase 8 (Step 6)
+- **Progress**: 7/8
