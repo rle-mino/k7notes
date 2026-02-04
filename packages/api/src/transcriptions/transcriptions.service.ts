@@ -1,24 +1,35 @@
 import { Injectable, BadRequestException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
+import type { ProviderInfo, TranscriptionProviderType } from "@k7notes/contracts";
 import { db } from "../db/index.js";
 import { transcriptions } from "../db/schema.js";
 import {
-  TranscriptionProviderFactory,
-  TranscriptionResult,
+  TranscriptionProvider,
+  ProviderTranscriptionResult,
   TranscriptionOptions,
-  TranscriptionProviderType,
+  OpenAITranscriptionProvider,
 } from "./providers/index.js";
-
-export interface ProviderInfo {
-  name: string;
-  supportsDiarization: boolean;
-  supportedFormats: string[];
-  maxFileSizeMB: number;
-  available: boolean;
-}
 
 @Injectable()
 export class TranscriptionsService {
+  private readonly providers: Map<string, TranscriptionProvider>;
+  private readonly defaultProvider = "openai";
+
+  constructor(private readonly openaiProvider: OpenAITranscriptionProvider) {
+    this.providers = new Map<string, TranscriptionProvider>([
+      ["openai", this.openaiProvider],
+    ]);
+  }
+
+  private getProvider(type?: TranscriptionProviderType): TranscriptionProvider {
+    const name = type ?? this.defaultProvider;
+    const provider = this.providers.get(name);
+    if (!provider) {
+      throw new BadRequestException(`Unknown transcription provider: ${name}`);
+    }
+    return provider;
+  }
+
   /**
    * Transcribe audio from a buffer and persist the result
    */
@@ -27,10 +38,8 @@ export class TranscriptionsService {
     audioBuffer: Buffer,
     mimeType: string,
     options?: TranscriptionOptions & { provider?: TranscriptionProviderType }
-  ): Promise<TranscriptionResult & { id: string }> {
-    const provider = options?.provider
-      ? TranscriptionProviderFactory.getProvider(options.provider)
-      : TranscriptionProviderFactory.getDefaultProvider();
+  ): Promise<ProviderTranscriptionResult & { id: string }> {
+    const provider = this.getProvider(options?.provider);
 
     if (!provider.isAvailable()) {
       throw new BadRequestException(
@@ -69,12 +78,18 @@ export class TranscriptionsService {
         segments: result.segments,
         durationSeconds: result.durationSeconds,
         language: result.language ?? null,
+        metadata: result.metadata ?? null,
       })
       .returning({ id: transcriptions.id });
 
+    const inserted = rows[0];
+    if (!inserted) {
+      throw new Error("Failed to persist transcription");
+    }
+
     return {
       ...result,
-      id: rows[0]!.id,
+      id: inserted.id,
       provider: provider.name,
     };
   }
@@ -87,7 +102,7 @@ export class TranscriptionsService {
     audioBase64: string,
     mimeType: string,
     options?: TranscriptionOptions & { provider?: TranscriptionProviderType }
-  ): Promise<TranscriptionResult & { id: string }> {
+  ): Promise<ProviderTranscriptionResult & { id: string }> {
     const audioBuffer = Buffer.from(audioBase64, "base64");
     return this.transcribe(userId, audioBuffer, mimeType, options);
   }
@@ -106,20 +121,21 @@ export class TranscriptionsService {
    * Get list of available transcription providers
    */
   getProviders(): { providers: ProviderInfo[]; defaultProvider: string } {
-    const providers: ProviderInfo[] = TranscriptionProviderFactory.getAllProviderTypes().map((type) => {
-      const provider = TranscriptionProviderFactory.getProvider(type);
-      return {
+    const providerList: ProviderInfo[] = [];
+
+    for (const provider of this.providers.values()) {
+      providerList.push({
         name: provider.name,
         supportsDiarization: provider.supportsDiarization,
         supportedFormats: provider.supportedFormats,
         maxFileSizeMB: Math.round(provider.maxFileSizeBytes / (1024 * 1024)),
         available: provider.isAvailable(),
-      };
-    });
+      });
+    }
 
     return {
-      providers,
-      defaultProvider: TranscriptionProviderFactory.getDefaultProvider().name,
+      providers: providerList,
+      defaultProvider: this.defaultProvider,
     };
   }
 }

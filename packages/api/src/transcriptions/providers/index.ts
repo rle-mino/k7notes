@@ -1,10 +1,9 @@
 export type {
   TranscriptionProvider,
-  TranscriptionProviderType,
-  TranscriptionResult,
+  ProviderTranscriptionResult,
   TranscriptionSegment,
   TranscriptionOptions,
+  TranscriptionProviderType,
 } from "./transcription-provider.interface.js";
 
 export { OpenAITranscriptionProvider } from "./openai.provider.js";
-export { TranscriptionProviderFactory } from "./provider-factory.js";

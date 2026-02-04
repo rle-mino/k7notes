@@ -18,7 +18,7 @@ async function bootstrap() {
   const jsonParser = bodyParser.json({ type: ["application/json", "text/plain"] });
   const largeJsonParser = bodyParser.json({
     type: ["application/json", "text/plain"],
-    limit: "50mb", // Allow larger payloads for base64 audio
+    limit: "25mb", // Allow larger payloads for base64 audio
   });
   expressApp.use("/api/notes", jsonParser);
   expressApp.use("/api/folders", jsonParser);

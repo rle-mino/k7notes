@@ -48,8 +48,11 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorderRef = useRef(recorder);
+  recorderRef.current = recorder;
 
   // Clean up on unmount
   useEffect(() => {
@@ -57,6 +60,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
       }
+      abortControllerRef.current?.abort();
     };
   }, []);
 
@@ -95,8 +99,8 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       });
 
       // Prepare and start recording
-      await recorder.prepareToRecordAsync();
-      recorder.record();
+      await recorderRef.current.prepareToRecordAsync();
+      recorderRef.current.record();
       setRecordingState("recording");
 
       // Start duration timer
@@ -109,7 +113,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setError(getErrorMessage(err));
       setRecordingState("idle");
     }
-  }, [recorder]);
+  }, []);
 
   const stopRecording = useCallback(async () => {
     try {
@@ -122,7 +126,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setRecordingState("stopped");
 
       // Stop recording
-      await recorder.stop();
+      await recorderRef.current.stop();
 
       // Reset audio mode
       await setAudioModeAsync({
@@ -130,7 +134,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       });
 
       // Get the recording URI
-      const uri = recorder.uri;
+      const uri = recorderRef.current.uri;
       if (!uri) {
         throw new Error("No recording URI available");
       }
@@ -142,7 +146,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setError(getErrorMessage(err));
       setRecordingState("idle");
     }
-  }, [recorder]);
+  }, []);
 
   const blobToBase64 = (blob: Blob): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -162,6 +166,9 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
   };
 
   const processRecording = async (uri: string) => {
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
       setRecordingState("transcribing");
 
@@ -189,7 +196,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
         audioBase64: base64,
         mimeType,
         diarization: true,
-      });
+      }, { signal: controller.signal });
 
       // Create a note with the transcription
       setRecordingState("creating");
@@ -214,23 +221,35 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
         title,
         content,
         folderId: null,
-      });
+      }, { signal: controller.signal });
+
+      // Link transcription to the newly created note
+      await orpc.transcriptions.linkToNote({
+        transcriptionId: result.id,
+        noteId: newNote.id,
+      }, { signal: controller.signal });
 
       // Close modal and navigate to the note
       onClose();
       router.push(`/notes/${newNote.id}`);
     } catch (err) {
+      if (controller.signal.aborted) return;
       console.error("Failed to process recording:", err);
       setError(getErrorMessage(err));
       setRecordingState("idle");
+    } finally {
+      abortControllerRef.current = null;
     }
   };
 
   const handleCancel = useCallback(async () => {
+    // Abort any in-flight API calls
+    abortControllerRef.current?.abort();
+
     // Stop recording if active
     if (recordingState === "recording") {
       try {
-        await recorder.stop();
+        await recorderRef.current.stop();
         await setAudioModeAsync({
           allowsRecording: false,
         });
@@ -246,7 +265,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
     }
 
     onClose();
-  }, [recordingState, recorder, onClose]);
+  }, [recordingState, onClose]);
 
   const getStatusText = () => {
     switch (recordingState) {
@@ -274,13 +293,12 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* Close button */}
+          {/* Close button — always enabled so user can cancel during processing */}
           <TouchableOpacity
             style={styles.closeButton}
             onPress={handleCancel}
-            disabled={isProcessing}
           >
-            <X size={24} color={isProcessing ? "#ccc" : "#666"} />
+            <X size={24} color="#666" />
           </TouchableOpacity>
 
           {/* Recording indicator */}
@@ -321,6 +339,16 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
             >
               <Square size={24} color="#fff" fill="#fff" />
               <Text style={styles.stopButtonText}>Stop Recording</Text>
+            </TouchableOpacity>
+          )}
+
+          {/* Cancel button during processing */}
+          {isProcessing && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={handleCancel}
+            >
+              <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
           )}
 
@@ -452,6 +480,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 12,
+    marginTop: 8,
   },
   cancelButtonText: {
     color: "#666",

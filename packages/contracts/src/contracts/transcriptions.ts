@@ -1,26 +1,12 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import {
+  TranscribeRequestSchema,
   TranscribeResponseSchema,
-  TranscriptionOptionsSchema,
   ListProvidersResponseSchema,
+  LinkToNoteRequestSchema,
+  LinkToNoteResponseSchema,
 } from "../schemas/transcription";
-
-/**
- * Transcription Contracts
- *
- * Note: The main transcribe endpoint uses multipart form data for file upload,
- * so it's handled directly by NestJS rather than through oRPC contracts.
- * The contracts here are for JSON-based operations.
- */
-
-/** Request for transcription with base64-encoded audio (for smaller files) */
-const TranscribeBase64RequestSchema = TranscriptionOptionsSchema.extend({
-  /** Base64-encoded audio data */
-  audioBase64: z.string(),
-  /** MIME type of the audio (e.g., "audio/mp3", "audio/wav") */
-  mimeType: z.string(),
-});
 
 export const transcriptionsContract = {
   /**
@@ -30,8 +16,16 @@ export const transcriptionsContract = {
    */
   transcribe: oc
     .route({ method: "POST", path: "/api/transcriptions" })
-    .input(TranscribeBase64RequestSchema)
+    .input(TranscribeRequestSchema)
     .output(TranscribeResponseSchema),
+
+  /**
+   * Link a transcription to a note
+   */
+  linkToNote: oc
+    .route({ method: "POST", path: "/api/transcriptions/link-note" })
+    .input(LinkToNoteRequestSchema)
+    .output(LinkToNoteResponseSchema),
 
   /**
    * List available transcription providers

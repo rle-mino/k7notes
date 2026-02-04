@@ -98,6 +98,8 @@ export const transcriptions = pgTable("transcriptions", {
   durationSeconds: real("duration_seconds").notNull(),
   /** Detected or requested language */
   language: text("language"),
+  /** Provider-specific metadata */
+  metadata: jsonb("metadata"),
   /** The note created from this transcription, if any */
   noteId: uuid("note_id").references(() => notes.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),

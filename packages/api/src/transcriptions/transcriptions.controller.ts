@@ -39,6 +39,19 @@ export class TranscriptionsController {
     );
   }
 
+  @Implement(contract.transcriptions.linkToNote)
+  linkToNote() {
+    return implement(contract.transcriptions.linkToNote).handler(
+      async ({ input }) => {
+        await this.transcriptionsService.linkToNote(
+          input.transcriptionId,
+          input.noteId
+        );
+        return { success: true };
+      }
+    );
+  }
+
   @Implement(contract.transcriptions.listProviders)
   listProviders() {
     return implement(contract.transcriptions.listProviders).handler(async () => {

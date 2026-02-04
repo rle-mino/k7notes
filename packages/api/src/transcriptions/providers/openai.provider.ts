@@ -1,8 +1,8 @@
+import { Injectable } from "@nestjs/common";
+import type { TranscriptionOptions, TranscriptionSegment } from "@k7notes/contracts";
 import {
   TranscriptionProvider,
-  TranscriptionResult,
-  TranscriptionOptions,
-  TranscriptionSegment,
+  ProviderTranscriptionResult,
 } from "./transcription-provider.interface.js";
 
 /**
@@ -21,6 +21,16 @@ interface OpenAIDiarizedResponse {
   segments: OpenAIDiarizedSegment[];
 }
 
+const MIME_TO_EXTENSION: Record<string, string> = {
+  "audio/mp3": "mp3",
+  "audio/mpeg": "mp3",
+  "audio/mp4": "mp4",
+  "audio/m4a": "m4a",
+  "audio/wav": "wav",
+  "audio/webm": "webm",
+  "audio/mpga": "mpga",
+};
+
 /**
  * OpenAI Transcription Provider
  *
@@ -37,6 +47,7 @@ interface OpenAIDiarizedResponse {
  * - Max audio length for diarization: ~1400 seconds per chunk
  * - Audio >30s requires chunking_strategy: "auto"
  */
+@Injectable()
 export class OpenAITranscriptionProvider implements TranscriptionProvider {
   readonly name = "openai";
   readonly supportsDiarization = true;
@@ -71,7 +82,7 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
     audioBuffer: Buffer,
     mimeType: string,
     options?: TranscriptionOptions
-  ): Promise<TranscriptionResult> {
+  ): Promise<ProviderTranscriptionResult> {
     if (!this.apiKey) {
       throw new Error("OpenAI API key not configured");
     }
@@ -83,7 +94,7 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
     const formData = new FormData();
 
     // Convert buffer to Blob with proper MIME type
-    const extension = this.getExtensionFromMimeType(mimeType);
+    const extension = MIME_TO_EXTENSION[mimeType] || "mp3";
     const blob = new Blob([audioBuffer], { type: mimeType });
     formData.append("file", blob, `audio.${extension}`);
 
@@ -120,11 +131,11 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
       const data = (await response.json()) as OpenAIDiarizedResponse;
       return this.parseDiarizedResponse(data, options?.speakerNames);
     } else {
-      const data = (await response.json()) as { text: string };
+      const data = (await response.json()) as { text: string; duration?: number };
       return {
         text: data.text,
         segments: [],
-        durationSeconds: 0, // Not provided in simple response
+        durationSeconds: data.duration ?? 0,
       };
     }
   }
@@ -135,7 +146,7 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
   private parseDiarizedResponse(
     response: OpenAIDiarizedResponse,
     speakerNames?: string[]
-  ): TranscriptionResult {
+  ): ProviderTranscriptionResult {
     const segments: TranscriptionSegment[] = response.segments.map((seg) => {
       // Map speaker letters (A, B, C) to provided names if available
       let speaker = seg.speaker;
@@ -168,21 +179,5 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
         model: this.diarizeModel,
       },
     };
-  }
-
-  /**
-   * Get file extension from MIME type
-   */
-  private getExtensionFromMimeType(mimeType: string): string {
-    const mimeToExtension: Record<string, string> = {
-      "audio/mp3": "mp3",
-      "audio/mpeg": "mp3",
-      "audio/mp4": "mp4",
-      "audio/m4a": "m4a",
-      "audio/wav": "wav",
-      "audio/webm": "webm",
-      "audio/mpga": "mpga",
-    };
-    return mimeToExtension[mimeType] || "mp3";
   }
 }

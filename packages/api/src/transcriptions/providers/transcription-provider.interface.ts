@@ -6,18 +6,14 @@
  * by implementing this interface.
  */
 
-export interface TranscriptionSegment {
-  /** Speaker identifier (e.g., "A", "B", or actual name if provided) */
-  speaker: string;
-  /** Transcribed text for this segment */
-  text: string;
-  /** Start time in seconds */
-  startTime: number;
-  /** End time in seconds */
-  endTime: number;
-}
+import type {
+  TranscriptionSegment,
+  TranscriptionOptions,
+  TranscriptionProviderType,
+} from "@k7notes/contracts";
 
-export interface TranscriptionResult {
+/** Internal result type returned by providers (no `id`, has `metadata`) */
+export interface ProviderTranscriptionResult {
   /** Full transcribed text (plain, without speaker labels) */
   text: string;
   /** Segments with speaker diarization (if supported) */
@@ -30,17 +26,6 @@ export interface TranscriptionResult {
   provider?: string;
   /** Provider-specific metadata */
   metadata?: Record<string, unknown>;
-}
-
-export interface TranscriptionOptions {
-  /** Preferred language (ISO 639-1 code, e.g., "en", "fr") */
-  language?: string;
-  /** Enable speaker diarization */
-  diarization?: boolean;
-  /** Known speaker names for better labeling (provider-dependent) */
-  speakerNames?: string[];
-  /** Provider-specific options */
-  providerOptions?: Record<string, unknown>;
 }
 
 export interface TranscriptionProvider {
@@ -67,7 +52,7 @@ export interface TranscriptionProvider {
     audioBuffer: Buffer,
     mimeType: string,
     options?: TranscriptionOptions
-  ): Promise<TranscriptionResult>;
+  ): Promise<ProviderTranscriptionResult>;
 
   /**
    * Check if the provider is properly configured and available
@@ -75,5 +60,4 @@ export interface TranscriptionProvider {
   isAvailable(): boolean;
 }
 
-/** Supported provider types. Add new providers here as they are implemented. */
-export type TranscriptionProviderType = "openai";
+export type { TranscriptionSegment, TranscriptionOptions, TranscriptionProviderType };
