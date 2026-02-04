@@ -8,7 +8,13 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { Audio } from "expo-av";
+import {
+  useAudioRecorder,
+  RecordingPresets,
+  requestRecordingPermissionsAsync,
+  setAudioModeAsync,
+} from "expo-audio";
+import { readAsStringAsync, EncodingType } from "expo-file-system";
 import { router } from "expo-router";
 import { Mic, Square, X } from "lucide-react-native";
 import { ORPCError } from "@orpc/client";
@@ -41,17 +47,15 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  const recordingRef = useRef<Audio.Recording | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
 
   // Clean up on unmount
   useEffect(() => {
     return () => {
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
-      }
-      if (recordingRef.current) {
-        recordingRef.current.stopAndUnloadAsync().catch(console.error);
       }
     };
   }, []);
@@ -78,23 +82,21 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setDuration(0);
 
       // Request permissions
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== "granted") {
+      const { granted } = await requestRecordingPermissionsAsync();
+      if (!granted) {
         setError("Microphone permission is required to record audio");
         return;
       }
 
       // Configure audio mode for recording
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: true,
-        playsInSilentModeIOS: true,
+      await setAudioModeAsync({
+        allowsRecording: true,
+        playsInSilentMode: true,
       });
 
-      // Create and start recording
-      const { recording } = await Audio.Recording.createAsync(
-        Audio.RecordingOptionsPresets.HIGH_QUALITY
-      );
-      recordingRef.current = recording;
+      // Prepare and start recording
+      await recorder.prepareToRecordAsync();
+      recorder.record();
       setRecordingState("recording");
 
       // Start duration timer
@@ -107,11 +109,9 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setError(getErrorMessage(err));
       setRecordingState("idle");
     }
-  }, []);
+  }, [recorder]);
 
   const stopRecording = useCallback(async () => {
-    if (!recordingRef.current) return;
-
     try {
       // Stop duration timer
       if (durationIntervalRef.current) {
@@ -122,15 +122,15 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setRecordingState("stopped");
 
       // Stop recording
-      await recordingRef.current.stopAndUnloadAsync();
+      await recorder.stop();
 
       // Reset audio mode
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
+      await setAudioModeAsync({
+        allowsRecording: false,
       });
 
       // Get the recording URI
-      const uri = recordingRef.current.getURI();
+      const uri = recorder.uri;
       if (!uri) {
         throw new Error("No recording URI available");
       }
@@ -142,36 +142,47 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       setError(getErrorMessage(err));
       setRecordingState("idle");
     }
-  }, []);
+  }, [recorder]);
+
+  const blobToBase64 = (blob: Blob): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const dataUrl = reader.result as string;
+        const base64Data = dataUrl.split(",")[1];
+        if (base64Data) {
+          resolve(base64Data);
+        } else {
+          reject(new Error("Failed to extract base64 data"));
+        }
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
 
   const processRecording = async (uri: string) => {
     try {
       setRecordingState("transcribing");
 
-      // Read the file as base64
-      const response = await fetch(uri);
-      const blob = await response.blob();
+      let base64: string;
+      let mimeType: string;
 
-      // Convert blob to base64
-      const base64 = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const dataUrl = reader.result as string;
-          // Remove the data URL prefix (e.g., "data:audio/m4a;base64,")
-          const base64Data = dataUrl.split(",")[1];
-          if (base64Data) {
-            resolve(base64Data);
-          } else {
-            reject(new Error("Failed to extract base64 data"));
-          }
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-      });
-
-      // Determine MIME type based on platform
-      // iOS uses m4a, Android uses mp4
-      const mimeType = Platform.OS === "ios" ? "audio/m4a" : "audio/mp4";
+      if (Platform.OS === "web") {
+        // Web: fetch the blob URI created by expo-audio's MediaRecorder wrapper
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        // Browser knows the actual MIME type from MediaRecorder (typically audio/webm)
+        mimeType = blob.type || "audio/webm";
+        base64 = await blobToBase64(blob);
+      } else {
+        // Native (iOS/Android): expo-file-system/legacy for reliable binary file reading
+        base64 = await readAsStringAsync(uri, {
+          encoding: EncodingType.Base64,
+        });
+        // expo-audio HIGH_QUALITY preset outputs .m4a (AAC in MPEG-4) on both platforms
+        mimeType = "audio/m4a";
+      }
 
       // Call transcription API
       const result = await orpc.transcriptions.transcribe({
@@ -217,11 +228,11 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
 
   const handleCancel = useCallback(async () => {
     // Stop recording if active
-    if (recordingRef.current && recordingState === "recording") {
+    if (recordingState === "recording") {
       try {
-        await recordingRef.current.stopAndUnloadAsync();
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
+        await recorder.stop();
+        await setAudioModeAsync({
+          allowsRecording: false,
         });
       } catch (err) {
         console.error("Error stopping recording on cancel:", err);
@@ -234,9 +245,8 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       durationIntervalRef.current = null;
     }
 
-    recordingRef.current = null;
     onClose();
-  }, [recordingState, onClose]);
+  }, [recordingState, recorder, onClose]);
 
   const getStatusText = () => {
     switch (recordingState) {
