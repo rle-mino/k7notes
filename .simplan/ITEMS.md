@@ -2,10 +2,10 @@
 
 ## Item #1: Default notes structure on account creation
 - **Type**: ✨ Feature
-- **Status**: 📋 BACKLOG
+- **Status**: 📝 PLANNED
 - **Description**: Automatically create a default folder structure (daily, people, projects, etc.) when a new user account is created
 - **Slug**: default-notes-structure
-- **Plan**: None
+- **Plan**: .simplan/plans/1-default-notes-structure.md
 
 ## Item #2: Audio recording storage and transcription list
 - **Type**: ✨ Feature
