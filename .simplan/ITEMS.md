@@ -2,7 +2,7 @@
 
 ## Item #1: Pre-commit hook to protect against regression
 - **Type**: ✨ Feature
-- **Status**: 📝 PLANNED
+- **Status**: 🔄 IN_PROGRESS
 - **Description**: Add a pre-commit hook that runs tests before each commit to catch regressions early
 - **Slug**: precommit-hook-tests
 - **Plan**: `.simplan/plans/1-precommit-hook-tests.md`

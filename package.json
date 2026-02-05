@@ -10,6 +10,8 @@
     "test:e2e": "turbo test:e2e --filter=@k7notes/e2e"
   },
   "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "turbo": "^2.3.4"
   }
 }
