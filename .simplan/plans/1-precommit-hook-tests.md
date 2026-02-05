@@ -66,16 +66,19 @@
 - **Implementation notes**: Already exists at `packages/stack-k7/docker-compose.yml` with PostgreSQL 17-alpine, healthcheck using `pg_isready`, and persistent volume. Port mapped to 4432:5432.
 - **Review**: Pre-existing - Docker infrastructure was already set up in the stack-k7 package with all required features.
 
-### ⬜ Phase 3: Configure lint-staged
+### ✅ Phase 3: Configure lint-staged
 - **Step**: 3
 - **Complexity**: 2
-- [ ] Add lint-staged config to root `package.json`
-- [ ] Configure to run `eslint --fix` on staged `.ts` and `.tsx` files
-- [ ] Configure to run TypeScript type-check on staged files (using tsc-files or project-wide)
-- [ ] Scope lint to appropriate workspaces based on file path
+- [x] Add lint-staged config to root `package.json`
+- [x] Configure to run `eslint --fix` on staged `.ts` and `.tsx` files
+- [x] Configure to run TypeScript type-check on staged files (using tsc-files or project-wide)
+- [x] Scope lint to appropriate workspaces based on file path
 - **Files**: `package.json`
 - **Commit message**: `chore: configure lint-staged for monorepo`
 - **Bisect note**: Config only, no hook installed yet
+- **Implementation notes**: Added `lint-staged` configuration to root `package.json` with workspace-scoped patterns: `packages/api/**/*.ts`, `packages/mobile/**/*.{ts,tsx}`, and `packages/e2e/**/*.ts` run `eslint --fix`; `packages/**/*.{ts,tsx}` triggers project-wide `pnpm type-check` via turbo (type-checking individual files is not reliable in TypeScript monorepos due to cross-package dependencies).
+- **Validation results**: lint-staged runs without installation errors (shows "could not find any staged files" when no files staged); type-check passes; lint passes. Tested with staged file - lint-staged correctly runs eslint and type-check.
+- **Review**: Approved - lint-staged config correctly scopes to workspaces with eslint scripts (api, mobile, e2e). Uses project-wide type-check via turbo which is appropriate for monorepo with cross-package dependencies. All applicable completion conditions pass.
 
 ### ⬜ Phase 4: Enable Playwright webServer auto-start
 - **Step**: 4
@@ -121,5 +124,5 @@
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 3 - Configure lint-staged
-- **Progress**: 2/6
+- **Current Phase**: Phase 4 - Enable Playwright webServer auto-start
+- **Progress**: 3/6
