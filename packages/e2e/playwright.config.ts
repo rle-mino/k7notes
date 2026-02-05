@@ -30,6 +30,8 @@ if (testDatabaseUrl.includes("prod") || testDatabaseUrl.includes("production")) 
  */
 export default defineConfig({
   testDir: "./tests",
+  /* Global setup to prepare test environment */
+  globalSetup: "./global-setup.ts",
   /* Global teardown to clean up test servers */
   globalTeardown: "./global-teardown.ts",
   /* Run tests in files in parallel */
