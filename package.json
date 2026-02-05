@@ -7,7 +7,8 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "test:e2e": "turbo test:e2e --filter=@k7notes/e2e"
+    "test:e2e": "turbo test:e2e --filter=@k7notes/e2e",
+    "prepare": "husky"
   },
   "devDependencies": {
     "husky": "^9.1.7",

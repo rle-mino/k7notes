@@ -1,0 +1,59 @@
+#!/bin/sh
+
+# Pre-commit hook: runs lint-staged and E2E tests
+# Requires Docker to be running for PostgreSQL container
+
+set -e
+
+echo "==> Pre-commit hook starting..."
+
+# Change to repo root (where docker-compose lives)
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+# Track if we started postgres (so we know whether to clean up)
+POSTGRES_STARTED=0
+
+# Cleanup function - stops containers if we started them
+cleanup() {
+    if [ "$POSTGRES_STARTED" -eq 1 ]; then
+        echo "==> Cleaning up: stopping Docker containers..."
+        docker compose -f packages/stack-k7/docker-compose.yml down --timeout 5 2>/dev/null || true
+    fi
+}
+
+# Set trap to cleanup on exit (success or failure)
+trap cleanup EXIT
+
+# Step 1: Start PostgreSQL container
+echo "==> Starting PostgreSQL container..."
+docker compose -f packages/stack-k7/docker-compose.yml up -d
+POSTGRES_STARTED=1
+
+# Step 2: Wait for PostgreSQL to be healthy
+echo "==> Waiting for PostgreSQL to be healthy..."
+MAX_RETRIES=30
+RETRY_COUNT=0
+while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+    if docker compose -f packages/stack-k7/docker-compose.yml exec -T postgres pg_isready -U postgres -d k7notes > /dev/null 2>&1; then
+        echo "==> PostgreSQL is ready!"
+        break
+    fi
+    RETRY_COUNT=$((RETRY_COUNT + 1))
+    if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+        echo "==> ERROR: PostgreSQL failed to become healthy after $MAX_RETRIES attempts"
+        exit 1
+    fi
+    echo "    Waiting for PostgreSQL... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+    sleep 1
+done
+
+# Step 3: Run lint-staged (lints and type-checks staged files)
+echo "==> Running lint-staged..."
+pnpm lint-staged
+
+# Step 4: Run E2E tests
+echo "==> Running E2E tests..."
+pnpm --filter @k7notes/e2e test:e2e
+
+echo "==> Pre-commit hook completed successfully!"
