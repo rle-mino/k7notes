@@ -13,5 +13,19 @@
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "turbo": "^2.3.4"
+  },
+  "lint-staged": {
+    "packages/api/**/*.ts": [
+      "eslint --fix"
+    ],
+    "packages/mobile/**/*.{ts,tsx}": [
+      "eslint --fix"
+    ],
+    "packages/e2e/**/*.ts": [
+      "eslint --fix"
+    ],
+    "packages/**/*.{ts,tsx}": [
+      "bash -c 'pnpm type-check'"
+    ]
   }
 }
