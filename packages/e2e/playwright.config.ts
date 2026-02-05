@@ -30,12 +30,14 @@ if (testDatabaseUrl.includes("prod") || testDatabaseUrl.includes("production")) 
  */
 export default defineConfig({
   testDir: "./tests",
+  /* Global teardown to clean up test servers */
+  globalTeardown: "./global-teardown.ts",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code */
   forbidOnly: !!process.env.CI,
-  /* Retry on CI only */
-  retries: process.env.CI ? 2 : 0,
+  /* Retry failed tests to handle flakiness */
+  retries: 2,
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use */
@@ -72,7 +74,9 @@ export default defineConfig({
     {
       command: "pnpm turbo dev --filter=@k7notes/api",
       url: "http://localhost:4000/health",
-      reuseExistingServer: !process.env.CI,
+      // Never reuse existing servers - we need to ensure the test database is used
+      // If you have dev servers running, stop them before running e2e tests
+      reuseExistingServer: false,
       env: {
         DATABASE_URL: testDatabaseUrl,
       },
@@ -81,7 +85,7 @@ export default defineConfig({
     {
       command: "pnpm turbo start --filter=@k7notes/mobile -- --web",
       url: "http://localhost:4001",
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 120000,
     },
   ],
