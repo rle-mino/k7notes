@@ -17,6 +17,11 @@ allowed-tools:
 Current backlog:
 @.simplan/ITEMS.md
 
+## Configuration
+
+Check `.simplan/config` for settings (key=value format). Relevant setting:
+- `commit_plan=true` - If set, commit `.simplan/` changes after review updates
+
 ## Status Emojis
 
 When displaying or updating item statuses, use these emojis:
@@ -34,7 +39,7 @@ Validate item #$ARGUMENTS by delegating to the **simplan:review** agent.
 
 1. **Parse arguments**: Get item number from `$ARGUMENTS`
 
-2. **Validate**: If no item number provided, read the backlog and find items that need validation (IN_PROGRESS or DONE status), then use AskUserQuestion to ask which one to validate
+2. **Validate**: If no item number provided, read the backlog and find items that need validation (IN_PROGRESS or DONE status), then use AskUserQuestion to ask which one to validate (use "Item #N" as option labels, put titles in descriptions; all labels max 30 chars)
 
 3. **Get plan path**: Read the item's Plan path from the backlog
 
@@ -59,7 +64,14 @@ Validate item #$ARGUMENTS by delegating to the **simplan:review** agent.
    )
    ```
 
-5. **Show result**: Display the validation summary to the user
+5. **Commit (if configured)**: If `.simplan/config` contains `commit_plan=true`:
+   - Ask user if they want to commit the review updates (use AskUserQuestion with "Commit review?" header, options "Yes" / "No")
+   - If yes:
+     - Stage the plan file (with updated review status)
+     - Stage `.simplan/ITEMS.md` (if backlog status changed to DONE)
+     - Create commit with message: `plan: review item #<number> - <status>`
+
+6. **Show result**: Display the validation summary to the user
 
 ---
 

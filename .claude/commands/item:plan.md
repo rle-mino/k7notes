@@ -21,6 +21,11 @@ allowed-tools:
 Current backlog:
 @.simplan/ITEMS.md
 
+## Configuration
+
+Check `.simplan/config` for settings (key=value format). Relevant setting:
+- `commit_plan=true` - If set, commit `.simplan/` changes after modifications
+
 ## Status Emojis
 
 When displaying or updating item statuses, use these emojis:
@@ -41,7 +46,7 @@ Plan item #$ARGUMENTS through an interactive explore-question loop.
 1. Get item number from `$ARGUMENTS`
 2. If no item number provided:
    - Read the backlog and list items with status `BACKLOG`
-   - Use **AskUserQuestion** to ask which one to plan
+   - Use **AskUserQuestion** to ask which one to plan (use "Item #N" as option labels, put titles in descriptions)
 3. Extract item details: number, slug, title, description
 
 ### Step 2: Explore-Question Loop (max 3 iterations)
@@ -68,6 +73,12 @@ Use WebFetch/WebSearch/Context7 if you need external documentation (libraries, A
 - **Preferences**: How the user wants it done
 - **Constraints**: Limitations or requirements
 - **Scope**: What's in/out of this item
+
+**AskUserQuestion formatting rules:**
+- Option labels: max 30 characters (use short identifiers, abbreviations, or "Option A/B/C")
+- Headers: max 30 characters
+- Put longer text (full explanations, item titles) in the option `description` field, not the `label`
+- For item selection: use "Item #N" as labels with full titles in descriptions
 
 Adapt questions based on previous answers. Don't re-ask what's already clear.
 
@@ -244,7 +255,16 @@ Update the item in `.simplan/ITEMS.md`:
 - Set status to `PLANNED`
 - Set the **Plan** field to the plan file path
 
-### Step 6: Show Result & Commit
+### Step 6: Commit (if configured)
+
+If `.simplan/config` contains `commit_plan=true`:
+- Ask user if they want to commit the plan (use AskUserQuestion with "Commit plan?" header, options "Yes" / "No")
+- If yes:
+  - Stage the plan file: `.simplan/plans/<number>-<slug>.md` (or folder)
+  - Stage `.simplan/ITEMS.md`
+  - Create commit with message: `plan: create plan for item #<number> - <title>`
+
+### Step 7: Show Result
 
 Display the created plan summary to the user, including a **plan recap table**:
 
@@ -265,7 +285,7 @@ Display the created plan summary to the user, including a **plan recap table**:
 - Total 6-12: Medium task, may span multiple sessions
 - Total 13+: Large task, consider breaking into multiple items
 
-**Note**: The `.simplan/` folder is gitignored, so plan files are not committed to the repository.
+**Note**: By default, `.simplan/` is gitignored. If `commit_plan=true` is set in `.simplan/config`, remove `.simplan/` from `.gitignore` to enable plan commits.
 
 ---
 

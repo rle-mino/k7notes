@@ -21,6 +21,11 @@ allowed-tools:
 Current backlog:
 @.simplan/ITEMS.md
 
+## Configuration
+
+Check `.simplan/config` for settings (key=value format). Relevant setting:
+- `commit_plan=true` - If set, commit `.simplan/` changes after modifications
+
 ## Status Emojis
 
 When displaying or updating item statuses, use these emojis:
@@ -43,7 +48,7 @@ Conduct an extensive brainstorming session for item #$ARGUMENTS through deep exp
 1. Get item number from `$ARGUMENTS`
 2. If no item number provided:
    - Read the backlog and list items that are NOT `DONE`
-   - Use **AskUserQuestion** to ask which one to brainstorm
+   - Use **AskUserQuestion** to ask which one to brainstorm (use "Item #N" as option labels, put titles in descriptions)
 3. Extract item details: number, slug, title, description, plan path
 4. Confirm the item is not already `DONE` (refuse if it is)
 
@@ -228,6 +233,7 @@ For each round:
    - Go deeper where you sense uncertainty or complexity
    - Skip categories that are clearly not relevant
    - **Incorporate web findings** into your questions (e.g., "I found that library X recommends approach Y - does that align with your thinking?")
+   - **Formatting rules**: Option labels max 30 chars (use short identifiers); headers max 30 chars; put longer text in option `description` field
 3. **Track progress** - Keep a mental count of questions asked
 4. **Evaluate** - After each round, decide:
    - Minimum 10 questions reached? If not, continue.
@@ -429,7 +435,16 @@ Update the item in `.simplan/ITEMS.md`:
 - Set status to `PLANNED`
 - Set the **Plan** field to the plan file path
 
-### Step 8: Show Result & Commit
+### Step 8: Commit (if configured)
+
+If `.simplan/config` contains `commit_plan=true`:
+- Ask user if they want to commit the plan (use AskUserQuestion with "Commit plan?" header, options "Yes" / "No")
+- If yes:
+  - Stage the plan file: `.simplan/plans/<number>-<slug>.md` (or folder)
+  - Stage `.simplan/ITEMS.md`
+  - Create commit with message: `plan: brainstorm item #<number> - <title>`
+
+### Step 9: Show Result
 
 Display:
 - Number of questions asked
@@ -449,7 +464,7 @@ Display:
 **Total complexity: 10** (sum of all phases)
 ```
 
-**Note**: The `.simplan/` folder is gitignored, so plan files are not committed to the repository.
+**Note**: By default, `.simplan/` is gitignored. If `commit_plan=true` is set in `.simplan/config`, remove `.simplan/` from `.gitignore` to enable plan commits.
 
 ---
 

@@ -13,6 +13,11 @@ allowed-tools:
 Current backlog:
 @.simplan/ITEMS.md
 
+## Configuration
+
+Check `.simplan/config` for settings (key=value format). Relevant setting:
+- `commit_plan=true` - If set, commit `.simplan/` changes after modifications
+
 ## Task
 
 Add a new item to the backlog. Keep this lightweight - no agent delegation needed.
@@ -23,8 +28,13 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
 
 2. **Get details**: Use AskUserQuestion to ask for:
    - **Title**: Short, descriptive title (or use from `$ARGUMENTS` if provided)
-   - **Type**: Feature or Fix
+   - **Type**: Feature or Fix (use labels like "Feature", "Fix")
    - **Description**: What needs to be done
+
+   **AskUserQuestion formatting rules:**
+   - Option labels: max 30 characters (use short identifiers like "Item #1", "Feature", "Fix")
+   - Headers: max 30 characters
+   - Put longer text (full titles, descriptions) in the option `description` field, not the `label`
 
 3. **Generate slug**: Create a URL-friendly slug from the title:
    - Lowercase the title
@@ -57,7 +67,13 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
 
 5. **Confirm**: Show the added item with its number and slug
 
-6. **Assess complexity**: Based on the description, estimate complexity:
+6. **Commit (if configured)**: If `.simplan/config` contains `commit_plan=true`:
+   - Ask user if they want to commit the backlog change (use AskUserQuestion with "Commit backlog?" header, options "Yes" / "No")
+   - If yes:
+     - Stage `.simplan/ITEMS.md`
+     - Create commit with message: `plan: add item #<number> - <title>`
+
+7. **Assess complexity**: Based on the description, estimate complexity:
 
    **Simple** (suggest `/item:plan`):
    - Bug fixes with clear reproduction steps

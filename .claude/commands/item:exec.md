@@ -15,6 +15,17 @@ allowed-tools:
 Current backlog:
 @.simplan/ITEMS.md
 
+## Configuration
+
+Check `.simplan/config` for settings (key=value format). Relevant setting:
+- `commit_plan=true` - If set, commit `.simplan/` changes after code commits
+
+## Environment Detection
+
+Check if running on Claude Code web by running: `echo $CLAUDE_CODE_REMOTE`
+- If the output is `true`, you are on Claude Code web - **skip all AskUserQuestion calls** (they lock the process)
+- If empty or unset, you are on CLI and can use AskUserQuestion normally
+
 ## Status Emojis
 
 When displaying or updating item statuses, use these emojis:
@@ -71,9 +82,9 @@ Execute a phase for the current item by delegating to agents.
 
    **If 2-4 phases in the step:**
    - Display the phases that could run in parallel with their titles
-   - Use **AskUserQuestion**:
-     - "Run all N phases in parallel (Recommended)" - runs all phases concurrently
-     - "Run one at a time (start with Phase X)" - sequential execution
+   - Use **AskUserQuestion** (labels max 30 chars, headers max 30 chars):
+     - "Run all in parallel" (description: "Recommended - runs all N phases concurrently")
+     - "Run one at a time" (description: "Sequential execution, starting with Phase X")
    - If parallel: go to step 8a
    - If sequential: go to step 8 with first phase only
 
@@ -208,36 +219,42 @@ Execute a phase for the current item by delegating to agents.
     ```
     After review completes, go to step 10.
 
-10. **Confirm**: Use AskUserQuestion to ask user to confirm the changes are good
-
-11. **Update phase statuses in plan file**: After review approval and user confirmation, YOU (the command) must update the plan:
+10. **Update phase statuses in plan file**: After review approval, YOU (the command) must update the plan:
     - For each phase that was just executed and approved:
       - Change the phase emoji from ⬜ or 🔄 to ✅
       - Example: `### ⬜ Phase 1:` → `### ✅ Phase 1:`
     - Update the `## Current Status` section:
       - Set `**Current Phase**:` to the next incomplete phase (or "All phases complete")
       - Update `**Progress**:` count (e.g., "2/4")
-    
-12. **Update backlog status if done**: After updating the plan:
+
+11. **Update backlog status if done**: After updating the plan:
     - Re-read the plan file to check if all phases are now complete (all have ✅ emoji)
     - If all phases done, update item status to `DONE` in ITEMS.md
 
-13. **Commit**: If explicitly confirmed, create **one commit per phase** (even for parallel execution):
+12. **Confirm**:
+    - If `$CLAUDE_CODE_REMOTE` is `true`, skip confirmation and proceed directly to commit
+    - Otherwise, use AskUserQuestion to ask user to confirm and commit the changes (labels max 30 chars, headers max 30 chars; put details in descriptions)
+
+13. **Commit**: If user confirmed (or on web), create **one commit per phase** (even for parallel execution):
     - For each phase in the step:
-      - Stage ONLY the code files modified during that phase (listed in the phase's "Files" section)
-      - Do NOT stage `.simplan/` files (they are gitignored)
+      - Stage the code files modified during that phase (listed in the phase's "Files" section)
+      - If `.simplan/config` contains `commit_plan=true`, also stage:
+        - The plan file (with updated phase statuses)
+        - `.simplan/ITEMS.md` (if backlog status changed)
       - Create commit with the phase's suggested commit message
-    - Do NOT use `git add -A` or `git add .` - explicitly add only the code files from each phase
+    - Do NOT use `git add -A` or `git add .` - explicitly add only the specified files
 
 ---
 
-## Next Steps
+## After Completion
+
+Once the phase is committed, **stop**. Do not continue to the next phase.
 
 If there are remaining phases, tell the user:
 
-> Step complete!
+> Phase complete!
 >
-> To continue with the next step, run:
+> To continue with the next phase, run:
 > `/item:exec`
 >
-> Tip: Run `/clear` to reset context before the next step.
+> Tip: Run `/clear` to reset context before the next phase.
