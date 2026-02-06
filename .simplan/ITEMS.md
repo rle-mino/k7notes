@@ -14,3 +14,10 @@
 - **Slug**: audio-storage-transcription
 - **Plan**: None
 
+## Item #3: Unit & integration test setup
+- **Type**: ✨ Feature
+- **Status**: 📋 BACKLOG
+- **Description**: Setup unit and integration tests for the NestJS backend and React Native mobile app. Focus on fast, easy-to-create tests over e2e tests. Tests should run quickly and have low friction to write.
+- **Slug**: unit-integration-test-setup
+- **Plan**: None
+
