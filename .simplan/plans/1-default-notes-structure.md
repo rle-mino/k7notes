@@ -44,16 +44,19 @@ Key files:
 
 ## Phases
 
-### ⬜ Phase 1: Add default folder creation method to FoldersService
+### ✅ Phase 1: Add default folder creation method to FoldersService
 
 - **Step**: 1
 - **Complexity**: 2
-- [ ] Add `createDefaultFolders(userId: string): Promise<Folder[]>` method to `FoldersService`
-- [ ] Create 4 root folders: "Daily", "People", "Projects", "Archive"
-- [ ] Return array of created folders for verification
+- [x] Add `createDefaultFolders(userId: string): Promise<Folder[]>` method to `FoldersService`
+- [x] Create 4 root folders: "Daily", "People", "Projects", "Archive"
+- [x] Return array of created folders for verification
 - **Files**: `packages/api/src/folders/folders.service.ts`
 - **Commit message**: `feat(api): add createDefaultFolders method to FoldersService`
 - **Bisect note**: N/A - new method not called yet, no callers to break
+- **Implementation notes**: Added `createDefaultFolders` method at the end of `FoldersService` (line 202). Uses a single batch `db.insert().values([...]).returning()` call to create all 4 root folders at once, which is more efficient than 4 separate inserts. Each folder is created with `parentId: null` (root-level). No deviations from the plan.
+- **Validation results**: `pnpm turbo type-check --filter=@k7notes/api` passed (no TypeScript errors). `pnpm lint` passed (no lint errors across all workspaces). `pnpm type-check` passed (all packages type-check clean).
+- **Review**: Approved - Clean, focused implementation. Single batch insert is efficient. Follows existing service patterns (same insert/returning style as `create` method). All 4 required folders created as root-level. No idempotency guard needed since Phase 2 caller will only invoke once during signup. All completion conditions verified passing.
 
 ### ⬜ Phase 2: Integrate with better-auth databaseHooks
 
@@ -88,5 +91,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Not started
-- **Progress**: 0/3
+- **Current Phase**: Phase 2
+- **Progress**: 1/3
