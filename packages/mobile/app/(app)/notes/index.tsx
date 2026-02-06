@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from "react-native";
-import { router, useFocusEffect } from "expo-router";
+import { router, Stack, useFocusEffect } from "expo-router";
 import { FolderPlus, FilePlus } from "lucide-react-native";
 import { useTreeData, type TreeNode } from "@/hooks/useTreeData";
 import { TreeItem } from "@/components/notes/TreeItem";
@@ -111,24 +111,27 @@ export default function NotesIndexScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header with add buttons */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Notes</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => handleAddFolder(null)}
-          >
-            <FolderPlus size={22} color="#F5A623" strokeWidth={2} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.headerButton}
-            onPress={() => handleAddNote(null)}
-          >
-            <FilePlus size={22} color="#007AFF" strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      <Stack.Screen
+        options={{
+          title: "Notes",
+          headerRight: () => (
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={() => handleAddFolder(null)}
+              >
+                <FolderPlus size={22} color="#F5A623" strokeWidth={2} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerButton}
+                onPress={() => handleAddNote(null)}
+              >
+                <FilePlus size={22} color="#007AFF" strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+          ),
+        }}
+      />
 
       {treeData.length === 0 ? (
         <EmptyState
@@ -180,21 +183,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#f5f5f5",
     padding: 32,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#fff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
-  },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#1a1a1a",
   },
   headerActions: {
     flexDirection: "row",
