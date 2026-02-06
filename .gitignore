@@ -36,3 +36,6 @@ playwright/.cache/
 
 # tsbuildinfo
 tsconfig.tsbuildinfo
+
+# claude code QA credentials
+credentials
