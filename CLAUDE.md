@@ -2,6 +2,10 @@
 
 A cross-platform note-taking application with React Native (Expo) mobile app, web interface, and NestJS backend.
 
+## General Rules
+
+When making targeted fixes, change ONLY the specific thing requested. Do not refactor, overhaul, or expand scope unless explicitly asked. If you think broader changes are needed, ask first.
+
 ## Tech Stack
 
 - **Frontend/Mobile**: React Native 0.76 + Expo SDK 52, Expo Router (file-based routing), TenTap Editor (rich text)
@@ -109,6 +113,8 @@ Full-text search uses PostgreSQL `tsvector`/`tsquery` with ranking and highlight
 
 ## Environment Variables
 
+For environment variables: always use separate, explicit env vars per platform/context (e.g., API_URL_WEB vs API_URL_MOBILE). Never use runtime platform detection to determine env var values, and never route web traffic through mobile tunnels like ngrok.
+
 ### API (`packages/api/.env`)
 ```
 PORT=4000
@@ -140,3 +146,17 @@ EXPO_PUBLIC_NATIVE_API_URL=http://localhost:4000
 3. Set up PostgreSQL and configure `DATABASE_URL`
 4. Push database schema: `pnpm -F @k7notes/api db:push`
 5. Start development: `pnpm dev`
+
+## Pre-commit Hooks
+
+When fixing pre-commit hook failures due to port conflicts (ports 4000, 4001), first run `lsof -ti:4000,4001 | xargs kill -9` before retrying the commit. Never use `--no-verify` as a workaround unless explicitly told to.
+
+## Testing
+
+This is a pnpm monorepo with packages in `packages/`. When running tests: (1) Vitest globalSetup process.env changes do NOT propagate to workers - use provide/inject pattern instead. (2) Playwright manages its own webServer - don't manually set up servers or databases in sub-agents. (3) Always check that Playwright browser versions match installed ones before running e2e tests.
+
+After implementing changes that affect signup flow or default data creation, update ALL existing E2E tests that may assume empty state (e.g., no folders, no default notes).
+
+## Auth (better-auth)
+
+When better-auth returns null data with no error, that means the session is missing (unauthenticated user) - do NOT treat this as an error condition. Always check `data === null` rather than checking for error objects.
