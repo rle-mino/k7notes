@@ -1,14 +1,10 @@
 import { Controller, UseGuards, Get, Query, Res, Logger } from "@nestjs/common";
 import type { Response } from "express";
+import { Throttle } from "@nestjs/throttler";
 import { Implement, implement } from "@orpc/nest";
 import { contract } from "@k7notes/contracts";
 import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
 import { CalendarService } from "./calendar.service.js";
-
-// TODO: Add rate limiting to OAuth endpoints to prevent abuse
-// Consider using @nestjs/throttler with configuration like:
-// - OAuth callback: 10 requests per minute per IP
-// - Token exchange: 5 requests per minute per user
 
 @Controller()
 export class CalendarController {
@@ -42,6 +38,7 @@ export class CalendarController {
    *
    * The platform is encoded in the state parameter (format: "provider:platform:uuid")
    */
+  @Throttle({ default: { ttl: 60_000, limit: 10 } })
   @Get("api/calendar/oauth/callback")
   async oauthCallback(
     @Query("code") code: string,
@@ -81,13 +78,13 @@ export class CalendarController {
     if (isMobile) {
       // Redirect to mobile app deep link
       const redirectUrl = `${mobileScheme}://calendar/callback?${params}`;
-      this.logger.log(`Redirecting to mobile: ${redirectUrl}`);
+      this.logger.log("Redirecting OAuth callback to mobile app");
       return res.redirect(redirectUrl);
     }
 
     // Redirect to web callback
     const redirectUrl = `${webCallbackUrl}?${params}`;
-    this.logger.log(`Redirecting to web callback: ${redirectUrl}`);
+    this.logger.log("Redirecting OAuth callback to web app");
     return res.redirect(redirectUrl);
   }
 

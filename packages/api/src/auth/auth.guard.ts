@@ -25,8 +25,6 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
 
-    console.log('[AuthGuard] Checking auth for request');
-
     // Get session from better-auth
     // Convert Express headers to Headers object for better-auth
     const headers = new Headers();
@@ -36,33 +34,26 @@ export class AuthGuard implements CanActivate {
       }
     }
 
-    try {
-      const session = await auth.api.getSession({
-        headers,
-      });
+    const session = await auth.api.getSession({
+      headers,
+    });
 
-      console.log('[AuthGuard] Session result:', session ? 'found' : 'not found', session?.user?.id);
-
-      if (!session || !session.user) {
-        throw new UnauthorizedException("Not authenticated");
-      }
-
-      // Attach user and session to request for use in controllers
-      (request as AuthenticatedRequest).user = {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-      };
-      (request as AuthenticatedRequest).session = {
-        id: session.session.id,
-        userId: session.session.userId,
-        expiresAt: session.session.expiresAt,
-      };
-
-      return true;
-    } catch (error) {
-      console.error('[AuthGuard] Error checking auth:', error);
-      throw error;
+    if (!session || !session.user) {
+      throw new UnauthorizedException("Not authenticated");
     }
+
+    // Attach user and session to request for use in controllers
+    (request as AuthenticatedRequest).user = {
+      id: session.user.id,
+      email: session.user.email,
+      name: session.user.name,
+    };
+    (request as AuthenticatedRequest).session = {
+      id: session.session.id,
+      userId: session.session.userId,
+      expiresAt: session.session.expiresAt,
+    };
+
+    return true;
   }
 }

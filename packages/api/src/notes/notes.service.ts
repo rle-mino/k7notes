@@ -36,29 +36,22 @@ export class NotesService {
   constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
 
   async create(userId: string, dto: CreateNoteDto): Promise<Note> {
-    console.log('[NotesService] Creating note for user:', userId, 'with data:', dto);
-    try {
-      const result = await this.db
-        .insert(notes)
-        .values({
-          userId,
-          title: dto.title,
-          content: dto.content ?? "",
-          folderId: dto.folderId ?? null,
-        })
-        .returning();
+    const result = await this.db
+      .insert(notes)
+      .values({
+        userId,
+        title: dto.title,
+        content: dto.content ?? "",
+        folderId: dto.folderId ?? null,
+      })
+      .returning();
 
-      console.log('[NotesService] Insert result:', result);
-      const note = result[0];
-      if (!note) {
-        throw new Error("Failed to create note");
-      }
-
-      return note;
-    } catch (error) {
-      console.error('[NotesService] Error creating note:', error);
-      throw error;
+    const note = result[0];
+    if (!note) {
+      throw new Error("Failed to create note");
     }
+
+    return note;
   }
 
   async findOne(userId: string, id: string): Promise<Note> {

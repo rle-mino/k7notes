@@ -1,5 +1,6 @@
 import { Module, Logger } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
+import { ThrottlerModule } from "@nestjs/throttler";
 import { ORPCModule, ORPCError, onError } from "@orpc/nest";
 import { AppController } from "./app.controller.js";
 import { DatabaseModule } from "./db/db.module.js";
@@ -19,6 +20,9 @@ const logger = new Logger("oRPC");
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot({
+      throttlers: [{ name: "default", ttl: 60_000, limit: 60 }],
+    }),
     ORPCModule.forRootAsync({
       useFactory: (request: Request) => ({
         context: { request },
@@ -26,11 +30,10 @@ const logger = new Logger("oRPC");
           onError((error) => {
             if (error instanceof ORPCError) {
               logger.error(
-                `${error.code} (${error.status}): ${error.message}`,
-                error.data ? JSON.stringify(error.data, null, 2) : undefined
+                `${error.code} (${error.status}): ${error.message}`
               );
             } else if (error instanceof Error) {
-              logger.error(error.message, error.stack);
+              logger.error(error.message);
             }
           }),
         ],

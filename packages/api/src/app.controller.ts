@@ -20,11 +20,10 @@ export class AppController {
         database: "connected",
         timestamp: result.rows[0]?.current_time,
       };
-    } catch (error) {
+    } catch {
       return {
         status: "error",
         database: "disconnected",
-        error: error instanceof Error ? error.message : "Unknown error",
       };
     }
   }

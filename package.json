@@ -29,5 +29,10 @@
     "packages/**/*.{ts,tsx}": [
       "bash -c 'pnpm type-check'"
     ]
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "helmet": "patches/helmet.patch"
+    }
   }
 }

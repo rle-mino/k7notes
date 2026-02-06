@@ -142,7 +142,7 @@ export class MockCalendarProvider implements ICalendarProvider {
     code: string,
     _redirectUrl: string
   ): Promise<OAuthTokens> {
-    this.logger.log(`Mock: exchanging code for tokens (code: ${code})`);
+    this.logger.log(`Mock: exchanging code for tokens`);
 
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
