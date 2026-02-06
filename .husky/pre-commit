@@ -52,7 +52,11 @@ done
 echo "==> Running lint-staged..."
 pnpm lint-staged
 
-# Step 4: Run E2E tests
+# Step 4: Run unit & integration tests via Turbo
+echo "==> Running unit & integration tests..."
+pnpm turbo test
+
+# Step 5: Run E2E tests
 echo "==> Running E2E tests..."
 pnpm --filter @k7notes/e2e test:e2e
 
