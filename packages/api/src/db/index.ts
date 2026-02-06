@@ -13,3 +13,7 @@ export { schema };
 
 // Export pool for health checks
 export { pool };
+
+// Re-export DI types for convenience
+export { DB_TOKEN, type Database } from "./db.types.js";
+export { DatabaseModule } from "./db.module.js";

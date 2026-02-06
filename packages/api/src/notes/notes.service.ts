@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq, and, desc, sql, isNull } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { notes } from "../db/schema.js";
 
 export interface CreateNoteDto {
@@ -33,10 +33,12 @@ export interface SearchResult {
 
 @Injectable()
 export class NotesService {
+  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+
   async create(userId: string, dto: CreateNoteDto): Promise<Note> {
     console.log('[NotesService] Creating note for user:', userId, 'with data:', dto);
     try {
-      const result = await db
+      const result = await this.db
         .insert(notes)
         .values({
           userId,
@@ -60,7 +62,7 @@ export class NotesService {
   }
 
   async findOne(userId: string, id: string): Promise<Note> {
-    const [note] = await db
+    const [note] = await this.db
       .select()
       .from(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
@@ -76,7 +78,7 @@ export class NotesService {
   async findAll(userId: string, folderId?: string | null): Promise<Note[]> {
     if (folderId === undefined) {
       // Return all notes for user
-      return db
+      return this.db
         .select()
         .from(notes)
         .where(eq(notes.userId, userId))
@@ -85,7 +87,7 @@ export class NotesService {
 
     if (folderId === null) {
       // Return notes at root (no folder)
-      return db
+      return this.db
         .select()
         .from(notes)
         .where(and(eq(notes.userId, userId), isNull(notes.folderId)))
@@ -93,7 +95,7 @@ export class NotesService {
     }
 
     // Return notes in specific folder
-    return db
+    return this.db
       .select()
       .from(notes)
       .where(and(eq(notes.userId, userId), eq(notes.folderId, folderId)))
@@ -118,7 +120,7 @@ export class NotesService {
       updateData.folderId = dto.folderId;
     }
 
-    const result = await db
+    const result = await this.db
       .update(notes)
       .set(updateData)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)))
@@ -136,7 +138,7 @@ export class NotesService {
     // First verify the note exists and belongs to user
     await this.findOne(userId, id);
 
-    await db
+    await this.db
       .delete(notes)
       .where(and(eq(notes.id, id), eq(notes.userId, userId)));
   }
@@ -154,7 +156,7 @@ export class NotesService {
       return [];
     }
 
-    const results = await db.execute(sql`
+    const results = await this.db.execute(sql`
       SELECT
         id,
         user_id as "userId",

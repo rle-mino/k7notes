@@ -2,6 +2,7 @@ import { Module, Logger } from "@nestjs/common";
 import { REQUEST } from "@nestjs/core";
 import { ORPCModule, ORPCError, onError } from "@orpc/nest";
 import { AppController } from "./app.controller.js";
+import { DatabaseModule } from "./db/db.module.js";
 import { AuthModule } from "./auth/auth.module.js";
 import { NotesModule } from "./notes/notes.module.js";
 import { FoldersModule } from "./folders/folders.module.js";
@@ -36,6 +37,7 @@ const logger = new Logger("oRPC");
       }),
       inject: [REQUEST],
     }),
+    DatabaseModule,
     AuthModule,
     NotesModule,
     FoldersModule,
