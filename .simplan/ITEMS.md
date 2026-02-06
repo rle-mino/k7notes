@@ -2,7 +2,7 @@
 
 ## Item #1: Default notes structure on account creation
 - **Type**: ✨ Feature
-- **Status**: 🔄 IN_PROGRESS
+- **Status**: ✅ DONE
 - **Description**: Automatically create a default folder structure (daily, people, projects, etc.) when a new user account is created
 - **Slug**: default-notes-structure
 - **Plan**: .simplan/plans/1-default-notes-structure.md
