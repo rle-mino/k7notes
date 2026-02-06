@@ -1,9 +1,7 @@
 import { BadRequestException } from "@nestjs/common";
-import { Global, Module } from "@nestjs/common";
-import { Test, type TestingModule } from "@nestjs/testing";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from "vitest";
-import { DB_TOKEN, type Database } from "../db/db.types.js";
+import type { Database } from "../db/db.types.js";
 import { transcriptions } from "../db/schema.js";
 import {
   createTestDb,
@@ -14,12 +12,8 @@ import {
   createTestNote,
   cleanupDb,
 } from "../../test/helpers.js";
-import { TranscriptionsModule } from "./transcriptions.module.js";
 import { TranscriptionsService } from "./transcriptions.service.js";
-import {
-  OpenAITranscriptionProvider,
-  type ProviderTranscriptionResult,
-} from "./providers/index.js";
+import type { ProviderTranscriptionResult } from "./providers/index.js";
 
 // ---------------------------------------------------------------------------
 // Mock provider setup
@@ -64,7 +58,6 @@ const mockOpenAIProvider = {
 
 describe("TranscriptionsService", () => {
   let testContext: TestContext;
-  let module: TestingModule;
   let service: TranscriptionsService;
   let db: Database;
 
@@ -73,22 +66,7 @@ describe("TranscriptionsService", () => {
   beforeAll(async () => {
     testContext = createTestDb();
     db = testContext.db;
-
-    @Global()
-    @Module({
-      providers: [{ provide: DB_TOKEN, useValue: db }],
-      exports: [DB_TOKEN],
-    })
-    class TestDatabaseModule {}
-
-    module = await Test.createTestingModule({
-      imports: [TestDatabaseModule, TranscriptionsModule],
-    })
-      .overrideProvider(OpenAITranscriptionProvider)
-      .useValue(mockOpenAIProvider)
-      .compile();
-
-    service = module.get(TranscriptionsService);
+    service = new TranscriptionsService(testContext.db, mockOpenAIProvider as any);
   });
 
   beforeEach(async () => {
@@ -102,7 +80,6 @@ describe("TranscriptionsService", () => {
   });
 
   afterAll(async () => {
-    await module.close();
     await testContext.pool.end();
   });
 

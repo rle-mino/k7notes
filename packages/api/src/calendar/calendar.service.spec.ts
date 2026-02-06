@@ -2,19 +2,13 @@ import {
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
-import { Global, Module } from "@nestjs/common";
-import { Test, type TestingModule } from "@nestjs/testing";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from "vitest";
 import type { Database } from "../db/db.types.js";
-import { DB_TOKEN } from "../db/db.types.js";
 import { calendarConnections } from "../db/schema.js";
 import { createTestDb, type TestContext } from "../../test/create-test-module.js";
 import { createTestUser, cleanupDb } from "../../test/helpers.js";
-import { CalendarModule } from "./calendar.module.js";
 import { CalendarService } from "./calendar.service.js";
-import { GoogleCalendarProvider } from "./providers/google-calendar.provider.js";
-import { MicrosoftCalendarProvider } from "./providers/microsoft-calendar.provider.js";
 import type { ICalendarProvider, OAuthTokens, OAuthUserInfo } from "./providers/calendar-provider.interface.js";
 import type { CalendarEvent, CalendarInfo } from "@k7notes/contracts";
 
@@ -106,7 +100,6 @@ async function insertConnection(
 // ---------------------------------------------------------------------------
 describe("CalendarService", () => {
   let testContext: TestContext;
-  let module: TestingModule;
   let service: CalendarService;
   let db: Database;
 
@@ -117,34 +110,18 @@ describe("CalendarService", () => {
   let userB: { id: string };
 
   beforeAll(async () => {
-    // Ensure calendar mocks env var is not set
-    delete process.env.USE_CALENDAR_MOCKS;
-
     testContext = createTestDb();
     db = testContext.db;
 
     mockGoogleProvider = createMockProvider("google");
     mockMicrosoftProvider = createMockProvider("microsoft");
 
-    // Build test module manually (cannot use createTestModule because we need
-    // provider overrides for the calendar providers).
-    @Global()
-    @Module({
-      providers: [{ provide: DB_TOKEN, useValue: testContext.db }],
-      exports: [DB_TOKEN],
-    })
-    class TestDatabaseModule {}
-
-    module = await Test.createTestingModule({
-      imports: [TestDatabaseModule, CalendarModule],
-    })
-      .overrideProvider(GoogleCalendarProvider)
-      .useValue(mockGoogleProvider)
-      .overrideProvider(MicrosoftCalendarProvider)
-      .useValue(mockMicrosoftProvider)
-      .compile();
-
-    service = module.get(CalendarService);
+    // Directly instantiate the service, passing mock providers
+    service = new CalendarService(
+      testContext.db,
+      mockGoogleProvider as any,
+      mockMicrosoftProvider as any,
+    );
   });
 
   beforeEach(async () => {
@@ -157,7 +134,6 @@ describe("CalendarService", () => {
   });
 
   afterAll(async () => {
-    await module.close();
     await testContext.pool.end();
   });
 
@@ -174,7 +150,7 @@ describe("CalendarService", () => {
         provider: "microsoft",
         accountEmail: "a@microsoft.com",
       });
-      // Different user's connection — should not be returned
+      // Different user's connection -- should not be returned
       await insertConnection(db, userB.id, {
         provider: "google",
         accountEmail: "b@google.com",

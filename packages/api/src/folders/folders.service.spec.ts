@@ -1,12 +1,10 @@
 import { NotFoundException } from "@nestjs/common";
-import type { TestingModule } from "@nestjs/testing";
 import { eq } from "drizzle-orm";
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import type { Database } from "../db/db.types.js";
 import { notes } from "../db/schema.js";
 import {
   createTestDb,
-  createTestModule,
   type TestContext,
 } from "../../test/create-test-module.js";
 import {
@@ -15,12 +13,10 @@ import {
   createTestFolder,
   cleanupDb,
 } from "../../test/helpers.js";
-import { FoldersModule } from "./folders.module.js";
 import { FoldersService } from "./folders.service.js";
 
 describe("FoldersService", () => {
   let testContext: TestContext;
-  let module: TestingModule;
   let service: FoldersService;
   let db: Database;
 
@@ -30,8 +26,7 @@ describe("FoldersService", () => {
   beforeAll(async () => {
     testContext = createTestDb();
     db = testContext.db;
-    module = await createTestModule(FoldersModule, testContext);
-    service = module.get(FoldersService);
+    service = new FoldersService(testContext.db);
   });
 
   beforeEach(async () => {
@@ -41,7 +36,6 @@ describe("FoldersService", () => {
   });
 
   afterAll(async () => {
-    await module.close();
     await testContext.pool.end();
   });
 

@@ -1,8 +1,7 @@
-import { Global, Module, type Type } from "@nestjs/common";
-import { Test, type TestingModule } from "@nestjs/testing";
+import { inject } from "vitest";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { DB_TOKEN, type Database } from "../src/db/db.types.js";
+import type { Database } from "../src/db/db.types.js";
 import * as schema from "../src/db/schema.js";
 
 export interface TestContext {
@@ -12,15 +11,15 @@ export interface TestContext {
 
 /**
  * Creates a Drizzle database instance connected to the test container.
- * The DATABASE_URL environment variable must be set by globalSetup.
+ * The database URL is retrieved via Vitest's inject API (set by globalSetup's provide).
  *
  * Call `pool.end()` in afterAll to clean up the connection.
  */
 export function createTestDb(): TestContext {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = inject("databaseUrl");
   if (!connectionString) {
     throw new Error(
-      "DATABASE_URL is not set. Ensure the Vitest globalSetup has run.",
+      "databaseUrl is not provided. Ensure the Vitest globalSetup has run.",
     );
   }
 
@@ -28,31 +27,4 @@ export function createTestDb(): TestContext {
   const db = drizzle(pool, { schema });
 
   return { db, pool };
-}
-
-/**
- * Creates a compiled NestJS TestingModule for the given service module,
- * with DB_TOKEN overridden to use the test database connection.
- *
- * Usage:
- * ```ts
- * const ctx = createTestDb();
- * const module = await createTestModule(NotesModule, ctx);
- * const service = module.get(NotesService);
- * ```
- */
-export async function createTestModule(
-  moduleUnderTest: Type,
-  testContext: TestContext,
-): Promise<TestingModule> {
-  @Global()
-  @Module({
-    providers: [{ provide: DB_TOKEN, useValue: testContext.db }],
-    exports: [DB_TOKEN],
-  })
-  class TestDatabaseModule {}
-
-  return Test.createTestingModule({
-    imports: [TestDatabaseModule, moduleUnderTest],
-  }).compile();
 }

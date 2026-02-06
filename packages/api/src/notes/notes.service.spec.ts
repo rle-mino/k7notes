@@ -1,10 +1,8 @@
 import { NotFoundException } from "@nestjs/common";
-import type { TestingModule } from "@nestjs/testing";
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest";
 import type { Database } from "../db/db.types.js";
 import {
   createTestDb,
-  createTestModule,
   type TestContext,
 } from "../../test/create-test-module.js";
 import {
@@ -13,12 +11,10 @@ import {
   createTestFolder,
   cleanupDb,
 } from "../../test/helpers.js";
-import { NotesModule } from "./notes.module.js";
 import { NotesService } from "./notes.service.js";
 
 describe("NotesService", () => {
   let testContext: TestContext;
-  let module: TestingModule;
   let service: NotesService;
   let db: Database;
 
@@ -28,8 +24,7 @@ describe("NotesService", () => {
   beforeAll(async () => {
     testContext = createTestDb();
     db = testContext.db;
-    module = await createTestModule(NotesModule, testContext);
-    service = module.get(NotesService);
+    service = new NotesService(testContext.db);
   });
 
   beforeEach(async () => {
@@ -39,7 +34,6 @@ describe("NotesService", () => {
   });
 
   afterAll(async () => {
-    await module.close();
     await testContext.pool.end();
   });
 
@@ -157,10 +151,12 @@ describe("NotesService", () => {
     });
 
     it("should return notes ordered by updatedAt descending", async () => {
+      await createTestNote(db, userA.id, { title: "Second" });
+      // Small delay to guarantee distinct timestamps
+      await new Promise((r) => setTimeout(r, 50));
       const note1 = await createTestNote(db, userA.id, { title: "First" });
       // Update note1 so it has a newer updatedAt
       await service.update(userA.id, note1.id, { title: "First Updated" });
-      await createTestNote(db, userA.id, { title: "Second" });
 
       const results = await service.findAll(userA.id);
 
