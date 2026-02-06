@@ -21,7 +21,7 @@ export const auth = betterAuth({
   ],
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
+    requireEmailVerification: false, // TODO: enable once email sending is configured
   },
   socialProviders: {
     google: {
@@ -38,7 +38,7 @@ export const auth = betterAuth({
       create: {
         after: async (user) => {
           try {
-            const foldersService = new FoldersService();
+            const foldersService = new FoldersService(db);
             await foldersService.createDefaultFolders(user.id);
           } catch (error) {
             console.error(

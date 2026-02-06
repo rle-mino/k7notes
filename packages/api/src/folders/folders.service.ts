@@ -204,7 +204,7 @@ export class FoldersService {
   async createDefaultFolders(userId: string): Promise<Folder[]> {
     const defaultFolderNames = ["Daily", "People", "Projects", "Archive"];
 
-    const result = await db
+    const result = await this.db
       .insert(folders)
       .values(
         defaultFolderNames.map((name) => ({
