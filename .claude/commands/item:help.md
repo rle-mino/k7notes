@@ -29,20 +29,20 @@ BACKLOG → PLANNED → IN_PROGRESS → DONE
 #### `/item:add` - Add a new item to the backlog
 **Goal**: Capture work that needs to be done.
 
-Creates a new backlog item with a title, type (Feature/Fix), and description. Items start in `BACKLOG` status, waiting to be planned.
+Creates a new backlog item with a title, type (Feature/Fix), and description. Items start in `BACKLOG` status, waiting to be planned. Each item gets its own folder at `.simplan/items/<slug>/`.
 
 **When to use**: When you identify new work, bugs to fix, or features to build.
 
 ---
 
-#### `/item:plan` - Plan an item before coding
+#### `/item:plan [slug]` - Plan an item before coding
 **Goal**: Break work into atomic, committable phases.
 
 Takes a backlog item and creates a detailed plan by:
 - Exploring the codebase to understand architecture
 - Asking clarifying questions interactively (1-12 questions, max 3 rounds)
 - Splitting work into small, reviewable phases
-- Writing the plan to `.simplan/plans/<number>-<slug>.md` (or a folder for extensive plans)
+- Writing the plan to `.simplan/items/<slug>/PLAN.md`
 
 Updates item status from `BACKLOG` → `PLANNED`.
 
@@ -50,13 +50,13 @@ Updates item status from `BACKLOG` → `PLANNED`.
 
 ---
 
-#### `/item:brainstorm` - Brainstorm extensively before planning
+#### `/item:brainstorm [slug]` - Brainstorm extensively before planning
 **Goal**: Deep-dive into complex items through extensive Q&A.
 
 Like `/item:plan` but with much more thorough exploration:
 - Asks 10-40 questions across multiple rounds
 - Covers 10 categories: requirements, UX, technical approach, edge cases, integration, testing, scope, security, operations, and risks
-- Creates comprehensive plans with full Q&A logs
+- Creates comprehensive plans with full Q&A logs included in PLAN.md
 - Documents which questions informed each phase
 
 Updates item status from `BACKLOG` → `PLANNED`.
@@ -65,11 +65,11 @@ Updates item status from `BACKLOG` → `PLANNED`.
 
 ---
 
-#### `/item:exec [item-number]` - Execute a phase
+#### `/item:exec [slug]` - Execute a phase
 **Goal**: Implement one phase at a time with immediate review.
 
 Executes a single phase from the plan:
-1. Selects the item (auto-selects if no number given)
+1. Selects the item (auto-selects if no slug given)
 2. Moves any other `IN_PROGRESS` items to `IDLE`
 3. Runs the `simplexecutor` agent to make code changes
 4. Runs the `simpreviewer` agent to validate the changes
@@ -77,14 +77,14 @@ Executes a single phase from the plan:
 6. Creates a commit with a descriptive message
 
 **Item selection**:
-- If item number provided: uses that item
-- If no number: continues `IN_PROGRESS` item, or picks first `PLANNED`/`IDLE`
+- If slug provided: uses that item
+- If no slug: continues `IN_PROGRESS` item, or picks first `PLANNED`/`IDLE`
 
 **When to use**: After planning, execute phases one by one. Review each before moving to the next.
 
 ---
 
-#### `/item:review` - Review and complete an item
+#### `/item:review [slug]` - Review and complete an item
 **Goal**: Ensure all work is complete and properly recorded.
 
 Reviews a completed item to:
@@ -97,22 +97,22 @@ Reviews a completed item to:
 
 ---
 
-#### `/item:delete` - Remove an item from backlog
+#### `/item:delete [slug]` - Remove an item from backlog
 **Goal**: Clean up items that are no longer needed.
 
-Removes an item and its plan file, renumbering remaining items.
+Removes an item's entire folder (`.simplan/items/<slug>/`).
 
 **When to use**: When an item is cancelled, duplicated, or no longer relevant.
 
 ---
 
-#### `/item:update` - Update simplan framework
+#### `/item:updatesimplan` - Update simplan framework
 **Goal**: Get the latest simplan commands and agents.
 
-Downloads and installs the latest version of simplan. Detects whether you have a global or local installation and updates accordingly.
+Downloads and installs the latest version of simplan. Detects whether you have a global or local installation and updates accordingly. Shows the changelog with explanations of new features and offers to configure new options.
 
-**What it updates**: Commands (`/item:*`) and agents (simplexecutor, simpreviewer).
-**What it preserves**: Your project data (`.simplan/ITEMS.md`, `.simplan/plans/`).
+**What it updates**: Commands (`/item:*`) and agents (simplan:exec, simplan:review).
+**What it preserves**: Your project data (`.simplan/items/`, `.simplan/config`).
 
 **When to use**: Periodically, or when you want new features and bug fixes.
 
@@ -133,23 +133,51 @@ Downloads and installs the latest version of simplan. Detects whether you have a
 
 ```
 .simplan/
-├── ITEMS.md                    # All backlog items with status
-└── plans/
-    ├── 1-add-auth.md           # Simple plan (single file)
-    └── 2-refactor-api/         # Extensive plan (folder)
-        ├── README.md           # Plan overview
-        ├── phase-1.md          # Phase 1 details
-        └── phase-2.md          # Phase 2 details
+├── config                          # Optional configuration (key=value format)
+└── items/
+    ├── add-user-auth/              # Item folder (slug = folder name)
+    │   ├── ITEM.md                 # Item metadata (title, type, status, description)
+    │   ├── PLAN.md                 # The plan (phases, steps, completion conditions)
+    │   └── phase-1.md              # Optional additional phase details
+    ├── fix-pagination/
+    │   ├── ITEM.md
+    │   └── PLAN.md
+    └── improve-search/
+        └── ITEM.md                 # No plan yet (BACKLOG)
 ```
+
+### Configuration
+
+Simplan can be configured via `.simplan/config` using `key=value` format (one per line).
+
+**Available options:**
+
+| Option | Values | Default | Description |
+|--------|--------|---------|-------------|
+| `commit_plan` | `true`/`false` | `false` | Commit `.simplan/` changes alongside code |
+
+**Example `.simplan/config`:**
+```
+commit_plan=true
+```
+
+**`commit_plan`**: When enabled, simplan commands will offer to commit plan file changes (ITEM.md, PLAN.md) alongside your code commits. Each commit requires explicit confirmation.
+
+**Note**: By default, `.simplan/` is gitignored. If you enable `commit_plan=true`, you'll need to remove `.simplan/` from your `.gitignore` for commits to work.
 
 ### Item Format
 
-Each item in `ITEMS.md` includes:
-- **Type**: Feature or Fix
-- **Status**: BACKLOG, PLANNED, IDLE, IN_PROGRESS, or DONE
-- **Description**: What needs to be done
-- **Slug**: URL-friendly name (e.g., "add-user-authentication")
-- **Plan**: Path to plan file/folder (set after planning)
+Each item is stored in its own folder at `.simplan/items/<slug>/ITEM.md`:
+
+```markdown
+# Add user authentication
+- **Type**: ✨ Feature
+- **Status**: 📋 BACKLOG
+- **Description**: Implement login/logout functionality
+```
+
+- The slug is the folder name (no slug field needed)
+- The plan is always at `PLAN.md` in the same folder (no plan field needed)
 
 ---
 

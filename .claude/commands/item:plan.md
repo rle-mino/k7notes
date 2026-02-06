@@ -1,6 +1,6 @@
 ---
 description: Plan an item with phases before coding
-argument-hint: [item-number]
+argument-hint: [slug]
 allowed-tools:
   - Read
   - Write
@@ -18,8 +18,7 @@ allowed-tools:
 
 ## Context
 
-Current backlog:
-@.simplan/ITEMS.md
+Read the `.simplan/items/` directory to see existing items. Each subdirectory is an item slug containing an `ITEM.md` file (metadata) and optionally a `PLAN.md` file (the plan).
 
 ## Configuration
 
@@ -37,17 +36,17 @@ When displaying or updating item statuses, use these emojis:
 
 ## Task
 
-Plan item #$ARGUMENTS through an interactive explore-question loop.
+Plan item `$ARGUMENTS` through an interactive explore-question loop.
 
 ## Process
 
 ### Step 1: Parse & Validate
 
-1. Get item number from `$ARGUMENTS`
-2. If no item number provided:
-   - Read the backlog and list items with status `BACKLOG`
-   - Use **AskUserQuestion** to ask which one to plan (use "Item #N" as option labels, put titles in descriptions)
-3. Extract item details: number, slug, title, description
+1. Get slug from `$ARGUMENTS`
+2. If no slug provided:
+   - Read `.simplan/items/` and list items with status `BACKLOG` (read each `ITEM.md`)
+   - Use **AskUserQuestion** to ask which one to plan (use slugs as option labels, put titles in descriptions)
+3. Read `.simplan/items/<slug>/ITEM.md` to extract item details: title, description
 
 ### Step 2: Explore-Question Loop (max 3 iterations)
 
@@ -78,7 +77,7 @@ Use WebFetch/WebSearch/Context7 if you need external documentation (libraries, A
 - Option labels: max 30 characters (use short identifiers, abbreviations, or "Option A/B/C")
 - Headers: max 30 characters
 - Put longer text (full explanations, item titles) in the option `description` field, not the `label`
-- For item selection: use "Item #N" as labels with full titles in descriptions
+- For item selection: use slugs as labels with full titles in descriptions
 
 Adapt questions based on previous answers. Don't re-ask what's already clear.
 
@@ -173,10 +172,10 @@ For each phase, specify:
 
 ### Step 4: Write the Plan File
 
-Write the plan to `.simplan/plans/<number>-<slug>.md` using this format:
+Write the plan to `.simplan/items/<slug>/PLAN.md` using this format:
 
 ```markdown
-# Plan: Item #<number> - <title>
+# Plan: <title>
 
 ## Context
 <What you learned about the codebase relevant to this item>
@@ -244,25 +243,20 @@ Write the plan to `.simplan/plans/<number>-<slug>.md` using this format:
 - **Progress**: 0/<total phases>
 ```
 
-For extensive plans (5+ phases), use a folder structure:
-- `.simplan/plans/<number>-<slug>/README.md` - Main overview
-- `.simplan/plans/<number>-<slug>/phase-1.md` - Phase details
-- etc.
+For extensive plans (5+ phases), additional detail files can go in the same folder (e.g., `.simplan/items/<slug>/phase-1.md`).
 
-### Step 5: Update Backlog
+### Step 5: Update Item Status
 
-Update the item in `.simplan/ITEMS.md`:
+Update `.simplan/items/<slug>/ITEM.md`:
 - Set status to `PLANNED`
-- Set the **Plan** field to the plan file path
 
 ### Step 6: Commit (if configured)
 
 If `.simplan/config` contains `commit_plan=true`:
 - Ask user if they want to commit the plan (use AskUserQuestion with "Commit plan?" header, options "Yes" / "No")
 - If yes:
-  - Stage the plan file: `.simplan/plans/<number>-<slug>.md` (or folder)
-  - Stage `.simplan/ITEMS.md`
-  - Create commit with message: `plan: create plan for item #<number> - <title>`
+  - Stage `.simplan/items/<slug>/PLAN.md` and `.simplan/items/<slug>/ITEM.md`
+  - Create commit with message: `plan: create plan for <slug>`
 
 ### Step 7: Show Result
 
@@ -305,7 +299,7 @@ Display the created plan summary to the user, including a **plan recap table**:
 
 After creating the plan, tell the user:
 
-> Item #<number> is now PLANNED with <N> phases!
+> Item `<slug>` is now PLANNED with <N> phases!
 >
 > To start executing, run:
 > `/item:exec`

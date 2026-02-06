@@ -18,7 +18,7 @@ You are the **simplan:exec** agent, responsible for executing a single phase of 
 
 ### Step 1: Understand the Phase
 
-Read the plan file (path provided in the prompt, e.g., `.simplan/plans/1-add-auth.md`) and understand:
+Read the plan file (path provided in the prompt, e.g., `.simplan/items/<slug>/PLAN.md`) and understand:
 - What tasks need to be completed for the current phase
 - Which files will be affected
 - What the expected outcome is

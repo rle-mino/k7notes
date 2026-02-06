@@ -44,7 +44,33 @@ Fetch from GitHub:
 - CHANGELOG.md: https://raw.githubusercontent.com/rle-mino/simplan/main/CHANGELOG.md
 
 Compare versions. If already up-to-date, inform user and skip to Step 4.
-Otherwise, show changelog entries between current and latest version.
+
+Otherwise, display the changelog to the user:
+
+1. **Extract relevant entries**: Parse CHANGELOG.md and show all version entries between the current installed version and the latest version (inclusive of latest, exclusive of current)
+
+2. **Format the changelog clearly**:
+   ```
+   ## What's New in v<latest>
+
+   <For each version from latest down to current+1>
+
+   ### v<version> - <date>
+
+   <List all Added/Changed/Fixed items with brief explanations>
+   ```
+
+3. **Explain behavioral changes**: For each significant change, provide a brief explanation of what it means for the user. Examples:
+   - "**`commit_plan` config option**: You can now optionally commit your `.simplan/` files alongside code changes. When enabled, simplan will ask before committing plan updates."
+   - "**`item:exec` no longer auto-chains**: After completing a phase, you'll now be prompted to run `/item:exec` again instead of automatically continuing. This gives you more control over the workflow."
+
+4. **Highlight new configuration options**: If new config options were added, note them separately:
+   ```
+   ## New Configuration Options
+
+   The following new settings are available in `.simplan/config`:
+   - `commit_plan` - Commit plan files with code changes (see Step 5)
+   ```
 
 ### Step 3: Run Update
 
@@ -56,40 +82,93 @@ Execute the appropriate install command:
 
 Report the update result. The installer will automatically clean up deprecated files.
 
-### Step 4: Check for .simplan/ Initialization
+### Step 4: Check for .simplan/ Initialization and Migration
+
+#### 4a: New project (no .simplan/ exists)
 
 If no `.simplan/` folder exists in the current project:
 - Ask user if they want to initialize it using AskUserQuestion
 - If confirmed, create:
-  - `.simplan/` directory
-  - `.simplan/plans/` directory
-  - `.simplan/ITEMS.md` with template:
+  - `.simplan/items/` directory
 
-```markdown
-# Backlog
+#### 4b: Migrate from old structure (if needed)
 
-## In Progress
+If `.simplan/ITEMS.md` exists, this is an **old-format project** that needs migration to the new per-item folder structure.
 
-(none)
+**Migration process:**
 
-## Planned
+1. **Inform the user**: "Your project uses the old ITEMS.md format. I'll migrate to the new per-item folder structure."
 
-(none)
+2. **Read `.simplan/ITEMS.md`** and parse all items. Each item section looks like:
+   ```markdown
+   ## Item #<number>: <title>
+   - **Type**: <emoji> <type>
+   - **Status**: <emoji> <status>
+   - **Description**: <description>
+   - **Slug**: <slug>
+   - **Plan**: <plan-path or None>
+   ```
 
-## Backlog
+3. **For each item**, create `.simplan/items/<slug>/ITEM.md`:
+   ```markdown
+   # <title>
+   - **Type**: <emoji> <type>
+   - **Status**: <emoji> <status>
+   - **Description**: <description>
+   ```
 
-(none)
+4. **Migrate plans**: For each item that has a plan path (not "None"):
+   - If the plan is a single file (e.g., `.simplan/plans/<number>-<slug>.md`):
+     - Copy it to `.simplan/items/<slug>/PLAN.md`
+     - In the copied file, replace the header `# Plan: Item #<number> - <title>` with `# Plan: <title>`
+   - If the plan is a folder (e.g., `.simplan/plans/<number>-<slug>/`):
+     - Copy `README.md` to `.simplan/items/<slug>/PLAN.md`
+     - Copy any other files (brainstorm.md, phase-N.md, etc.) to `.simplan/items/<slug>/`
+     - Update headers similarly
 
-## Done
+5. **Clean up old structure**:
+   - Ask user for confirmation before deleting old files (use AskUserQuestion)
+   - If confirmed:
+     - Delete `.simplan/ITEMS.md`
+     - Delete `.simplan/plans/` directory
+   - If not confirmed, leave old files in place alongside new structure
 
-(none)
-```
+6. **Report migration results**: List items migrated and any issues encountered.
 
-### Step 5: Report Summary
+### Step 5: Configure New Options
+
+Check if `.simplan/config` exists. Parse it as key=value format (one per line).
+
+For each configuration option that was introduced in versions between the user's previous version and the latest version, ask the user if they want to configure it.
+
+**Available configuration options:**
+
+#### `commit_plan` (added in v1.6.0)
+
+Ask using AskUserQuestion:
+- **Header**: "Commit plans?"
+- **Question**: "Do you want simplan to commit `.simplan/` files alongside your code changes?"
+- **Options**:
+  1. **"Yes"** - Description: "Plan files will be committed with code. You'll be asked to confirm each commit. Requires removing `.simplan/` from `.gitignore`."
+  2. **"No (default)"** - Description: "Plan files stay local and gitignored. Plans are personal working notes, not shared documentation."
+
+If user selects "Yes":
+1. Create or update `.simplan/config` with `commit_plan=true`
+2. Check if `.gitignore` contains `.simplan/` - if so, inform the user:
+   > **Note**: You'll need to remove `.simplan/` from your `.gitignore` to enable plan commits.
+   > You can do this manually or I can do it for you.
+   Ask with AskUserQuestion (Header: "Update .gitignore?", Options: "Yes, remove .simplan/" / "No, I'll do it manually")
+
+If user selects "No" or skips:
+- Do not modify `.simplan/config` for this option (default behavior is to not commit plans)
+
+### Step 6: Report Summary
 
 Provide a summary:
 - Framework version: X.X.X → Y.Y.Y (or "already up-to-date")
 - .simplan/ initialized (if created)
+- Migration completed (if migrated from old format)
+- Configuration changes (if any options were set)
 - Any deprecated files that were cleaned up (reported by installer)
 
 ---

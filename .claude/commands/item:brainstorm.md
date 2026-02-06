@@ -1,6 +1,6 @@
 ---
 description: Brainstorm an item with extensive Q&A (10-40 questions) before planning
-argument-hint: [item-number]
+argument-hint: [slug]
 allowed-tools:
   - Read
   - Write
@@ -18,8 +18,7 @@ allowed-tools:
 
 ## Context
 
-Current backlog:
-@.simplan/ITEMS.md
+Read the `.simplan/items/` directory to see existing items. Each subdirectory is an item slug containing an `ITEM.md` file (metadata) and optionally a `PLAN.md` file (the plan).
 
 ## Configuration
 
@@ -37,7 +36,7 @@ When displaying or updating item statuses, use these emojis:
 
 ## Task
 
-Conduct an extensive brainstorming session for item #$ARGUMENTS through deep exploration and 10-40 questions, then create a comprehensive plan.
+Conduct an extensive brainstorming session for item `$ARGUMENTS` through deep exploration and 10-40 questions, then create a comprehensive plan.
 
 **This command is for items that need thorough analysis** - complex features, architectural decisions, or items where requirements are unclear.
 
@@ -45,18 +44,18 @@ Conduct an extensive brainstorming session for item #$ARGUMENTS through deep exp
 
 ### Step 1: Parse & Validate
 
-1. Get item number from `$ARGUMENTS`
-2. If no item number provided:
-   - Read the backlog and list items that are NOT `DONE`
-   - Use **AskUserQuestion** to ask which one to brainstorm (use "Item #N" as option labels, put titles in descriptions)
-3. Extract item details: number, slug, title, description, plan path
+1. Get slug from `$ARGUMENTS`
+2. If no slug provided:
+   - Read `.simplan/items/` and list items that are NOT `DONE` (read each `ITEM.md`)
+   - Use **AskUserQuestion** to ask which one to brainstorm (use slugs as option labels, put titles in descriptions)
+3. Read `.simplan/items/<slug>/ITEM.md` to extract item details: title, description
 4. Confirm the item is not already `DONE` (refuse if it is)
 
 ### Step 1b: Check for Existing Plan
 
-If the item has a **Plan** field that is not `None`:
+If `.simplan/items/<slug>/PLAN.md` exists:
 
-1. **Read the existing plan** from the plan path
+1. **Read the existing plan**
 2. **Extract previous context**:
    - Any existing "Context" section
    - Any existing "Clarifications" or "Q&A Log" section
@@ -310,22 +309,24 @@ For each phase, specify:
 | 4 | Complex | Multi-file refactor, new integration, schema change |
 | 5 | High-risk | Architecture change, security-critical, performance-sensitive |
 
-### Step 6: Write the Plan File
+### Step 6: Write the Plan Files
 
 **If updating an existing plan:**
-- Use the same plan file path
+- Use the same `.simplan/items/<slug>/PLAN.md` path
 - Preserve completed phases (with `[x]` checkmarks) unless explicitly revising
-- Merge new Q&A with existing clarifications/Q&A log
+- Merge new Q&A with existing "Full Q&A Log" section
 - Add a "Revision History" section noting this brainstorm session
 - Update incomplete phases based on new brainstorming insights
 
 **If creating a new plan:**
-- Write to `.simplan/plans/<number>-<slug>.md`
+- Write to `.simplan/items/<slug>/PLAN.md`
+
+Everything goes in a single `PLAN.md` file (including the full Q&A log).
 
 Use this format:
 
 ```markdown
-# Plan: Item #<number> - <title>
+# Plan: <title>
 
 ## Executive Summary
 <High-level overview of what this item will accomplish>
@@ -421,28 +422,23 @@ Use this format:
 
 ## Revision History
 <Only include if this is an update to an existing plan>
-- **<date>**: Superplan session - <N> additional questions, revised phases X-Y
+- **<date>**: Brainstorm session - <N> additional questions, revised phases X-Y
 ```
 
-For extensive plans (5+ phases), use a folder structure:
-- `.simplan/plans/<number>-<slug>/README.md` - Main overview
-- `.simplan/plans/<number>-<slug>/brainstorm.md` - Full Q&A log
-- `.simplan/plans/<number>-<slug>/phase-N.md` - Phase details
+For extensive plans (5+ phases), additional detail files can go in the same folder (e.g., `.simplan/items/<slug>/phase-1.md`).
 
-### Step 7: Update Backlog
+### Step 7: Update Item Status
 
-Update the item in `.simplan/ITEMS.md`:
+Update `.simplan/items/<slug>/ITEM.md`:
 - Set status to `PLANNED`
-- Set the **Plan** field to the plan file path
 
 ### Step 8: Commit (if configured)
 
 If `.simplan/config` contains `commit_plan=true`:
 - Ask user if they want to commit the plan (use AskUserQuestion with "Commit plan?" header, options "Yes" / "No")
 - If yes:
-  - Stage the plan file: `.simplan/plans/<number>-<slug>.md` (or folder)
-  - Stage `.simplan/ITEMS.md`
-  - Create commit with message: `plan: brainstorm item #<number> - <title>`
+  - Stage `.simplan/items/<slug>/PLAN.md` and `.simplan/items/<slug>/ITEM.md`
+  - Create commit with message: `plan: brainstorm item <slug>`
 
 ### Step 9: Show Result
 
@@ -496,9 +492,9 @@ Display:
 After creating/updating the plan, tell the user:
 
 **For new plans:**
-> Item #<number> has been thoroughly brainstormed with <N> questions and planned with <M> phases!
+> Item `<slug>` has been thoroughly brainstormed with <N> questions and planned with <M> phases!
 >
-> Plan: `.simplan/plans/<number>-<slug>.md`
+> Plan: `.simplan/items/<slug>/PLAN.md`
 >
 > To start executing, run:
 > `/item:exec`
@@ -506,11 +502,11 @@ After creating/updating the plan, tell the user:
 > Tip: Run `/clear` to reset context before executing.
 
 **For updated plans:**
-> Item #<number> plan has been revised with <N> additional questions!
+> Item `<slug>` plan has been revised with <N> additional questions!
 >
 > Changes: <brief summary of what changed - new phases, revised phases, etc.>
 >
-> Plan: `.simplan/plans/<number>-<slug>.md`
+> Plan: `.simplan/items/<slug>/PLAN.md`
 >
 > To continue executing, run:
 > `/item:exec`

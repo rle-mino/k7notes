@@ -1,6 +1,6 @@
 ---
 description: Review a completed item and update plan status
-argument-hint: [item-number]
+argument-hint: [slug]
 allowed-tools:
   - Read
   - Write
@@ -14,8 +14,7 @@ allowed-tools:
 
 ## Context
 
-Current backlog:
-@.simplan/ITEMS.md
+Read the `.simplan/items/` directory to see existing items. Each subdirectory is an item slug containing an `ITEM.md` file (metadata) and a `PLAN.md` file (the plan).
 
 ## Configuration
 
@@ -33,23 +32,23 @@ When displaying or updating item statuses, use these emojis:
 
 ## Task
 
-Validate item #$ARGUMENTS by delegating to the **simplan:review** agent.
+Validate item `$ARGUMENTS` by delegating to the **simplan:review** agent.
 
 ### Steps
 
-1. **Parse arguments**: Get item number from `$ARGUMENTS`
+1. **Parse arguments**: Get slug from `$ARGUMENTS`
 
-2. **Validate**: If no item number provided, read the backlog and find items that need validation (IN_PROGRESS or DONE status), then use AskUserQuestion to ask which one to validate (use "Item #N" as option labels, put titles in descriptions; all labels max 30 chars)
+2. **Validate**: If no slug provided, read `.simplan/items/` and find items that need validation (IN_PROGRESS or DONE status), then use AskUserQuestion to ask which one to validate (use slugs as option labels, put titles in descriptions; all labels max 30 chars)
 
-3. **Get plan path**: Read the item's Plan path from the backlog
+3. **Get plan**: Read `.simplan/items/<slug>/PLAN.md`
 
 4. **Delegate to simplan:review**: Use the Task tool to spawn the review agent:
    ```
    Task(
-     prompt="Validate item #<number>.
+     prompt="Validate item `<slug>`.
 
-     Backlog file: .simplan/ITEMS.md
-     Plan file: <plan-path>
+     Item file: .simplan/items/<slug>/ITEM.md
+     Plan file: .simplan/items/<slug>/PLAN.md
 
      Follow your review process:
      1. Read the plan and review all changes
@@ -57,19 +56,19 @@ Validate item #$ARGUMENTS by delegating to the **simplan:review** agent.
      3. Check if all phases were properly completed
      4. Verify commits exist for each phase (code files only - .simplan/ is gitignored)
      5. Update the plan file with completion status
-     6. Update backlog status to DONE if all phases complete
+     6. Update item status to DONE in ITEM.md if all phases complete
      7. Generate summary of what was accomplished",
      subagent_type="simplan:review",
-     description="Validate item #<number>"
+     description="Validate item <slug>"
    )
    ```
 
 5. **Commit (if configured)**: If `.simplan/config` contains `commit_plan=true`:
    - Ask user if they want to commit the review updates (use AskUserQuestion with "Commit review?" header, options "Yes" / "No")
    - If yes:
-     - Stage the plan file (with updated review status)
-     - Stage `.simplan/ITEMS.md` (if backlog status changed to DONE)
-     - Create commit with message: `plan: review item #<number> - <status>`
+     - Stage `.simplan/items/<slug>/PLAN.md` (with updated review status)
+     - Stage `.simplan/items/<slug>/ITEM.md` (if status changed to DONE)
+     - Create commit with message: `plan: review item <slug> - <status>`
 
 6. **Show result**: Display the validation summary to the user
 
@@ -80,7 +79,7 @@ Validate item #$ARGUMENTS by delegating to the **simplan:review** agent.
 Based on validation result, tell the user:
 
 **If item is marked DONE:**
-> Item #<number> complete!
+> Item `<slug>` complete!
 >
 > To see remaining work, run:
 > `/item:progress`
@@ -91,6 +90,6 @@ Based on validation result, tell the user:
 > Validation found issues that need to be fixed.
 >
 > To fix and re-run, run:
-> `/item:exec <phase-number>`
+> `/item:exec <slug>`
 >
 > Tip: Run `/clear` to reset context before fixing.

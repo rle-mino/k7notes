@@ -4,14 +4,14 @@ argument-hint: [title]
 allowed-tools:
   - Read
   - Write
-  - Edit
+  - Bash
+  - Glob
   - AskUserQuestion
 ---
 
 ## Context
 
-Current backlog:
-@.simplan/ITEMS.md
+Read the `.simplan/items/` directory to see existing items. Each subdirectory is an item slug containing an `ITEM.md` file.
 
 ## Configuration
 
@@ -24,7 +24,7 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
 
 ### Steps
 
-1. **Read backlog**: Count existing items to determine the next item number
+1. **Read existing items**: List `.simplan/items/` subdirectories to check for slug conflicts
 
 2. **Get details**: Use AskUserQuestion to ask for:
    - **Title**: Short, descriptive title (or use from `$ARGUMENTS` if provided)
@@ -32,7 +32,7 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
    - **Description**: What needs to be done
 
    **AskUserQuestion formatting rules:**
-   - Option labels: max 30 characters (use short identifiers like "Item #1", "Feature", "Fix")
+   - Option labels: max 30 characters (use short identifiers like "Feature", "Fix")
    - Headers: max 30 characters
    - Put longer text (full titles, descriptions) in the option `description` field, not the `label`
 
@@ -42,16 +42,15 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
    - Remove special characters
    - Keep it short (max 30 chars)
    - Example: "Add user authentication" → "add-user-authentication"
+   - Verify slug doesn't conflict with existing item folders
 
-4. **Append item**: Add to `.simplan/ITEMS.md`:
+4. **Create item**: Create the directory and write `.simplan/items/<slug>/ITEM.md`:
 
 ```markdown
-## Item #<number>: <title>
+# <title>
 - **Type**: <type-emoji> <Feature|Fix>
 - **Status**: 📋 BACKLOG
 - **Description**: <description>
-- **Slug**: <slug>
-- **Plan**: None
 ```
 
 **Type emojis:**
@@ -65,13 +64,13 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
 - ⏸️ IDLE
 - ✅ DONE
 
-5. **Confirm**: Show the added item with its number and slug
+5. **Confirm**: Show the added item with its slug
 
 6. **Commit (if configured)**: If `.simplan/config` contains `commit_plan=true`:
    - Ask user if they want to commit the backlog change (use AskUserQuestion with "Commit backlog?" header, options "Yes" / "No")
    - If yes:
-     - Stage `.simplan/ITEMS.md`
-     - Create commit with message: `plan: add item #<number> - <title>`
+     - Stage `.simplan/items/<slug>/ITEM.md`
+     - Create commit with message: `plan: add item <slug>`
 
 7. **Assess complexity**: Based on the description, estimate complexity:
 
@@ -96,19 +95,19 @@ Add a new item to the backlog. Keep this lightweight - no agent delegation neede
 Based on complexity assessment, recommend:
 
 **For simple items:**
-> Item #<number> added! This looks straightforward.
+> Item `<slug>` added! This looks straightforward.
 >
 > To plan this item, run:
-> `/item:plan <number>`
+> `/item:plan <slug>`
 >
 > Tip: Run `/clear` to reset context before planning.
 
 **For complex items:**
-> Item #<number> added! This seems complex—I'd recommend brainstorming first.
+> Item `<slug>` added! This seems complex—I'd recommend brainstorming first.
 >
 > To brainstorm this item, run:
-> `/item:brainstorm <number>`
+> `/item:brainstorm <slug>`
 >
-> Or if you already know the approach: `/item:plan <number>`
+> Or if you already know the approach: `/item:plan <slug>`
 >
 > Tip: Run `/clear` to reset context before planning.

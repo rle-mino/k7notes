@@ -1,19 +1,19 @@
 ---
 description: Execute a phase of an item
-argument-hint: [item-number]
+argument-hint: [slug]
 allowed-tools:
   - Read
   - Write
   - Edit
   - Task
   - Bash
+  - Glob
   - AskUserQuestion
 ---
 
 ## Context
 
-Current backlog:
-@.simplan/ITEMS.md
+Read the `.simplan/items/` directory to see existing items. Each subdirectory is an item slug containing an `ITEM.md` file (metadata) and a `PLAN.md` file (the plan).
 
 ## Configuration
 
@@ -41,27 +41,27 @@ Execute a phase for the current item by delegating to agents.
 
 ### Arguments
 - `$ARGUMENTS` may contain:
-  - Item number (optional - auto-selects if not provided)
+  - Item slug (optional - auto-selects if not provided)
 
 ### Steps
 
-1. **Parse arguments**: Extract item number (optional) from `$ARGUMENTS`
+1. **Parse arguments**: Extract slug (optional) from `$ARGUMENTS`
 
 2. **Select item**:
-   - If item number provided: use that item (must be `PLANNED` or `IDLE`)
-   - If no item number:
+   - If slug provided: use that item (must be `PLANNED` or `IDLE`)
+   - If no slug:
+     - Read all `.simplan/items/*/ITEM.md` files
      - First: Look for any item with status `IN_PROGRESS` (continue it)
-     - If none: Pick the first item with status `PLANNED` or `IDLE` (by item number order)
+     - If none: Pick the first item with status `PLANNED` or `IDLE` (alphabetical by slug)
    - If no eligible items exist, tell user to run `/item:plan` first
 
-3. **Update statuses in backlog**:
-   - Move ALL `IN_PROGRESS` items to `IDLE` (started but paused)
-   - Set the selected item to `IN_PROGRESS`
+3. **Update statuses**:
+   - Read all `.simplan/items/*/ITEM.md` files
+   - Move ALL `IN_PROGRESS` items to `IDLE` (update their ITEM.md)
+   - Set the selected item to `IN_PROGRESS` (update its ITEM.md)
    - This ensures only one item is ever in progress at a time
 
-4. **Get plan path**: Read the item's Plan path from the backlog (e.g., `.simplan/plans/1-add-auth.md`)
-
-5. **Read the plan**: Load the plan file (or folder's main file if it's a folder)
+4. **Get plan**: Read `.simplan/items/<slug>/PLAN.md`
 
 5a. **Extract completion conditions** (if present):
     - Look for the "Completion Conditions" section in the plan
@@ -94,16 +94,16 @@ Execute a phase for the current item by delegating to agents.
 
    ```
    Task(
-     prompt="Execute Phase <N> of item #<X>.
+     prompt="Execute Phase <N> of `<slug>`.
 
-     Plan file: <plan-path>
+     Plan file: .simplan/items/<slug>/PLAN.md
 
      ## Phase Content (from plan)
      <INLINE THE FULL PHASE SECTION HERE - title, tasks, files, commit message, bisect note>
 
      ## Item Context
-     - **Title**: <item title from backlog>
-     - **Description**: <item description from backlog>
+     - **Title**: <item title from ITEM.md>
+     - **Description**: <item description from ITEM.md>
 
      ## Completion Conditions
      <If completion conditions exist in the plan, INLINE THE TABLE HERE:>
@@ -118,7 +118,7 @@ Execute a phase for the current item by delegating to agents.
      4. Update the plan with implementation notes
      5. Mark tasks as complete",
      subagent_type="simplan:exec",
-     description="Execute Phase <N> of item #<X>"
+     description="Execute Phase <N> of <slug>"
    )
    ```
 
@@ -132,16 +132,16 @@ Execute a phase for the current item by delegating to agents.
 
     ```
     Task(
-      prompt="Execute Phase <N> of item #<X>.
+      prompt="Execute Phase <N> of `<slug>`.
 
-      Plan file: <plan-path>
+      Plan file: .simplan/items/<slug>/PLAN.md
 
       ## Phase Content (from plan)
       <INLINE THE FULL PHASE SECTION HERE - title, tasks, files, commit message, bisect note>
 
       ## Item Context
-      - **Title**: <item title from backlog>
-      - **Description**: <item description from backlog>
+      - **Title**: <item title from ITEM.md>
+      - **Description**: <item description from ITEM.md>
 
       ## Completion Conditions
       <If completion conditions exist in the plan, INLINE THE TABLE HERE:>
@@ -158,7 +158,7 @@ Execute a phase for the current item by delegating to agents.
       4. Update the plan with implementation notes
       5. Mark tasks as complete",
       subagent_type="simplan:exec",
-      description="Execute Phase <N> of item #<X>"
+      description="Execute Phase <N> of <slug>"
     )
     ```
 
@@ -169,11 +169,11 @@ Execute a phase for the current item by delegating to agents.
 9. **Review via simplan:review** (single phase):
    ```
    Task(
-     prompt="Review Phase <N> of item #<X>.
+     prompt="Review Phase <N> of `<slug>`.
 
      **Problem to solve**: <copy the phase title and objective from the plan - what needs to be done, NOT how>
 
-     Plan file: <plan-path> (only for updating status after review)
+     Plan file: .simplan/items/<slug>/PLAN.md (only for updating status after review)
 
      ## Completion Conditions
      <If completion conditions exist in the plan, INLINE THE TABLE HERE:>
@@ -185,7 +185,7 @@ Execute a phase for the current item by delegating to agents.
      Validate quality and correctness based on the problem statement alone.
      If completion conditions are specified, verify they all pass before approving.",
      subagent_type="simplan:review",
-     description="Review Phase <N> of item #<X>"
+     description="Review Phase <N> of <slug>"
    )
    ```
    After review completes, go to step 10.
@@ -194,14 +194,14 @@ Execute a phase for the current item by delegating to agents.
     Single review for all phases that ran in parallel:
     ```
     Task(
-      prompt="Review Phases <X>, <Y>, <Z> of item #<N>.
+      prompt="Review Phases <X>, <Y>, <Z> of `<slug>`.
 
       **Problems solved** (review ALL):
       - Phase X: <title and objective>
       - Phase Y: <title and objective>
       - Phase Z: <title and objective>
 
-      Plan file: <plan-path> (only for updating status after review)
+      Plan file: .simplan/items/<slug>/PLAN.md (only for updating status after review)
 
       ## Completion Conditions
       <If completion conditions exist in the plan, INLINE THE TABLE HERE:>
@@ -214,7 +214,7 @@ Execute a phase for the current item by delegating to agents.
       If completion conditions are specified, verify they all pass before approving.
       Mark ALL phases if approved, or identify which specific phases need work.",
       subagent_type="simplan:review",
-      description="Review Phases <X>, <Y>, <Z> of item #<N>"
+      description="Review Phases <X>, <Y>, <Z> of <slug>"
     )
     ```
     After review completes, go to step 10.
@@ -227,9 +227,9 @@ Execute a phase for the current item by delegating to agents.
       - Set `**Current Phase**:` to the next incomplete phase (or "All phases complete")
       - Update `**Progress**:` count (e.g., "2/4")
 
-11. **Update backlog status if done**: After updating the plan:
+11. **Update item status if done**: After updating the plan:
     - Re-read the plan file to check if all phases are now complete (all have ✅ emoji)
-    - If all phases done, update item status to `DONE` in ITEMS.md
+    - If all phases done, update `.simplan/items/<slug>/ITEM.md` status to `DONE`
 
 12. **Confirm**:
     - If `$CLAUDE_CODE_REMOTE` is `true`, skip confirmation and proceed directly to commit
@@ -239,8 +239,8 @@ Execute a phase for the current item by delegating to agents.
     - For each phase in the step:
       - Stage the code files modified during that phase (listed in the phase's "Files" section)
       - If `.simplan/config` contains `commit_plan=true`, also stage:
-        - The plan file (with updated phase statuses)
-        - `.simplan/ITEMS.md` (if backlog status changed)
+        - The plan file `.simplan/items/<slug>/PLAN.md` (with updated phase statuses)
+        - `.simplan/items/<slug>/ITEM.md` (if status changed)
       - Create commit with the phase's suggested commit message
     - Do NOT use `git add -A` or `git add .` - explicitly add only the specified files
 
