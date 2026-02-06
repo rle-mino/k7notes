@@ -3,8 +3,14 @@
 ## Pre-commit Hooks
 - The repo has pre-commit hooks that run lint-staged, type-check, AND full E2E tests
 - E2E tests use Playwright and spin up a PostgreSQL Docker container
-- Commits can take ~1-2 minutes due to E2E test suite (103 tests)
+- Commits can take ~1-2 minutes due to E2E test suite (~104 tests)
 - When changing backend behavior (e.g., creating default folders on signup), existing E2E tests that assume empty state for new users will break - fix them in the same commit
+
+## E2E Tests
+- Tests run in parallel with 7 workers; signup clicks can be flaky under load (existing issue in logout tests)
+- Direct DB queries in E2E tests (`initTestDatabase()`) cause failures in test workers during pre-commit hooks. Prefer UI-only assertions for E2E tests.
+- E2E test patterns: import `test, expect` from `../../fixtures/auth`, use `auth.signup()` for user creation
+- The `.env` file at `packages/e2e/.env` has `TEST_DATABASE_URL` pointing to port 4432
 
 ## Architecture Notes
 - `auth.config.ts` is a standalone module-level file, NOT inside NestJS DI context
