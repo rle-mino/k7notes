@@ -5,6 +5,18 @@ import { resolve } from "node:path";
 let container: StartedPostgreSqlContainer;
 
 export async function setup() {
+  // Set required env vars so that env.ts Zod validation passes in test workers.
+  // These are dummy values — tests use DI overrides, not these values.
+  process.env.PORT = "4000";
+  process.env.BASE_URL = "http://localhost:4000";
+  process.env.GOOGLE_CLIENT_ID = "test-google-client-id";
+  process.env.GOOGLE_CLIENT_SECRET = "test-google-client-secret";
+  process.env.USE_CALENDAR_MOCKS = "true";
+  process.env.GOOGLE_CALENDAR_CLIENT_ID = "test-google-calendar-client-id";
+  process.env.GOOGLE_CALENDAR_CLIENT_SECRET = "test-google-calendar-client-secret";
+  process.env.MICROSOFT_CALENDAR_CLIENT_ID = "test-microsoft-calendar-client-id";
+  process.env.MICROSOFT_CALENDAR_CLIENT_SECRET = "test-microsoft-calendar-client-secret";
+
   // Start a PostgreSQL container for integration tests
   container = await new PostgreSqlContainer("postgres:16-alpine")
     .withDatabase("k7notes_test")
