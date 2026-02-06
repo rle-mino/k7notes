@@ -5,6 +5,7 @@ import type {
   OAuthTokens,
   OAuthUserInfo,
 } from "./calendar-provider.interface.js";
+import { env } from "../../env.js";
 
 const GOOGLE_OAUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -68,11 +69,11 @@ export class GoogleCalendarProvider implements ICalendarProvider {
   private readonly logger = new Logger(GoogleCalendarProvider.name);
 
   private get clientId(): string {
-    return process.env.GOOGLE_CALENDAR_CLIENT_ID || "";
+    return env.GOOGLE_CALENDAR_CLIENT_ID;
   }
 
   private get clientSecret(): string {
-    return process.env.GOOGLE_CALENDAR_CLIENT_SECRET || "";
+    return env.GOOGLE_CALENDAR_CLIENT_SECRET;
   }
 
   getOAuthUrl(redirectUrl: string, state: string): string {

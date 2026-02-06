@@ -13,6 +13,7 @@ import { MicrosoftCalendarProvider } from "./providers/microsoft-calendar.provid
 import { MockCalendarProvider } from "./providers/mock-calendar.provider.js";
 import type { ICalendarProvider } from "./providers/calendar-provider.interface.js";
 import { randomUUID } from "crypto";
+import { env } from "../env.js";
 
 // Type for raw calendar connection from database
 interface RawCalendarConnection {
@@ -36,7 +37,7 @@ export class CalendarService {
     private readonly googleProvider: GoogleCalendarProvider,
     private readonly microsoftProvider: MicrosoftCalendarProvider
   ) {
-    this.useMocks = process.env.USE_CALENDAR_MOCKS === "true";
+    this.useMocks = env.USE_CALENDAR_MOCKS;
     this.providers = new Map<CalendarProvider, ICalendarProvider>();
 
     if (this.useMocks) {
@@ -105,7 +106,7 @@ export class CalendarService {
     // Determine platform from clientScheme - if it contains a custom scheme, it's mobile
     const platform = clientScheme?.includes("://") && !clientScheme?.startsWith("http") ? "mobile" : "web";
     const state = `${provider}:${platform}:${userId}:${stateId}`;
-    const baseUrl = process.env.BASE_URL || "http://localhost:4000";
+    const baseUrl = env.BASE_URL;
     const callbackUrl = `${baseUrl}/api/calendar/oauth/callback`;
 
     const url = calendarProvider.getOAuthUrl(callbackUrl, state);
@@ -133,7 +134,7 @@ export class CalendarService {
     }
 
     const calendarProvider = this.getProvider(provider);
-    const baseUrl = process.env.BASE_URL || "http://localhost:4000";
+    const baseUrl = env.BASE_URL;
     const callbackUrl = `${baseUrl}/api/calendar/oauth/callback`;
 
     // Exchange code for tokens

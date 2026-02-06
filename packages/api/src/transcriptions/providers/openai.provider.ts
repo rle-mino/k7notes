@@ -4,6 +4,7 @@ import {
   TranscriptionProvider,
   ProviderTranscriptionResult,
 } from "./transcription-provider.interface.js";
+import { env } from "../../env.js";
 
 /**
  * OpenAI Diarization Response Types
@@ -71,7 +72,7 @@ export class OpenAITranscriptionProvider implements TranscriptionProvider {
   private readonly transcribeModel = "gpt-4o-transcribe";
 
   constructor() {
-    this.apiKey = process.env.OPENAI_API_KEY;
+    this.apiKey = env.OPENAI_API_KEY;
   }
 
   isAvailable(): boolean {

@@ -2,18 +2,20 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { expo } from "@better-auth/expo";
 import { db } from "../db/index.js";
+import { env } from "../env.js";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
   }),
-  baseURL: process.env.BASE_URL || "http://localhost:4000",
+  baseURL: env.BASE_URL,
   basePath: "/api/auth",
   trustedOrigins: [
     "k7notes://", // App deep link scheme
     "exp://", // Expo dev scheme
     "http://localhost:4001", // Expo web
     "http://localhost:19006", // Expo web alt
+    "https://*.ngrok-free.dev", // ngrok tunnels for real device testing
   ],
   emailAndPassword: {
     enabled: true,
@@ -21,8 +23,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+      clientId: env.GOOGLE_CLIENT_ID,
+      clientSecret: env.GOOGLE_CLIENT_SECRET,
       // Request offline access to get refresh tokens
       accessType: "offline",
       // Always show account picker

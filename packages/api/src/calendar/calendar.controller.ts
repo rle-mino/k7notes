@@ -49,9 +49,8 @@ export class CalendarController {
     @Query("error") error: string | undefined,
     @Res() res: Response
   ) {
-    const mobileScheme = process.env.MOBILE_DEEP_LINK_SCHEME || "k7notes";
-    const webCallbackUrl =
-      process.env.WEB_OAUTH_CALLBACK_URL || "http://localhost:4001/calendar/callback";
+    const mobileScheme = "k7notes";
+    const webCallbackUrl = "http://localhost:4001/calendar/callback";
 
     // Parse state to determine platform (mobile vs web)
     const parsedState = this.parseState(state);

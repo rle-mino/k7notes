@@ -5,6 +5,7 @@ import type {
   OAuthTokens,
   OAuthUserInfo,
 } from "./calendar-provider.interface.js";
+import { env } from "../../env.js";
 
 const MS_OAUTH_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize";
 const MS_TOKEN_URL = "https://login.microsoftonline.com/common/oauth2/v2.0/token";
@@ -69,11 +70,11 @@ export class MicrosoftCalendarProvider implements ICalendarProvider {
   private readonly logger = new Logger(MicrosoftCalendarProvider.name);
 
   private get clientId(): string {
-    return process.env.MICROSOFT_CALENDAR_CLIENT_ID || "";
+    return env.MICROSOFT_CALENDAR_CLIENT_ID;
   }
 
   private get clientSecret(): string {
-    return process.env.MICROSOFT_CALENDAR_CLIENT_SECRET || "";
+    return env.MICROSOFT_CALENDAR_CLIENT_SECRET;
   }
 
   getOAuthUrl(redirectUrl: string, state: string): string {

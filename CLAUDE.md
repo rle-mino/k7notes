@@ -120,7 +120,8 @@ GOOGLE_CLIENT_SECRET=...
 
 ### Mobile (`packages/mobile/.env`)
 ```
-EXPO_PUBLIC_API_URL=http://localhost:4000
+EXPO_PUBLIC_WEB_API_URL=http://localhost:4000
+EXPO_PUBLIC_NATIVE_API_URL=http://localhost:4000
 ```
 
 ## Code Conventions

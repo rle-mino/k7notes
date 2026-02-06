@@ -1,4 +1,4 @@
-import "dotenv/config";
+import { env } from "./env.js";
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module.js";
 import * as bodyParser from "body-parser";
@@ -32,14 +32,14 @@ async function bootstrap() {
       "http://localhost:19006", // Expo web alt
       /^exp:\/\/.*/, // Expo dev scheme
       /^k7notes:\/\/.*/, // App deep link scheme
+      /\.ngrok-free\.dev$/, // ngrok tunnels for real device testing
     ],
     credentials: true,
   });
 
-  const port = process.env.PORT || 4000;
-  await app.listen(port);
+  await app.listen(env.PORT);
 
-  console.log(`API server running on http://localhost:${port}`);
+  console.log(`API server running on http://localhost:${env.PORT}`);
 }
 
 bootstrap();

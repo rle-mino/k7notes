@@ -1,27 +1,30 @@
 /**
  * oRPC API client for K7Notes backend
  *
- * Uses EXPO_PUBLIC_API_URL environment variable for the base URL.
- * All public env vars in Expo must be prefixed with EXPO_PUBLIC_.
- *
  * In Expo SDK 52+, environment variables prefixed with EXPO_PUBLIC_ are
  * automatically inlined by the Metro bundler at build time.
+ *
+ * Web and native use separate env vars since the browser can reach localhost
+ * but real devices need a tunnel like ngrok.
  */
 
-// Default fallback URL for development
-const DEFAULT_API_URL = "http://localhost:4000";
+import { Platform } from "react-native";
+import { z } from "zod";
 
-// EXPO_PUBLIC_ variables are replaced at build time by Metro
-const getEnvVar = (key: string): string | undefined => {
-  // This works at runtime because Metro replaces the reference
-  const globalEnv = (globalThis as Record<string, unknown>).__EXPO_ENV__;
-  if (typeof globalEnv === "object" && globalEnv !== null) {
-    return (globalEnv as Record<string, string>)[key];
-  }
-  return undefined;
-};
+const envSchema = z.object({
+  EXPO_PUBLIC_WEB_API_URL: z.string().url(),
+  EXPO_PUBLIC_NATIVE_API_URL: z.string().url(),
+});
 
-const API_URL = getEnvVar("EXPO_PUBLIC_API_URL") ?? DEFAULT_API_URL;
+const env = envSchema.parse({
+  EXPO_PUBLIC_WEB_API_URL: process.env.EXPO_PUBLIC_WEB_API_URL,
+  EXPO_PUBLIC_NATIVE_API_URL: process.env.EXPO_PUBLIC_NATIVE_API_URL,
+});
+
+const API_URL =
+  Platform.OS === "web"
+    ? env.EXPO_PUBLIC_WEB_API_URL
+    : env.EXPO_PUBLIC_NATIVE_API_URL;
 
 /**
  * Get the configured API URL (for debugging)
