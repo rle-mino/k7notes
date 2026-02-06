@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { eq, and, desc, isNull, asc } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { folders, notes } from "../db/schema.js";
 
 export interface CreateFolderDto {
@@ -44,13 +44,15 @@ export interface FolderPathItem {
 
 @Injectable()
 export class FoldersService {
+  constructor(@Inject(DB_TOKEN) private readonly db: Database) {}
+
   async create(userId: string, dto: CreateFolderDto): Promise<Folder> {
     // If parentId is provided, verify it exists and belongs to user
     if (dto.parentId) {
       await this.findOne(userId, dto.parentId);
     }
 
-    const result = await db
+    const result = await this.db
       .insert(folders)
       .values({
         userId,
@@ -68,7 +70,7 @@ export class FoldersService {
   }
 
   async findOne(userId: string, id: string): Promise<Folder> {
-    const [folder] = await db
+    const [folder] = await this.db
       .select()
       .from(folders)
       .where(and(eq(folders.id, id), eq(folders.userId, userId)))
@@ -84,7 +86,7 @@ export class FoldersService {
   async findAll(userId: string, parentId?: string | null): Promise<Folder[]> {
     if (parentId === undefined) {
       // Return all folders for user
-      return db
+      return this.db
         .select()
         .from(folders)
         .where(eq(folders.userId, userId))
@@ -93,7 +95,7 @@ export class FoldersService {
 
     if (parentId === null) {
       // Return root folders (no parent)
-      return db
+      return this.db
         .select()
         .from(folders)
         .where(and(eq(folders.userId, userId), isNull(folders.parentId)))
@@ -101,7 +103,7 @@ export class FoldersService {
     }
 
     // Return subfolders of specific folder
-    return db
+    return this.db
       .select()
       .from(folders)
       .where(and(eq(folders.userId, userId), eq(folders.parentId, parentId)))
@@ -128,7 +130,7 @@ export class FoldersService {
       updateData.parentId = dto.parentId;
     }
 
-    const result = await db
+    const result = await this.db
       .update(folders)
       .set(updateData)
       .where(and(eq(folders.id, id), eq(folders.userId, userId)))
@@ -147,7 +149,7 @@ export class FoldersService {
     await this.findOne(userId, id);
 
     // Delete folder (cascade will handle subfolders, notes will have folderId set to null)
-    await db
+    await this.db
       .delete(folders)
       .where(and(eq(folders.id, id), eq(folders.userId, userId)));
   }
@@ -156,23 +158,23 @@ export class FoldersService {
     // Get subfolders and notes in parallel
     const [subfolders, folderNotes] = await Promise.all([
       folderId === null
-        ? db
+        ? this.db
             .select()
             .from(folders)
             .where(and(eq(folders.userId, userId), isNull(folders.parentId)))
             .orderBy(asc(folders.name))
-        : db
+        : this.db
             .select()
             .from(folders)
             .where(and(eq(folders.userId, userId), eq(folders.parentId, folderId)))
             .orderBy(asc(folders.name)),
       folderId === null
-        ? db
+        ? this.db
             .select()
             .from(notes)
             .where(and(eq(notes.userId, userId), isNull(notes.folderId)))
             .orderBy(desc(notes.updatedAt))
-        : db
+        : this.db
             .select()
             .from(notes)
             .where(and(eq(notes.userId, userId), eq(notes.folderId, folderId)))

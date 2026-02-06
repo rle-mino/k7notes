@@ -1,7 +1,7 @@
-import { Injectable, BadRequestException } from "@nestjs/common";
+import { Inject, Injectable, BadRequestException } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import type { ProviderInfo, TranscriptionProviderType } from "@k7notes/contracts";
-import { db } from "../db/index.js";
+import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { transcriptions } from "../db/schema.js";
 import {
   TranscriptionProvider,
@@ -15,7 +15,10 @@ export class TranscriptionsService {
   private readonly providers: Map<string, TranscriptionProvider>;
   private readonly defaultProvider = "openai";
 
-  constructor(private readonly openaiProvider: OpenAITranscriptionProvider) {
+  constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
+    private readonly openaiProvider: OpenAITranscriptionProvider
+  ) {
     this.providers = new Map<string, TranscriptionProvider>([
       ["openai", this.openaiProvider],
     ]);
@@ -69,7 +72,7 @@ export class TranscriptionsService {
     });
 
     // Persist to database
-    const rows = await db
+    const rows = await this.db
       .insert(transcriptions)
       .values({
         userId,
@@ -111,7 +114,7 @@ export class TranscriptionsService {
    * Link a transcription to a note after the note is created
    */
   async linkToNote(transcriptionId: string, noteId: string): Promise<void> {
-    await db
+    await this.db
       .update(transcriptions)
       .set({ noteId })
       .where(eq(transcriptions.id, transcriptionId));

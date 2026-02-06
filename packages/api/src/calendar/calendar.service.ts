@@ -1,6 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
+import { Inject, Injectable, NotFoundException, BadRequestException, Logger } from "@nestjs/common";
 import { eq, and } from "drizzle-orm";
-import { db } from "../db/index.js";
+import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { calendarConnections } from "../db/schema.js";
 import type {
   CalendarProvider,
@@ -34,6 +34,7 @@ export class CalendarService {
   private readonly useMocks: boolean;
 
   constructor(
+    @Inject(DB_TOKEN) private readonly db: Database,
     private readonly googleProvider: GoogleCalendarProvider,
     private readonly microsoftProvider: MicrosoftCalendarProvider
   ) {
@@ -75,7 +76,7 @@ export class CalendarService {
   }
 
   async listConnections(userId: string): Promise<CalendarConnection[]> {
-    const connections = await db
+    const connections = await this.db
       .select({
         id: calendarConnections.id,
         userId: calendarConnections.userId,
@@ -144,7 +145,7 @@ export class CalendarService {
     const userInfo = await calendarProvider.getUserInfo(tokens.accessToken);
 
     // Check if connection already exists
-    const existing = await db
+    const existing = await this.db
       .select()
       .from(calendarConnections)
       .where(
@@ -159,7 +160,7 @@ export class CalendarService {
     const existingConnection = existing[0];
     if (existingConnection) {
       // Update existing connection
-      const updateResult = await db
+      const updateResult = await this.db
         .update(calendarConnections)
         .set({
           accessToken: tokens.accessToken,
@@ -190,7 +191,7 @@ export class CalendarService {
     }
 
     // Create new connection
-    const insertResult = await db
+    const insertResult = await this.db
       .insert(calendarConnections)
       .values({
         userId,
@@ -221,7 +222,7 @@ export class CalendarService {
   }
 
   async disconnect(userId: string, connectionId: string): Promise<void> {
-    const [connection] = await db
+    const [connection] = await this.db
       .select()
       .from(calendarConnections)
       .where(
@@ -236,7 +237,7 @@ export class CalendarService {
       throw new NotFoundException("Calendar connection not found");
     }
 
-    await db
+    await this.db
       .delete(calendarConnections)
       .where(eq(calendarConnections.id, connectionId));
   }
@@ -284,7 +285,7 @@ export class CalendarService {
     refreshToken: string | null;
     tokenExpiresAt: Date | null;
   }> {
-    const [connection] = await db
+    const [connection] = await this.db
       .select({
         id: calendarConnections.id,
         provider: calendarConnections.provider,
@@ -317,7 +318,7 @@ export class CalendarService {
       try {
         const newTokens = await provider.refreshAccessToken(connection.refreshToken);
 
-        await db
+        await this.db
           .update(calendarConnections)
           .set({
             accessToken: newTokens.accessToken,
@@ -334,7 +335,7 @@ export class CalendarService {
       } catch (err) {
         this.logger.error(`Token refresh failed for connection ${connectionId}`, err);
         // Mark connection as inactive since tokens are invalid
-        await db
+        await this.db
           .update(calendarConnections)
           .set({ isActive: false, updatedAt: new Date() })
           .where(eq(calendarConnections.id, connectionId));
