@@ -158,28 +158,25 @@ test.describe("Note Creation via /notes/new", () => {
   });
 });
 
-test.describe("Note Creation - Empty State", () => {
+test.describe("Note Creation - Default Folders", () => {
   test.beforeEach(async ({ auth }) => {
     await auth.signup();
   });
 
-  test("shows empty state when no notes exist", async ({ page }) => {
+  test("shows default folders for a fresh user", async ({ page }) => {
     await page.goto("/notes");
     await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
-    // For a fresh user, the empty state should be visible
-    await expect(page.getByText("No notes yet")).toBeVisible({ timeout: 5000 });
-    await expect(
-      page.getByText("Create your first note or folder to get started.")
-    ).toBeVisible();
+    // A fresh user should see the default folders created on signup
+    await expect(page.getByText("Daily")).toBeVisible({ timeout: 5000 });
+    await expect(page.getByText("People")).toBeVisible();
+    await expect(page.getByText("Projects")).toBeVisible();
+    await expect(page.getByText("Archive")).toBeVisible();
   });
 
-  test("empty state disappears after creating a note", async ({ page }) => {
+  test("created note appears alongside default folders", async ({ page }) => {
     await page.goto("/notes");
     await page.waitForSelector('text="Notes"', { timeout: 10000 });
-
-    // Verify empty state is shown
-    await expect(page.getByText("No notes yet")).toBeVisible({ timeout: 5000 });
 
     // Create a note
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
@@ -198,14 +195,10 @@ test.describe("Note Creation - Empty State", () => {
     await page.goto("/notes");
     await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
-    // Empty state should no longer be visible
-    await expect(page.getByText("No notes yet")).not.toBeVisible({
-      timeout: 5000,
-    });
-
-    // The note should appear instead
+    // The note should appear alongside default folders
     await expect(page.getByText("My First Note")).toBeVisible({
       timeout: 10000,
     });
+    await expect(page.getByText("Daily")).toBeVisible();
   });
 });

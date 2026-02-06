@@ -58,17 +58,20 @@ Key files:
 - **Validation results**: `pnpm turbo type-check --filter=@k7notes/api` passed (no TypeScript errors). `pnpm lint` passed (no lint errors across all workspaces). `pnpm type-check` passed (all packages type-check clean).
 - **Review**: Approved - Clean, focused implementation. Single batch insert is efficient. Follows existing service patterns (same insert/returning style as `create` method). All 4 required folders created as root-level. No idempotency guard needed since Phase 2 caller will only invoke once during signup. All completion conditions verified passing.
 
-### ⬜ Phase 2: Integrate with better-auth databaseHooks
+### ✅ Phase 2: Integrate with better-auth databaseHooks
 
 - **Step**: 2
 - **Complexity**: 3
-- [ ] Import `FoldersService` or use direct database insert in auth config
-- [ ] Add `databaseHooks.user.create.after` callback in `auth.config.ts`
-- [ ] Call default folder creation in the after hook
-- [ ] Handle errors gracefully (log but don't fail signup)
+- [x] Import `FoldersService` or use direct database insert in auth config
+- [x] Add `databaseHooks.user.create.after` callback in `auth.config.ts`
+- [x] Call default folder creation in the after hook
+- [x] Handle errors gracefully (log but don't fail signup)
 - **Files**: `packages/api/src/auth/auth.config.ts`, possibly `packages/api/src/auth/auth.module.ts`
 - **Commit message**: `feat(api): create default folders on user signup via better-auth hook`
 - **Bisect note**: Must call the service method from Phase 1; both must be complete for feature to work
+- **Implementation notes**: Added `databaseHooks.user.create.after` callback in `auth.config.ts`. Since `auth.config.ts` is a standalone module-level file outside the NestJS DI context, we instantiate `FoldersService` directly (it has no constructor dependencies -- it uses the `db` import directly). The entire hook body is wrapped in a try/catch that logs errors with `console.error` using the `[auth]` prefix (consistent with the codebase's logging patterns for standalone files) but does not rethrow, ensuring signup is never blocked by folder creation failures. Only `auth.config.ts` was modified; `auth.module.ts` did not need changes.
+- **Validation results**: `pnpm turbo type-check --filter=@k7notes/api` passed (no TypeScript errors). `pnpm lint` passed (no lint errors across all workspaces). `pnpm type-check` passed (all 6 packages type-check clean).
+- **Review**: Approved - Correct integration with better-auth databaseHooks. Error handling is solid: try/catch logs with context (user ID + error) but never blocks signup. Direct FoldersService instantiation is appropriate since the service is stateless and auth.config.ts operates outside NestJS DI. All completion conditions verified passing.
 
 ### ⬜ Phase 3: Add E2E test for default folder creation on signup
 
@@ -91,5 +94,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 2
-- **Progress**: 1/3
+- **Current Phase**: Phase 3
+- **Progress**: 2/3

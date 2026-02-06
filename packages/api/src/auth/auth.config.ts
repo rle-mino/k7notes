@@ -3,6 +3,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { expo } from "@better-auth/expo";
 import { db } from "../db/index.js";
 import { env } from "../env.js";
+import { FoldersService } from "../folders/folders.service.js";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -29,6 +30,24 @@ export const auth = betterAuth({
       accessType: "offline",
       // Always show account picker
       prompt: "select_account",
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        after: async (user) => {
+          try {
+            const foldersService = new FoldersService();
+            await foldersService.createDefaultFolders(user.id);
+          } catch (error) {
+            console.error(
+              "[auth] Failed to create default folders for user:",
+              user.id,
+              error,
+            );
+          }
+        },
+      },
     },
   },
   plugins: [expo()],
