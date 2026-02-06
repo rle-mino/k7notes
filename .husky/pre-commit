@@ -1,7 +1,10 @@
 #!/bin/sh
 
-# Pre-commit hook: runs lint-staged and E2E tests
+# Pre-commit hook: runs lint-staged, tests, and E2E tests
 # Requires Docker to be running for PostgreSQL container
+#
+# Turbo caching handles skipping unchanged packages automatically —
+# if only docs/config files changed, test tasks will be cache hits.
 
 set -e
 
@@ -58,6 +61,6 @@ pnpm turbo test
 
 # Step 5: Run E2E tests
 echo "==> Running E2E tests..."
-pnpm --filter @k7notes/e2e test:e2e
+pnpm turbo test:e2e
 
 echo "==> Pre-commit hook completed successfully!"

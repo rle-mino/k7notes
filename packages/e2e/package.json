@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@k7notes/api": "workspace:*",
+    "@k7notes/contracts": "workspace:*",
+    "@k7notes/mobile": "workspace:*",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.38.4",
     "pg": "^8.13.1"
