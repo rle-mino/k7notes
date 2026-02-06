@@ -134,8 +134,8 @@ Use these tools for interactive testing:
 
 1. Use `mcp__ios-simulator__open_simulator` to ensure the simulator is running
 2. Use `mcp__ios-simulator__get_booted_sim_id` to get the simulator UDID
-3. Launch the Expo Go app or the K7Notes dev build:
-   - Use `mcp__ios-simulator__launch_app` with `bundle_id: "host.exp.Exponent"` for Expo Go
+3. Launch the K7Notes native dev build:
+   - Use `mcp__ios-simulator__launch_app` with `bundle_id: "com.k7notes.app"`
 4. Wait a moment for the app to load, then use `mcp__ios-simulator__ui_view` to see the screen
 
 ### Login (mobile)
