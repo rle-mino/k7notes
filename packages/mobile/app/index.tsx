@@ -1,6 +1,6 @@
 import { Redirect } from "expo-router";
 
 export default function Index() {
-  // Redirect to login - auth will handle routing to home if already logged in
-  return <Redirect href="/(auth)/login" />;
+  // Redirect to app - the (app)/_layout auth guard will redirect to login if needed
+  return <Redirect href="/(app)/notes" />;
 }

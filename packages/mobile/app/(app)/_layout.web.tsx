@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
@@ -10,6 +10,13 @@ type RecordType = "audio";
 export default function AppLayoutWeb() {
   const { data: session, isPending } = authClient.useSession();
   const [audioModalVisible, setAudioModalVisible] = useState(false);
+  // Track whether we've ever confirmed a valid session to avoid
+  // false redirects when the auth atom resets on HMR/refresh.
+  const hadSession = useRef(false);
+
+  if (session?.user) {
+    hadSession.current = true;
+  }
 
   const handleRecord = useCallback((type: RecordType) => {
     if (type === "audio") {
@@ -17,15 +24,16 @@ export default function AppLayoutWeb() {
     }
   }, []);
 
-  // Redirect to login if not authenticated
+  // Redirect to login when the server confirms no valid session,
+  // but only if we never had a session (avoids HMR false redirects).
   useEffect(() => {
-    if (!isPending && !session?.user) {
+    if (!isPending && !session?.user && !hadSession.current) {
       router.replace("/(auth)/login");
     }
   }, [isPending, session]);
 
-  // Show loading while checking session
-  if (isPending || !session?.user) {
+  // Show loading while session check is in progress
+  if (isPending || (!session?.user && hadSession.current)) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#007AFF" />
