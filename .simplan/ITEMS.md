@@ -16,8 +16,8 @@
 
 ## Item #3: Unit & integration test setup
 - **Type**: ✨ Feature
-- **Status**: 📋 BACKLOG
+- **Status**: 📝 PLANNED
 - **Description**: Setup unit and integration tests for the NestJS backend and React Native mobile app. Focus on fast, easy-to-create tests over e2e tests. Tests should run quickly and have low friction to write.
 - **Slug**: unit-integration-test-setup
-- **Plan**: None
+- **Plan**: .simplan/plans/3-unit-integration-test-setup.md
 
