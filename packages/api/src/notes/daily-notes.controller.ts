@@ -1,31 +1,31 @@
-import { Controller, UseGuards } from "@nestjs/common";
-import { Implement, implement } from "@orpc/nest";
+import { Controller } from "@nestjs/common";
+import { Implement } from "@orpc/nest";
 import { contract } from "@k7notes/contracts";
-import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
+import { authed } from "../auth/auth.middleware.js";
 import { DailyNotesService } from "./daily-notes.service.js";
 
 @Controller()
-@UseGuards(AuthGuard)
 export class DailyNotesController {
   constructor(private readonly dailyNotesService: DailyNotesService) {}
 
   @Implement(contract.notes.getOrCreateDailyNote)
   getOrCreateDailyNote() {
-    return implement(contract.notes.getOrCreateDailyNote).handler(
+    return authed(contract.notes.getOrCreateDailyNote).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
-        return this.dailyNotesService.createDailyNote(req.user.id, input.date);
+        return this.dailyNotesService.createDailyNote(
+          context.user.id,
+          input.date,
+        );
       },
     );
   }
 
   @Implement(contract.notes.refreshDailyNoteEvents)
   refreshDailyNoteEvents() {
-    return implement(contract.notes.refreshDailyNoteEvents).handler(
+    return authed(contract.notes.refreshDailyNoteEvents).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
         return this.dailyNotesService.refreshDailyNoteEvents(
-          req.user.id,
+          context.user.id,
           input.noteId,
         );
       },

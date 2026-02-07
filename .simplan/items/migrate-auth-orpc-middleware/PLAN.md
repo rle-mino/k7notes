@@ -128,14 +128,17 @@ The oRPC `implement()` function supports `.use()` middleware chaining, which can
 - **Validation results**: Type-check fails with `input` being `unknown` in the `authed()` handler -- this is a systemic issue with the `authed()` generic constraint using `AnyContractRouter` instead of `AnyContractProcedure` (defined in Phase 2's `auth.middleware.ts`). The same error affects all parallel phases (3, 4, 5). This file is outside Phase 6's scope. Lint passes for this file; pre-existing lint errors in `mock-calendar.provider.ts` and spec files are unrelated.
 - **Review**: Approved - Correctly selective: only transcribe uses authed(), linkToNote and listProviders remain with plain implement(). Import of implement retained appropriately.
 
-### ⬜ Phase 7: Delete AuthGuard and clean up
+### ✅ Phase 7: Delete AuthGuard and clean up
 - **Step**: 3
 - **Complexity**: 1
-- [ ] Delete `packages/api/src/auth/auth.guard.ts`
-- [ ] Verify no remaining imports of `AuthGuard` or `AuthenticatedRequest` anywhere
-- **Files**: `packages/api/src/auth/auth.guard.ts` (delete)
+- [x] Delete `packages/api/src/auth/auth.guard.ts`
+- [x] Verify no remaining imports of `AuthGuard` or `AuthenticatedRequest` anywhere
+- **Files**: `packages/api/src/auth/auth.guard.ts` (delete), `packages/api/src/notes/daily-notes.controller.ts` (migrated)
 - **Commit message**: `chore: remove AuthGuard and AuthenticatedRequest`
 - **Bisect note**: Only safe after all controllers migrated in step 2
+- **Implementation notes**: Deleted `auth.guard.ts`. Found that `daily-notes.controller.ts` (added by a separate feature after the plan was created) still imported `AuthGuard` and `AuthenticatedRequest`. Auto-fixed per deviation rules: migrated it to use `authed()` pattern (removed `UseGuards`/`AuthGuard`/`AuthenticatedRequest`, replaced `implement()` with `authed()`, replaced `req.user.id` cast with `context.user.id`). Verified zero remaining references to `AuthGuard`, `AuthenticatedRequest`, or `auth.guard` in `packages/`.
+- **Validation results**: Type-check passes (exit 0). Build passes (exit 0). Unit tests pass (136/136, exit 0). Lint has pre-existing errors in `mock-calendar.provider.ts` (unused var) and spec files (`no-explicit-any`) -- confirmed identical to previous phases, not introduced by this phase.
+- **Review**: Approved - auth.guard.ts successfully deleted, zero remaining references verified. daily-notes.controller.ts migration follows exact pattern from notes.controller.ts and folders.controller.ts (correct imports, authed() usage, context.user.id access). All completion conditions pass.
 
 ## Phase Status Legend
 
@@ -146,5 +149,5 @@ The oRPC `implement()` function supports `.use()` middleware chaining, which can
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 7 (Delete AuthGuard and clean up)
-- **Progress**: 6/7
+- **Current Phase**: All phases complete
+- **Progress**: 7/7
