@@ -11,6 +11,8 @@ import {
 import { router } from "expo-router";
 import { orpc } from "@/lib/orpc";
 import type { SearchResult } from "@/lib/orpc";
+import { NoteListItem } from "@/components/ui/NoteListItem";
+import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
@@ -54,19 +56,12 @@ export default function SearchScreen() {
     );
 
     return (
-      <TouchableOpacity
-        style={styles.resultCard}
+      <NoteListItem
+        title={item.note.title || "Untitled"}
+        preview={item.snippet}
+        date={formattedDate}
         onPress={() => handleNotePress(item.note.id)}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.resultTitle} numberOfLines={1}>
-          {item.note.title || "Untitled"}
-        </Text>
-        <Text style={styles.resultSnippet} numberOfLines={2}>
-          {item.snippet}
-        </Text>
-        <Text style={styles.resultDate}>{formattedDate}</Text>
-      </TouchableOpacity>
+      />
     );
   };
 
@@ -76,7 +71,7 @@ export default function SearchScreen() {
         <TextInput
           style={styles.searchInput}
           placeholder="Search notes..."
-          placeholderTextColor="#999"
+          placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={setQuery}
           onSubmitEditing={() => handleSearch(query)}
@@ -88,7 +83,7 @@ export default function SearchScreen() {
 
       {loading ? (
         <View style={styles.centered}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
         </View>
       ) : error ? (
         <View style={styles.centered}>
@@ -129,87 +124,55 @@ export default function SearchScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
   },
   searchContainer: {
-    backgroundColor: "#fff",
-    padding: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
   },
   searchInput: {
-    backgroundColor: "#f0f0f0",
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: "#1a1a1a",
+    backgroundColor: colors.background,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.base,
+    paddingVertical: spacing.md,
+    ...typography.body,
   },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    padding: 32,
+    padding: spacing["2xl"],
   },
   listContent: {
-    paddingVertical: 8,
-  },
-  resultCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  resultTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 4,
-  },
-  resultSnippet: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
-    marginBottom: 4,
-  },
-  resultDate: {
-    fontSize: 12,
-    color: "#999",
-    marginTop: 4,
+    paddingVertical: spacing.sm,
+    paddingBottom: layout.bottomPadding,
   },
   errorText: {
-    fontSize: 16,
-    color: "#FF3B30",
+    ...typography.body,
+    color: colors.error,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
+    color: colors.textInverse,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    ...typography.h2,
+    marginBottom: spacing.sm,
     textAlign: "center",
   },
   emptyMessage: {
-    fontSize: 15,
-    color: "#666",
+    ...typography.body,
+    color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 22,
   },

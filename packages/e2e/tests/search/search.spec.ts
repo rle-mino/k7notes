@@ -24,7 +24,7 @@ async function createNoteViaModal(
   await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
   const addNoteButton = page.locator('div[tabindex="0"]').filter({
-    has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+    has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
   });
   await addNoteButton.click();
 

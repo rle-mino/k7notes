@@ -17,6 +17,7 @@ import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { DailyNoteDatePicker } from "@/components/daily/DailyNoteDatePicker";
 import type { Note } from "@/lib/orpc";
+import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function NotesIndexScreen() {
   const {
@@ -98,7 +99,7 @@ export default function NotesIndexScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -128,13 +129,13 @@ export default function NotesIndexScreen() {
                 style={styles.headerButton}
                 onPress={() => handleAddFolder(null)}
               >
-                <FolderPlus size={22} color="#F5A623" strokeWidth={2} />
+                <FolderPlus size={20} color={colors.folder} strokeWidth={1.8} />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerButton}
                 onPress={() => handleAddNote(null)}
               >
-                <FilePlus size={22} color="#007AFF" strokeWidth={2} />
+                <FilePlus size={20} color={colors.accent} strokeWidth={1.8} />
               </TouchableOpacity>
             </View>
           ),
@@ -159,7 +160,11 @@ export default function NotesIndexScreen() {
           }
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={refresh} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refresh}
+              tintColor={colors.accent}
+            />
           }
         />
       )}
@@ -188,42 +193,42 @@ export default function NotesIndexScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 32,
+    backgroundColor: colors.background,
+    padding: spacing["2xl"],
   },
   headerActions: {
     flexDirection: "row",
-    gap: 8,
+    gap: spacing.sm,
   },
   headerButton: {
-    padding: 8,
-    borderRadius: 8,
-    backgroundColor: "#f5f5f5",
+    padding: spacing.sm,
+    borderRadius: radius.md,
+    backgroundColor: colors.background,
   },
   listContent: {
-    paddingVertical: 4,
+    paddingVertical: spacing.xs,
+    paddingBottom: layout.bottomPadding,
   },
   errorText: {
-    fontSize: 16,
-    color: "#FF3B30",
+    ...typography.body,
+    color: colors.error,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
+    color: colors.textInverse,
   },
 });

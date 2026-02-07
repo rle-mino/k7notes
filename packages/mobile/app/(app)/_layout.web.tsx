@@ -4,6 +4,7 @@ import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
 import { authClient } from "@/lib/auth";
+import { colors } from "@/theme";
 
 type RecordType = "audio";
 
@@ -36,7 +37,7 @@ export default function AppLayoutWeb() {
   if (isPending || (!session?.user && hadSession.current)) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -50,6 +51,14 @@ export default function AppLayoutWeb() {
             screenOptions={{
               headerShown: true,
               headerTitleAlign: "center",
+              headerStyle: {
+                backgroundColor: colors.background,
+              },
+              headerTintColor: colors.textPrimary,
+              headerShadowVisible: false,
+              contentStyle: {
+                backgroundColor: colors.background,
+              },
             }}
           >
             <Stack.Screen
@@ -116,13 +125,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: "row",
+    backgroundColor: colors.background,
   },
   content: {
     flex: 1,
   },
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
   },

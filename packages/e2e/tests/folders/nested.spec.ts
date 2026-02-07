@@ -20,7 +20,7 @@ test.describe("Nested Folder Hierarchy", () => {
 
     // Create parent folder via header button
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -68,7 +68,7 @@ test.describe("Nested Folder Hierarchy", () => {
 
     // Create Level 1 folder via header
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -144,7 +144,7 @@ test.describe("Folder Expand and Collapse", () => {
 
     // Create a folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -176,7 +176,7 @@ test.describe("Folder Expand and Collapse", () => {
 
     // Create parent folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -219,7 +219,7 @@ test.describe("Folder Expand and Collapse", () => {
 
     // Create folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });

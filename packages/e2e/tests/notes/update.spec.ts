@@ -19,7 +19,7 @@ async function createNoteViaModal(
   await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
   const addNoteButton = page.locator('div[tabindex="0"]').filter({
-    has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+    has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
   });
   await addNoteButton.click();
 
@@ -69,7 +69,7 @@ test.describe("Note Title Editing", () => {
 
     // The auto-save triggers after 5 seconds, so "Saving..." should appear
     // and then change to "Saved"
-    await expect(page.getByText("Saving...")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Saving")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 15000 });
   });
 
@@ -86,7 +86,7 @@ test.describe("Note Title Editing", () => {
     await titleInput.fill(updatedTitle);
 
     // Wait for auto-save to complete
-    await expect(page.getByText("Saving...")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Saving")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 15000 });
 
     // Get the current URL to navigate back to
@@ -154,7 +154,7 @@ test.describe("Note Update - Auto Save", () => {
 
     // Wait for the auto-save delay (5 seconds) plus some buffer
     // The status should transition: Saving... -> Saved
-    await expect(page.getByText("Saving...")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Saving")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 15000 });
   });
 });

@@ -21,7 +21,7 @@ test.describe("Note Creation via Modal", () => {
     // Click the file plus icon button (second header button, blue icon)
     // The first touchable is folder plus, the second is file plus
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 
@@ -36,7 +36,7 @@ test.describe("Note Creation via Modal", () => {
 
     // Open create note modal
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 
@@ -66,7 +66,7 @@ test.describe("Note Creation via Modal", () => {
 
     // Open create note modal
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 
@@ -90,7 +90,7 @@ test.describe("Note Creation via Modal", () => {
 
     // Open create note modal
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 
@@ -116,7 +116,7 @@ test.describe("Note Creation via Modal", () => {
     // Create a note with a unique title
     const noteTitle = `Listed Note ${Date.now()}`;
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 
@@ -180,7 +180,7 @@ test.describe("Note Creation - Default Folders", () => {
 
     // Create a note
     const addNoteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await addNoteButton.click();
 

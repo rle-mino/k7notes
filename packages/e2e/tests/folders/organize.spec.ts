@@ -22,7 +22,7 @@ test.describe("Folder Organization - Adding Notes to Folders", () => {
 
     // Create a folder first
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -62,7 +62,7 @@ test.describe("Folder Organization - Adding Notes to Folders", () => {
 
     // Create parent folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -115,7 +115,7 @@ test.describe("Folder Organization - Adding Notes to Folders", () => {
 
     // Create a folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -141,7 +141,7 @@ test.describe("Folder Organization - Adding Notes to Folders", () => {
   }) => {
     // The file plus button (blue icon) creates root-level notes
     const filePlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
 
     // Click the file plus button

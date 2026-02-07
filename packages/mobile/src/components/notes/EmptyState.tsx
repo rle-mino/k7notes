@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { FileText } from 'lucide-react-native';
+import { colors, typography, spacing } from '@/theme';
 
 interface EmptyStateProps {
   title: string;
@@ -11,7 +12,7 @@ export function EmptyState({ title, message }: EmptyStateProps) {
   return (
     <View style={styles.container}>
       <View style={styles.iconContainer}>
-        <FileText size={48} color="#999" strokeWidth={1.5} />
+        <FileText size={48} color={colors.textTertiary} strokeWidth={1.2} />
       </View>
       <Text style={styles.title}>{title}</Text>
       <Text style={styles.message}>{message}</Text>
@@ -24,21 +25,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
+    padding: spacing['2xl'],
   },
   iconContainer: {
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 8,
+    ...typography.h2,
+    marginBottom: spacing.sm,
     textAlign: 'center',
   },
   message: {
-    fontSize: 15,
-    color: '#666',
+    ...typography.body,
+    color: colors.textSecondary,
     textAlign: 'center',
     lineHeight: 22,
   },
