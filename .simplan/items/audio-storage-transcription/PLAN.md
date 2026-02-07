@@ -182,26 +182,37 @@ The codebase already has a full audio recording + transcription pipeline:
   - QA testing: Skipped (manual step).
 - **Review**: Approved - All Phase 4 requirements met. Virtual Audio folder correctly injected at tree position 0 with sentinel ID "__audio__" and "audio-folder" type. Expand/collapse works without API fetches (data from useAudioRecordings hook). AudioCard displays all required fields: title with pencil icon, formatted date/time, duration ("Xm Ys"), transcription preview (100-char truncation) or "Not transcribed" badge, Play and Transcribe placeholder buttons. useAudioRecordings hook robustly merges local files with transcription metadata via Map-based O(1) lookup, with graceful degradation when API is unreachable. Necessary deviation (adding localFileName to list response schema/service) is well-documented and additive. TreeItem.tsx and notes/index.tsx correctly extended for new types. All 28 useTreeData tests updated to account for audio folder at index 0. Type check passes (6/6), lint clean for changed packages (API error pre-existing), mobile tests pass (58/58). E2E and API tests cannot run due to pre-existing infrastructure constraints (no Docker, no database).
 
-### ⬜ Phase 5: Inline audio playback and transcription trigger
+### ✅ Phase 5: Inline audio playback and transcription trigger
 - **Step**: 5
 - **Complexity**: 4
-- [ ] Create `packages/mobile/src/hooks/useAudioPlayer.ts` hook:
+- [x] Create `packages/mobile/src/hooks/useAudioPlayer.ts` hook:
   - Uses `expo-audio` playback API
   - Provides: `play(uri)`, `pause()`, `isPlaying`, `progress`, `duration`
   - Handles audio session configuration for playback
-- [ ] Wire play/pause button in `AudioCard.tsx`:
+- [x] Wire play/pause button in `AudioCard.tsx`:
   - Show play/pause toggle icon
   - Show simple progress bar (current position / total duration)
   - Only one recording plays at a time (pause others when starting new)
-- [ ] Wire "Transcribe" button in `AudioCard.tsx`:
+- [x] Wire "Transcribe" button in `AudioCard.tsx`:
   - Read audio file as base64 via `audioStorage.getRecordingBase64()`
   - Send to `orpc.transcriptions.transcribe()` with title and localFileName
   - Show loading spinner on the card during transcription
   - Refresh card data after transcription completes
-- [ ] Handle web platform: use HTML5 Audio API for playback in `useAudioPlayer.web.ts`
+- [x] Handle web platform: use HTML5 Audio API for playback in `useAudioPlayer.web.ts`
 - **Files**: `packages/mobile/src/hooks/useAudioPlayer.ts`, `packages/mobile/src/hooks/useAudioPlayer.web.ts`, `packages/mobile/src/components/audio/AudioCard.tsx`
 - **Commit message**: `feat: add inline audio playback and transcription trigger`
 - **Bisect note**: N/A
+- **Implementation notes**:
+  - Created `useAudioPlayer.ts` (native): Uses a module-level singleton `AudioPlayer` via `createAudioPlayer(null, 250)` from expo-audio to enforce "only one recording plays at a time". Lazy-initialized on first hook call. Uses `useAudioPlayerStatus(player)` to track playback state reactively. `play(uri)` calls `setAudioModeAsync({ playsInSilentMode: true, allowsRecording: false })` then `player.replace({ uri })` and `player.play()`. Module-level `activeUri` tracks which URI is loaded so cards can determine if they are the active one. Resets `activeUri` when `status.didJustFinish` is true. Returns `{ play, pause, isPlaying, progress, duration, currentUri }`.
+  - Created `useAudioPlayer.web.ts` (web): Uses a module-level singleton `HTMLAudioElement` via `new Audio()`. Subscribes to `play`, `pause`, `ended`, and `loadedmetadata` events. Uses `requestAnimationFrame` loop during playback to update `progress` and `duration` at ~60fps. Syncs initial state on mount in case something is already playing. Same return interface as native version.
+  - Updated `AudioCard.tsx`: (1) Imported and wired `useAudioPlayer` hook. Play/pause button now toggles between Play and Pause icons (from lucide) based on `isPlaying && currentUri === recording.fileUri`. (2) Progress bar uses flexbox layout: a `progressTrack` row with two child Views whose `flex` values represent filled vs remaining progress. Shows `formatTime(progress) / formatTime(duration)` text below the bar. Progress bar only visible when this specific recording is playing. (3) Transcribe button wired: reads audio as base64 via `getRecordingBase64()`, sends to `orpc.transcriptions.transcribe()` with `title`, `localFileName`, `diarization: true`. Uses `Platform.OS === "web"` check to pass `fileName` (web, since blob URIs are ephemeral) vs `fileUri` (native) to `getRecordingBase64`. Shows `ActivityIndicator` spinner during transcription with disabled state and 0.7 opacity. On success, updates local state (`localTranscription`) so the card immediately shows the transcription preview without requiring a full list refresh. On failure, shows error text on the card. (4) Added `getMimeType()` helper to derive MIME type from file extension. (5) Added `formatTime()` helper for progress display (e.g., "1:30"). (6) Added new styles: `progressContainer`, `progressTrack`, `progressFill`, `progressText`, `errorText`, `transcribeButtonDisabled`.
+- **Validation results**:
+  - Type check (`pnpm turbo type-check --filter=@k7notes/mobile`): PASSED -- contracts build + mobile type-check both successful, 0 errors. API type-check has pre-existing failures (missing tsconfig, third-party type issues) unrelated to this phase.
+  - Lint (`pnpm turbo lint --filter=@k7notes/mobile`): PASSED -- no lint errors.
+  - Tests (`pnpm turbo test --filter=@k7notes/mobile`): PASSED -- 58/58 tests passing (16 audioStorage.web + 14 audioStorage + 28 useTreeData). API tests cannot run -- pre-existing infrastructure constraint (missing tsconfig dependency).
+  - E2E tests: Skipped (requires running server and browser).
+  - QA testing: Skipped (manual step).
+- **Review**: Approved - All four Phase 5 requirements fully implemented: (1) Native playback hook uses expo-audio singleton AudioPlayer with lazy init, useAudioPlayerStatus for reactive state, setAudioModeAsync for iOS silent mode, and module-level activeUri tracking. (2) Web playback hook uses singleton HTMLAudioElement with proper event listener setup/cleanup, requestAnimationFrame loop for smooth progress updates, and isFinite guard on duration. (3) AudioCard correctly wires play/pause toggle via isThisPlaying check (isPlaying AND currentUri match), flex-based progress bar with formatTime display, and transcription trigger with platform-aware base64 retrieval (fileName on web for IndexedDB, fileUri on native), loading spinner with disabled state, error display, and immediate local state update on success. (4) Single-active-player constraint enforced by singleton pattern in both hooks -- calling play(uri) replaces source on shared instance, stopping any previous playback. Both hooks export identical interfaces for cross-platform compatibility. Type check passes (mobile 0 errors), lint passes (all 3 files clean), mobile tests pass (58/58). API/E2E failures are pre-existing infrastructure issues (missing tsconfig, third-party type errors) not caused by this phase.
 
 ### ⬜ Phase 6: Title editing and polish
 - **Step**: 6
@@ -238,5 +249,5 @@ The codebase already has a full audio recording + transcription pipeline:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 5
-- **Progress**: 4/7
+- **Current Phase**: Phase 6
+- **Progress**: 5/7
