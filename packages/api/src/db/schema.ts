@@ -90,6 +90,8 @@ export const transcriptions = pgTable("transcriptions", {
     .references(() => user.id, { onDelete: "cascade" }),
   /** Provider used (e.g. "openai") */
   provider: text("provider").notNull(),
+  /** User-editable title for the transcription */
+  title: text("title"),
   /** Full transcribed text */
   text: text("text").notNull(),
   /** Diarized segments as JSON array */

@@ -57,21 +57,34 @@ The codebase already has a full audio recording + transcription pipeline:
 
 ## Phases
 
-### ⬜ Phase 1: Schema update and local audio storage utility
+### ✅ Phase 1: Schema update and local audio storage utility
 - **Step**: 1
 - **Complexity**: 3
-- [ ] Add `title` column (nullable text) to `transcriptions` table in `packages/api/src/db/schema.ts`
+- [x] Add `title` column (nullable text) to `transcriptions` table in `packages/api/src/db/schema.ts`
 - [ ] Run `db:push` to apply schema change
-- [ ] Create `packages/mobile/src/lib/audioStorage.ts` utility:
+- [x] Create `packages/mobile/src/lib/audioStorage.ts` utility:
   - `getAudioDir()` → returns `${documentDirectory}audio/`
   - `saveRecording(base64: string, mimeType: string)` → saves file, returns `{ fileUri, fileName }`
   - `listRecordings()` → returns array of `{ fileUri, fileName, createdAt }` from the audio directory
   - `deleteRecording(fileName: string)` → removes file
   - `getRecordingBase64(fileUri: string)` → reads file as base64 for transcription
-- [ ] Add platform-specific handling: native uses `expo-file-system`, web uses IndexedDB or blob URLs
+- [x] Add platform-specific handling: native uses `expo-file-system`, web uses IndexedDB or blob URLs
 - **Files**: `packages/api/src/db/schema.ts`, `packages/mobile/src/lib/audioStorage.ts`, `packages/mobile/src/lib/audioStorage.web.ts`
 - **Commit message**: `feat: add title to transcriptions schema and local audio storage utility`
 - **Bisect note**: Schema is additive (nullable column), storage utility is new unused code — safe intermediate state.
+- **Implementation notes**:
+  - Added nullable `title` column to `transcriptions` table in schema.ts, placed after `provider` and before `text` for logical grouping.
+  - Created `audioStorage.ts` (native): uses `expo-file-system` APIs (`documentDirectory`, `writeAsStringAsync`, `readAsStringAsync`, `readDirectoryAsync`, `deleteAsync`, `getInfoAsync`, `makeDirectoryAsync`). Files named with `rec_{timestamp}.{ext}` pattern. `listRecordings()` uses `modificationTime` from file info for `createdAt`. Auto-creates audio directory on first use via `ensureAudioDir()`.
+  - Created `audioStorage.web.ts` (web): uses IndexedDB with database `k7notes_audio` and object store `recordings`. Records stored as `{ fileName, base64, mimeType, createdAt }`. `listRecordings()` and `saveRecording()` generate blob URLs via `URL.createObjectURL()` for playback. `getRecordingBase64()` supports lookup by fileName match since blob URLs are ephemeral.
+  - Both files export the same interface: `SavedRecording`, `getAudioDir()`, `saveRecording()`, `listRecordings()`, `deleteRecording()`, `getRecordingBase64()`.
+  - `db:push` could not be run — no PostgreSQL connection available in this environment. The schema change is additive (nullable column) and will apply cleanly when run.
+- **Validation results**:
+  - Type check (`pnpm type-check`): PASSED — all 6 tasks successful, 0 errors.
+  - Lint (`pnpm lint`): Mobile and contracts PASSED. API has 1 pre-existing lint error in `mock-calendar.provider.ts:142` (unused `code` variable) — verified by running lint on the unmodified codebase (same error). Not caused by this phase.
+  - Tests (`pnpm test`): Mobile tests PASSED (28/28). API tests cannot run — require Docker (testcontainers) which is not available in this environment. Pre-existing infrastructure constraint.
+  - E2E tests: Skipped (requires running server and browser).
+  - QA testing: Skipped (manual step).
+- **Review**: Approved - Schema change is correct (additive nullable column). Both platform-specific audio storage files export identical interfaces with real implementations. Native uses expo-file-system properly; web uses IndexedDB with blob URLs for playback. Code is clean, well-documented, and handles edge cases (directory creation, existence checks, MIME mapping). Type check passes, lint passes (API error is pre-existing), mobile tests pass (28/28).
 
 ### ⬜ Phase 2: Backend endpoint for listing recordings with transcription data
 - **Step**: 2
@@ -183,5 +196,5 @@ The codebase already has a full audio recording + transcription pipeline:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Not started
-- **Progress**: 0/7
+- **Current Phase**: Phase 2
+- **Progress**: 1/7
