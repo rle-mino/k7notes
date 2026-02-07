@@ -19,7 +19,7 @@ async function createNoteViaModal(
   await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
   const addNoteButton = page.locator('div[tabindex="0"]').filter({
-    has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+    has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
   });
   await addNoteButton.click();
 
@@ -49,10 +49,10 @@ test.describe("Notes List View", () => {
 
     // There should be two icon buttons in the header: folder plus (orange) and file plus (blue)
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     const filePlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+      has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
     });
     await expect(folderPlusButton).toBeVisible({ timeout: 5000 });
     await expect(filePlusButton).toBeVisible({ timeout: 5000 });
@@ -130,7 +130,7 @@ test.describe("Note Detail View", () => {
     await createNoteViaModal(page, "Back Button Test");
 
     // The back button should display the text
-    const backButton = page.getByText("\u2190 Back");
+    const backButton = page.getByText("Back");
     await expect(backButton).toBeVisible({ timeout: 5000 });
   });
 
@@ -158,7 +158,7 @@ test.describe("Note Detail View", () => {
     await createNoteViaModal(page, "Navigate Back Test");
 
     // Click the back button
-    const backButton = page.getByText("\u2190 Back");
+    const backButton = page.getByText("Back");
     await backButton.click();
 
     // Should navigate back to the notes list

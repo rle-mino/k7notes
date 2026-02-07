@@ -31,6 +31,9 @@ export const colors = {
   error: "#DC2626", // Red-600
   errorLight: "#FEF2F2", // Red-50
 
+  // Active state background
+  activeBackground: "#F1F5F9", // Slate-100
+
   // Borders & Dividers
   border: "#E2E8F0", // Slate-200
   borderLight: "#F1F5F9", // Slate-100
@@ -197,7 +200,7 @@ export const shadows = {
     elevation: 8,
   },
   hero: {
-    shadowColor: "#6366F1",
+    shadowColor: colors.heroGradientStart,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.45,
     shadowRadius: 16,
@@ -210,6 +213,7 @@ export const layout = {
   sidebarWidth: 260,
   contentMaxWidth: 720,
   headerHeight: 56,
+  bottomPadding: 100,
 } as const;
 
 // ─── Combined Theme Export ───────────────────────────────────────

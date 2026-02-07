@@ -33,7 +33,7 @@ import {
   CalendarConnectionItem,
 } from "@/components/calendar";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";
-import { colors, typography, spacing, radius } from "@/theme";
+import { colors, typography, spacing, radius, layout } from "@/theme";
 
 interface SettingItemProps {
   icon: LucideIcon;
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: layout.bottomPadding,
   },
   settingItem: {
     flexDirection: "row",

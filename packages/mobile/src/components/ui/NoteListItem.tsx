@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: isWeb ? 14 : 16,
     fontWeight: "600",
-    color: "#1E293B",
+    color: colors.textPrimary,
     flex: 1,
     marginRight: spacing.md,
   },
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
   preview: {
     fontSize: isWeb ? 13 : 14,
     fontWeight: "400",
-    color: "#94A3B8",
+    color: colors.textTertiary,
     lineHeight: isWeb ? 18 : 20,
     marginTop: 2,
   },

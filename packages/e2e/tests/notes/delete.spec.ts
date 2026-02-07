@@ -25,7 +25,7 @@ async function createNoteViaModal(
   await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
   const addNoteButton = page.locator('div[tabindex="0"]').filter({
-    has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+    has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
   });
   await addNoteButton.click();
 
@@ -55,7 +55,7 @@ test.describe("Note Deletion", () => {
 
     // The delete button (trash icon with red stroke) should be visible
     const deleteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#FF3B30"]'),
+      has: page.locator('svg[stroke="#DC2626"]'),
     });
     await expect(deleteButton).toBeVisible({ timeout: 5000 });
   });
@@ -69,7 +69,7 @@ test.describe("Note Deletion", () => {
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 10000 });
 
     const deleteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#FF3B30"]'),
+      has: page.locator('svg[stroke="#DC2626"]'),
     });
     await deleteButton.click();
 
@@ -90,7 +90,7 @@ test.describe("Note Deletion", () => {
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 10000 });
 
     const deleteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#FF3B30"]'),
+      has: page.locator('svg[stroke="#DC2626"]'),
     });
     await deleteButton.click();
 
@@ -119,7 +119,7 @@ test.describe("Note Deletion", () => {
     });
 
     const deleteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#FF3B30"]'),
+      has: page.locator('svg[stroke="#DC2626"]'),
     });
     await deleteButton.click();
 
@@ -139,7 +139,7 @@ test.describe("Note Deletion", () => {
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 10000 });
 
     const deleteButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#FF3B30"]'),
+      has: page.locator('svg[stroke="#DC2626"]'),
     });
     await deleteButton.click();
 

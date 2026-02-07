@@ -46,7 +46,7 @@ export function HeroFAB({ onPress, size = 56, style }: HeroFABProps) {
 
 const styles = StyleSheet.create({
   shadow: {
-    shadowColor: "#6366F1",
+    shadowColor: colors.heroGradientStart,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.45,
     shadowRadius: 16,

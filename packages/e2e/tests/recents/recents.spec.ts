@@ -23,7 +23,7 @@ async function createNoteViaModal(
   await page.waitForSelector('text="Notes"', { timeout: 10000 });
 
   const addNoteButton = page.locator('div[tabindex="0"]').filter({
-    has: page.locator('svg[stroke="#007AFF"][width="22"]'),
+    has: page.locator('svg[stroke="#4F46E5"][width="20"]'),
   });
   await addNoteButton.click();
 
@@ -187,7 +187,7 @@ test.describe("Recents - With Notes", () => {
     await titleInput.fill(updatedTitle);
 
     // Wait for auto-save
-    await expect(page.getByText("Saving...")).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText("Saving")).toBeVisible({ timeout: 10000 });
     await expect(page.getByText("Saved")).toBeVisible({ timeout: 15000 });
 
     // Navigate to recents

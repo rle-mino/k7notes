@@ -12,7 +12,7 @@ import { router } from "expo-router";
 import { orpc } from "@/lib/orpc";
 import type { SearchResult } from "@/lib/orpc";
 import { NoteListItem } from "@/components/ui/NoteListItem";
-import { colors, typography, spacing, radius } from "@/theme";
+import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function SearchScreen() {
   const [query, setQuery] = useState("");
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: spacing.sm,
-    paddingBottom: 100,
+    paddingBottom: layout.bottomPadding,
   },
   errorText: {
     ...typography.body,

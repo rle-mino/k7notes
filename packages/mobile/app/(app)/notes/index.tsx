@@ -17,7 +17,7 @@ import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { DailyNoteDatePicker } from "@/components/daily/DailyNoteDatePicker";
 import type { Note } from "@/lib/orpc";
-import { colors, typography, spacing, radius } from "@/theme";
+import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function NotesIndexScreen() {
   const {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: spacing.xs,
-    paddingBottom: 100,
+    paddingBottom: layout.bottomPadding,
   },
   errorText: {
     ...typography.body,

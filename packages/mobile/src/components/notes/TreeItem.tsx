@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   folderName: {
     fontSize: isWeb ? 14 : 15,
     fontWeight: "600",
-    color: "#1E293B",
+    color: colors.textPrimary,
     flex: 1,
   },
   noteContent: {
@@ -266,12 +266,12 @@ const styles = StyleSheet.create({
   noteTitle: {
     fontSize: isWeb ? 14 : 15,
     fontWeight: "600",
-    color: "#1E293B",
+    color: colors.textPrimary,
   },
   notePreview: {
     fontSize: isWeb ? 12 : 13,
     fontWeight: "400",
-    color: "#94A3B8",
+    color: colors.textTertiary,
   },
   noteDate: {
     fontSize: 12,

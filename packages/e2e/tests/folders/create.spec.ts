@@ -22,7 +22,7 @@ test.describe("Folder Creation", () => {
     // Since these are icon-only buttons, we locate them by their position
     // Click the folder plus button (orange icon)
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
 
@@ -40,7 +40,7 @@ test.describe("Folder Creation", () => {
 
     // Open folder creation modal via header button
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
 
@@ -61,7 +61,7 @@ test.describe("Folder Creation", () => {
   test("shows validation error for empty folder name", async ({ page }) => {
     // Open folder creation modal
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
 
@@ -81,7 +81,7 @@ test.describe("Folder Creation", () => {
   test("can cancel folder creation", async ({ page }) => {
     // Open folder creation modal
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
 
@@ -109,7 +109,7 @@ test.describe("Folder Creation", () => {
 
     // Create first folder
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
@@ -134,7 +134,7 @@ test.describe("Folder Creation", () => {
   test("resets modal state on reopen", async ({ page }) => {
     // Open modal and type something
     const folderPlusButton = page.locator('div[tabindex="0"]').filter({
-      has: page.locator('svg[stroke="#F5A623"][width="22"]'),
+      has: page.locator('svg[stroke="#F59E0B"][width="20"]'),
     });
     await folderPlusButton.click();
     await expect(page.getByText("New Folder")).toBeVisible({ timeout: 5000 });
