@@ -1,60 +1,53 @@
-import { Controller, UseGuards } from "@nestjs/common";
-import { Implement, implement } from "@orpc/nest";
+import { Controller } from "@nestjs/common";
+import { Implement } from "@orpc/nest";
 import { contract } from "@k7notes/contracts";
-import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
+import { authed } from "../auth/auth.middleware.js";
 import { NotesService } from "./notes.service.js";
 
 @Controller()
-@UseGuards(AuthGuard)
 export class NotesController {
   constructor(private readonly notesService: NotesService) {}
 
   @Implement(contract.notes.create)
   create() {
-    return implement(contract.notes.create).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
-      return this.notesService.create(req.user.id, input);
+    return authed(contract.notes.create).handler(async ({ input, context }) => {
+      return this.notesService.create(context.user.id, input);
     });
   }
 
   @Implement(contract.notes.list)
   list() {
-    return implement(contract.notes.list).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
-      return this.notesService.findAll(req.user.id, input.folderId);
+    return authed(contract.notes.list).handler(async ({ input, context }) => {
+      return this.notesService.findAll(context.user.id, input.folderId);
     });
   }
 
   @Implement(contract.notes.search)
   search() {
-    return implement(contract.notes.search).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
-      return this.notesService.search(req.user.id, input.q);
+    return authed(contract.notes.search).handler(async ({ input, context }) => {
+      return this.notesService.search(context.user.id, input.q);
     });
   }
 
   @Implement(contract.notes.findOne)
   findOne() {
-    return implement(contract.notes.findOne).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
-      return this.notesService.findOne(req.user.id, input.id);
+    return authed(contract.notes.findOne).handler(async ({ input, context }) => {
+      return this.notesService.findOne(context.user.id, input.id);
     });
   }
 
   @Implement(contract.notes.update)
   update() {
-    return implement(contract.notes.update).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
+    return authed(contract.notes.update).handler(async ({ input, context }) => {
       const { id, ...updateData } = input;
-      return this.notesService.update(req.user.id, id, updateData);
+      return this.notesService.update(context.user.id, id, updateData);
     });
   }
 
   @Implement(contract.notes.delete)
   delete() {
-    return implement(contract.notes.delete).handler(async ({ input, context }) => {
-      const req = context.request as unknown as AuthenticatedRequest;
-      await this.notesService.delete(req.user.id, input.id);
+    return authed(contract.notes.delete).handler(async ({ input, context }) => {
+      await this.notesService.delete(context.user.id, input.id);
       return { success: true as const };
     });
   }

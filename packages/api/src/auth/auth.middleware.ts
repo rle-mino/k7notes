@@ -1,4 +1,9 @@
-import type { AnyContractProcedure } from "@orpc/contract";
+import type {
+  ContractProcedure,
+  ErrorMap,
+  Meta,
+} from "@orpc/contract";
+import type { AnySchema } from "@orpc/contract";
 import { implement, ORPCError } from "@orpc/nest";
 import { auth } from "./auth.config.js";
 
@@ -19,7 +24,19 @@ export type AuthContext = {
   session: AuthSession;
 };
 
-export function authed<T extends AnyContractProcedure>(contractProcedure: T) {
+export function authed<
+  TInputSchema extends AnySchema,
+  TOutputSchema extends AnySchema,
+  TErrorMap extends ErrorMap,
+  TMeta extends Meta,
+>(
+  contractProcedure: ContractProcedure<
+    TInputSchema,
+    TOutputSchema,
+    TErrorMap,
+    TMeta
+  >,
+) {
   return implement(contractProcedure).use(async ({ context, next }) => {
     const sessionData = await auth.api.getSession({
       headers: context.headers,
