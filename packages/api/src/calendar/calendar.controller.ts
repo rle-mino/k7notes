@@ -1,9 +1,9 @@
-import { Controller, UseGuards, Get, Query, Res, Logger } from "@nestjs/common";
+import { Controller, Get, Query, Res, Logger } from "@nestjs/common";
 import type { Response } from "express";
 import { Throttle } from "@nestjs/throttler";
-import { Implement, implement } from "@orpc/nest";
+import { Implement } from "@orpc/nest";
 import { contract } from "@k7notes/contracts";
-import { AuthGuard, AuthenticatedRequest } from "../auth/auth.guard.js";
+import { authed } from "../auth/auth.middleware.js";
 import { CalendarService } from "./calendar.service.js";
 
 @Controller()
@@ -88,25 +88,21 @@ export class CalendarController {
     return res.redirect(redirectUrl);
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.listConnections)
   listConnections() {
-    return implement(contract.calendar.listConnections).handler(
+    return authed(contract.calendar.listConnections).handler(
       async ({ context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
-        return this.calendarService.listConnections(req.user.id);
+        return this.calendarService.listConnections(context.user.id);
       }
     );
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.getOAuthUrl)
   getOAuthUrl() {
-    return implement(contract.calendar.getOAuthUrl).handler(
+    return authed(contract.calendar.getOAuthUrl).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
         return this.calendarService.getOAuthUrl(
-          req.user.id,
+          context.user.id,
           input.provider,
           input.redirectUrl
         );
@@ -114,14 +110,12 @@ export class CalendarController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.handleOAuthCallback)
   handleOAuthCallback() {
-    return implement(contract.calendar.handleOAuthCallback).handler(
+    return authed(contract.calendar.handleOAuthCallback).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
         return this.calendarService.handleOAuthCallback(
-          req.user.id,
+          context.user.id,
           input.provider,
           input.code,
           input.state
@@ -130,37 +124,31 @@ export class CalendarController {
     );
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.disconnect)
   disconnect() {
-    return implement(contract.calendar.disconnect).handler(
+    return authed(contract.calendar.disconnect).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
-        await this.calendarService.disconnect(req.user.id, input.connectionId);
+        await this.calendarService.disconnect(context.user.id, input.connectionId);
         return { success: true as const };
       }
     );
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.listCalendars)
   listCalendars() {
-    return implement(contract.calendar.listCalendars).handler(
+    return authed(contract.calendar.listCalendars).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
-        return this.calendarService.listCalendars(req.user.id, input.connectionId);
+        return this.calendarService.listCalendars(context.user.id, input.connectionId);
       }
     );
   }
 
-  @UseGuards(AuthGuard)
   @Implement(contract.calendar.listEvents)
   listEvents() {
-    return implement(contract.calendar.listEvents).handler(
+    return authed(contract.calendar.listEvents).handler(
       async ({ input, context }) => {
-        const req = context.request as unknown as AuthenticatedRequest;
         return this.calendarService.listEvents(
-          req.user.id,
+          context.user.id,
           input.connectionId,
           input.calendarId,
           input.startDate,
