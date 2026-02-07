@@ -142,6 +142,26 @@ export class NotesService {
       .where(and(eq(notes.id, id), eq(notes.userId, userId)));
   }
 
+  async findByKindAndDate(
+    userId: string,
+    kind: "REGULAR" | "DAILY",
+    date: string,
+  ): Promise<Note | null> {
+    const [note] = await this.db
+      .select()
+      .from(notes)
+      .where(
+        and(
+          eq(notes.userId, userId),
+          eq(notes.kind, kind),
+          eq(notes.date, date),
+        ),
+      )
+      .limit(1);
+
+    return note ?? null;
+  }
+
   async search(userId: string, query: string): Promise<SearchResult[]> {
     // PostgreSQL full-text search using ts_vector
     const searchQuery = query

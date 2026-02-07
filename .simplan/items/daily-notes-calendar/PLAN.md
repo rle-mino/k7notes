@@ -101,10 +101,10 @@ Key files:
 - **Validation results**: Type check passes for modified files (pre-existing errors in notes/folders controllers from parallel Phase 1 schema changes are unrelated). Lint passes with zero issues in modified files (pre-existing errors in calendar/transcription files are unrelated). Build succeeds (exit code 0). Unit tests could not run due to Docker/testcontainers unavailability in this environment, but test file compiles correctly.
 - **Review**: Approved - findByName correctly handles null vs non-null parentId with isNull/eq conditions. findOrCreatePath is clean iterative find-or-create with proper empty-path guard. 13 tests provide thorough coverage including user isolation, idempotency, branching paths, and reuse of existing folders. New methods are additive only, no existing behavior modified.
 
-### ⬜ Phase 3: Implement daily notes service
+### ✅ Phase 3: Implement daily notes service
 - **Step**: 2
 - **Complexity**: 4
-- [ ] Add `createDailyNote(userId, date: string)` to `NotesService`:
+- [x] Add `createDailyNote(userId, date: string)` to `NotesService`:
   - Parse date string to get year/month/day
   - Call `foldersService.findOrCreatePath(userId, ["Daily", year, month, day])`
   - Check if daily note already exists for this date (via unique constraint or query)
@@ -112,17 +112,33 @@ Key files:
   - If not, fetch calendar events (if any connections exist) via `CalendarService.listEvents()`
   - Generate markdown content with event sections: `## HH:MM - Event Title\n\n`
   - Create note with `kind: 'DAILY'`, `date`, `title: YYYY-MM-DD`, `folderId: leafFolder.id`
-- [ ] Add `refreshDailyNoteEvents(userId, noteId)` to `NotesService`:
+- [x] Add `refreshDailyNoteEvents(userId, noteId)` to `NotesService`:
   - Fetch current note content
   - Fetch calendar events for the note's date
   - Parse existing content to find event sections
   - Add any new events not already present (match by event title + time)
   - Update note content
-- [ ] Add `findDailyNote(userId, date: string)` to `NotesService` — simple query by kind + date
-- [ ] Inject `FoldersService` and `CalendarService` into `NotesService` (or create a new `DailyNotesService`)
+- [x] Add `findDailyNote(userId, date: string)` to `NotesService` — simple query by kind + date
+- [x] Inject `FoldersService` and `CalendarService` into `NotesService` (or create a new `DailyNotesService`)
 - **Files**: `packages/api/src/notes/notes.service.ts` (or new `packages/api/src/notes/daily-notes.service.ts`), `packages/api/src/notes/notes.module.ts`
 - **Commit message**: `feat: implement daily notes service with calendar integration`
 - **Bisect note**: Depends on Phase 1 (kind field) and Phase 2 (folder hierarchy). New service methods only.
+- **Implementation notes**:
+  - Created a separate `DailyNotesService` (the cleaner option from the plan) rather than adding methods directly to `NotesService`, to avoid coupling `NotesService` to `FoldersService` and `CalendarService`
+  - New file: `packages/api/src/notes/daily-notes.service.ts` with three public methods:
+    - `createDailyNote(userId, date)` — checks for existing daily note first, creates folder hierarchy `Daily/YYYY/MM/DD` via `findOrCreatePath`, fetches calendar events across all active connections, generates markdown with `# date` heading and `## HH:MM - Event Title` sections, creates note with `kind: 'DAILY'`
+    - `refreshDailyNoteEvents(userId, noteId)` — validates note is `DAILY` kind, fetches current calendar events, parses existing `## ` headings from content, appends only new events not already present (matched by heading string), updates note content
+    - `findDailyNote(userId, date)` — delegates to `NotesService.findByKindAndDate()`
+  - Added `findByKindAndDate(userId, kind, date)` method to `NotesService` — queries notes by `userId`, `kind`, and `date` columns, returns `Note | null`
+  - Updated `NotesModule` to import `FoldersModule` and `CalendarModule`, register `DailyNotesService` as provider and export
+  - Private helpers in `DailyNotesService`: `parseDateString()` for YYYY-MM-DD parsing, `fetchCalendarEvents()` iterates all active connections and fetches from primary calendar with error tolerance per connection, `generateDailyNoteContent()` creates initial markdown, `formatEventHeading()` formats `HH:MM - Title` or `All Day - Title`, `parseEventHeadings()` extracts existing `## ` headings from content
+  - Calendar event fetching is fully error-tolerant: logs warnings on failure per connection, returns empty array if no connections exist
+  - Events are sorted by start time and deduplicated by event ID
+- **Validation results**:
+  - Type check: PASSED (exit code 0)
+  - Lint: Pre-existing errors in unmodified files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); zero issues in modified/new files
+  - Build: PASSED (exit code 0)
+- **Review**: Approved - Clean architecture: separate DailyNotesService avoids coupling NotesService to FoldersService/CalendarService. createDailyNote is idempotent (checks existing first), creates folder hierarchy correctly, fetches calendar events with double-layered error tolerance (per-connection + outer). refreshDailyNoteEvents properly matches events by heading string to avoid duplicates. findByKindAndDate is a clean Drizzle query. Module wiring is correct (FoldersModule + CalendarModule imported, DailyNotesService registered as provider and export). All completion conditions verified: type-check, lint, and build pass against the working tree.
 
 ### ⬜ Phase 4: Add daily notes oRPC contracts
 - **Step**: 3
@@ -191,5 +207,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 3 (Implement daily notes service)
-- **Progress**: 2/8
+- **Current Phase**: Phase 4 (Add daily notes oRPC contracts)
+- **Progress**: 3/8
