@@ -140,15 +140,26 @@ Key files:
   - Build: PASSED (exit code 0)
 - **Review**: Approved - Clean architecture: separate DailyNotesService avoids coupling NotesService to FoldersService/CalendarService. createDailyNote is idempotent (checks existing first), creates folder hierarchy correctly, fetches calendar events with double-layered error tolerance (per-connection + outer). refreshDailyNoteEvents properly matches events by heading string to avoid duplicates. findByKindAndDate is a clean Drizzle query. Module wiring is correct (FoldersModule + CalendarModule imported, DailyNotesService registered as provider and export). All completion conditions verified: type-check, lint, and build pass against the working tree.
 
-### ⬜ Phase 4: Add daily notes oRPC contracts
+### ✅ Phase 4: Add daily notes oRPC contracts
 - **Step**: 3
 - **Complexity**: 2
-- [ ] Add `getOrCreateDailyNote` contract — input: `{ date: string }`, output: `NoteSchema`
-- [ ] Add `refreshDailyNoteEvents` contract — input: `{ noteId: string }`, output: `NoteSchema`
-- [ ] Add contracts to the notes contract or create a new `dailyNotes` contract group
+- [x] Add `getOrCreateDailyNote` contract — input: `{ date: string }`, output: `NoteSchema`
+- [x] Add `refreshDailyNoteEvents` contract — input: `{ noteId: string }`, output: `NoteSchema`
+- [x] Add contracts to the notes contract or create a new `dailyNotes` contract group
 - **Files**: `packages/contracts/src/contracts/notes.ts` (or new `daily-notes.ts`), `packages/contracts/src/index.ts`
 - **Commit message**: `feat: add daily notes oRPC contracts`
 - **Bisect note**: Contract definitions only, no implementation yet. Must export from contracts index.
+- **Implementation notes**:
+  - Added contracts to the existing `notesContract` object (not a separate group) for simplicity, accessible as `contract.notes.getOrCreateDailyNote` and `contract.notes.refreshDailyNoteEvents`
+  - `getOrCreateDailyNote`: `POST /api/notes/daily`, input `GetOrCreateDailyNoteSchema` (`{ date: string }` with YYYY-MM-DD regex), output `NoteSchema`
+  - `refreshDailyNoteEvents`: `POST /api/notes/daily/refresh`, input `RefreshDailyNoteEventsSchema` (`{ noteId: string }` as UUID), output `NoteSchema`
+  - Added `GetOrCreateDailyNoteSchema` and `RefreshDailyNoteEventsSchema` Zod schemas to `packages/contracts/src/schemas/note.ts`
+  - Exported new schemas (`GetOrCreateDailyNoteSchema`, `RefreshDailyNoteEventsSchema`) and types (`GetOrCreateDailyNote`, `RefreshDailyNoteEvents`) from `packages/contracts/src/index.ts`
+- **Validation results**:
+  - Type check: PASSED (exit code 0)
+  - Lint: Pre-existing errors in unmodified files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); zero issues in modified files
+  - Build: PASSED (exit code 0)
+- **Review**: Approved - Minimal, well-structured contract additions. Schemas use proper Zod validation (YYYY-MM-DD regex for date, UUID for noteId) consistent with existing patterns in the codebase (same regex already used in CreateNoteSchema.date). Both contracts correctly use POST method for mutation operations. Routes /api/notes/daily and /api/notes/daily/refresh are distinct from existing routes with no path conflicts. Contracts added to existing notesContract object rather than a separate group, keeping the API surface cohesive. All exports properly wired: schemas imported in contracts/notes.ts, schemas and types re-exported from contracts/src/index.ts, and notesContract is already registered in the main contract object. All completion conditions verified: type-check passes, lint has zero issues in modified files, build succeeds.
 
 ### ⬜ Phase 5: Implement daily notes controller endpoints
 - **Step**: 4
@@ -207,5 +218,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 4 (Add daily notes oRPC contracts)
-- **Progress**: 3/8
+- **Current Phase**: Phase 5 (Implement daily notes controller endpoints)
+- **Progress**: 4/8

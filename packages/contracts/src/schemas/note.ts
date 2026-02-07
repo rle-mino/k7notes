@@ -49,3 +49,15 @@ export type UpdateNote = z.infer<typeof UpdateNoteSchema>;
 export type ListNotesQuery = z.infer<typeof ListNotesQuerySchema>;
 export type SearchNotes = z.infer<typeof SearchNotesSchema>;
 export type SearchResult = z.infer<typeof SearchResultSchema>;
+
+// Daily notes schemas
+export const GetOrCreateDailyNoteSchema = z.object({
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format"),
+});
+
+export const RefreshDailyNoteEventsSchema = z.object({
+  noteId: z.string().uuid(),
+});
+
+export type GetOrCreateDailyNote = z.infer<typeof GetOrCreateDailyNoteSchema>;
+export type RefreshDailyNoteEvents = z.infer<typeof RefreshDailyNoteEventsSchema>;
