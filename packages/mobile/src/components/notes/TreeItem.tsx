@@ -20,6 +20,7 @@ import type { TreeNode } from "@/hooks/useTreeData";
 import type { Note } from "@/lib/orpc";
 import type { AudioRecording } from "@/hooks/useAudioRecordings";
 import { AudioCard } from "@/components/audio/AudioCard";
+import { colors, typography, spacing, radius } from "@/theme";
 
 const INDENT_WIDTH = 24;
 
@@ -50,7 +51,7 @@ export function TreeItem({
           onPress={() => onAddNote?.(item.parentFolderId)}
           activeOpacity={0.7}
         >
-          <FilePlus size={16} color="#007AFF" strokeWidth={2} />
+          <FilePlus size={15} color={colors.accent} strokeWidth={1.8} />
           <Text style={styles.addButtonText}>Add note</Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -58,7 +59,7 @@ export function TreeItem({
           onPress={() => onAddFolder?.(item.parentFolderId)}
           activeOpacity={0.7}
         >
-          <FolderPlus size={16} color="#F5A623" strokeWidth={2} />
+          <FolderPlus size={15} color={colors.folder} strokeWidth={1.8} />
           <Text style={styles.addButtonText}>Add folder</Text>
         </TouchableOpacity>
       </View>
@@ -69,23 +70,23 @@ export function TreeItem({
   if (item.type === "audio-folder") {
     return (
       <TouchableOpacity
-        style={[styles.container, styles.audioFolderContainer, indentStyle]}
+        style={[styles.container, styles.folderContainer, indentStyle]}
         onPress={onToggleExpand}
         activeOpacity={0.7}
       >
         <View style={styles.expandIcon}>
           {item.hasChildren ? (
             item.isExpanded ? (
-              <ChevronDown size={18} color="#666" />
+              <ChevronDown size={16} color={colors.textTertiary} />
             ) : (
-              <ChevronRight size={18} color="#666" />
+              <ChevronRight size={16} color={colors.textTertiary} />
             )
           ) : (
             <View style={styles.expandPlaceholder} />
           )}
         </View>
-        <View style={styles.iconContainer}>
-          <Mic size={20} color="#FF6B35" strokeWidth={2} />
+        <View style={[styles.iconContainer, styles.audioIconBg]}>
+          <Mic size={16} color={colors.audio} strokeWidth={2} />
         </View>
         <Text style={styles.folderName} numberOfLines={1}>
           {item.name}
@@ -108,22 +109,22 @@ export function TreeItem({
       >
         <View style={styles.expandIcon}>
           {item.isLoading ? (
-            <ActivityIndicator size="small" color="#666" />
+            <ActivityIndicator size="small" color={colors.textTertiary} />
           ) : item.hasChildren ? (
             item.isExpanded ? (
-              <ChevronDown size={18} color="#666" />
+              <ChevronDown size={16} color={colors.textTertiary} />
             ) : (
-              <ChevronRight size={18} color="#666" />
+              <ChevronRight size={16} color={colors.textTertiary} />
             )
           ) : (
             <View style={styles.expandPlaceholder} />
           )}
         </View>
-        <View style={styles.iconContainer}>
+        <View style={[styles.iconContainer, styles.folderIconBg]}>
           {item.isExpanded ? (
-            <FolderOpen size={20} color="#F5A623" strokeWidth={2} />
+            <FolderOpen size={16} color={colors.folder} strokeWidth={2} />
           ) : (
-            <Folder size={20} color="#F5A623" strokeWidth={2} />
+            <Folder size={16} color={colors.folder} strokeWidth={2} />
           )}
         </View>
         <Text style={styles.folderName} numberOfLines={1}>
@@ -153,8 +154,8 @@ export function TreeItem({
       activeOpacity={0.7}
     >
       <View style={styles.expandPlaceholder} />
-      <View style={styles.iconContainer}>
-        <FileText size={18} color="#007AFF" strokeWidth={2} />
+      <View style={[styles.iconContainer, styles.noteIconBg]}>
+        <FileText size={16} color={colors.accent} strokeWidth={1.8} />
       </View>
       <View style={styles.noteContent}>
         <Text style={styles.noteTitle} numberOfLines={1}>
@@ -175,40 +176,38 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingRight: 16,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#e5e5e5",
+    paddingVertical: spacing.md,
+    paddingRight: spacing.base,
   },
   folderContainer: {
-    backgroundColor: "#fafafa",
-  },
-  audioFolderContainer: {
-    backgroundColor: "#fff8f4",
+    backgroundColor: colors.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderLight,
   },
   noteContainer: {
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderLight,
   },
   addItemContainer: {
-    backgroundColor: "#f5f5f5",
-    paddingVertical: 8,
-    gap: 8,
+    backgroundColor: colors.background,
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
   },
   addButton: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "#e5e5e5",
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.sm,
+    gap: spacing.xs,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
   },
   addButtonText: {
-    fontSize: 13,
+    ...typography.small,
     fontWeight: "500",
-    color: "#666",
   },
   expandIcon: {
     width: 24,
@@ -221,15 +220,24 @@ const styles = StyleSheet.create({
     height: 24,
   },
   iconContainer: {
-    marginRight: 10,
-    width: 24,
+    marginRight: spacing.sm,
+    width: 28,
+    height: 28,
+    borderRadius: radius.sm,
     justifyContent: "center",
     alignItems: "center",
   },
+  folderIconBg: {
+    backgroundColor: colors.folderLight,
+  },
+  audioIconBg: {
+    backgroundColor: colors.audioLight,
+  },
+  noteIconBg: {
+    backgroundColor: colors.accentLight,
+  },
   folderName: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#1a1a1a",
+    ...typography.bodyMedium,
     flex: 1,
   },
   noteContent: {
@@ -237,17 +245,14 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   noteTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#1a1a1a",
+    ...typography.bodyMedium,
   },
   notePreview: {
-    fontSize: 13,
-    color: "#888",
+    ...typography.small,
+    color: colors.textTertiary,
   },
   noteDate: {
-    fontSize: 12,
-    color: "#999",
-    marginLeft: 8,
+    ...typography.caption,
+    marginLeft: spacing.sm,
   },
 });

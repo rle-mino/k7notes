@@ -4,6 +4,7 @@ import { Tabs, router } from "expo-router";
 import { TabBar } from "@/components/navigation/TabBar";
 import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
 import { authClient } from "@/lib/auth";
+import { colors } from "@/theme";
 
 type RecordType = "audio";
 
@@ -36,7 +37,7 @@ export default function AppLayout() {
   if (isPending || (!session?.user && hadSession.current)) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -49,6 +50,11 @@ export default function AppLayout() {
         screenOptions={{
           headerShown: true,
           headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: colors.surface,
+          },
+          headerTintColor: colors.textPrimary,
+          headerShadowVisible: false,
         }}
       >
         <Tabs.Screen
@@ -116,7 +122,7 @@ export default function AppLayout() {
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
   },

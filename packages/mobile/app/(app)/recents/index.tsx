@@ -11,6 +11,8 @@ import {
 import { router, useFocusEffect } from "expo-router";
 import { orpc } from "@/lib/orpc";
 import type { Note } from "@/lib/orpc";
+import { NoteListItem } from "@/components/ui/NoteListItem";
+import { colors, typography, spacing, radius } from "@/theme";
 
 export default function RecentsScreen() {
   const [notes, setNotes] = useState<Note[]>([]);
@@ -68,6 +70,7 @@ export default function RecentsScreen() {
     if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
   };
@@ -83,29 +86,18 @@ export default function RecentsScreen() {
   };
 
   const renderNote = ({ item }: { item: Note }) => (
-    <TouchableOpacity
-      style={styles.noteCard}
+    <NoteListItem
+      title={item.title || "Untitled"}
+      preview={item.content ? getPreview(item.content) : undefined}
+      date={formatDate(item.updatedAt)}
       onPress={() => handleNotePress(item)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.noteHeader}>
-        <Text style={styles.noteTitle} numberOfLines={1}>
-          {item.title || "Untitled"}
-        </Text>
-        <Text style={styles.noteDate}>{formatDate(item.updatedAt)}</Text>
-      </View>
-      {item.content && (
-        <Text style={styles.notePreview} numberOfLines={2}>
-          {getPreview(item.content)}
-        </Text>
-      )}
-    </TouchableOpacity>
+    />
   );
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -140,7 +132,11 @@ export default function RecentsScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.accent}
+          />
         }
       />
     </View>
@@ -150,79 +146,42 @@ export default function RecentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: colors.background,
   },
   centered: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    padding: 32,
+    backgroundColor: colors.background,
+    padding: spacing["2xl"],
   },
   listContent: {
-    paddingVertical: 8,
-  },
-  noteCard: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginVertical: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  noteHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  noteTitle: {
-    fontSize: 17,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    flex: 1,
-    marginRight: 12,
-  },
-  noteDate: {
-    fontSize: 12,
-    color: "#999",
-  },
-  notePreview: {
-    fontSize: 14,
-    color: "#666",
-    lineHeight: 20,
+    paddingVertical: spacing.sm,
   },
   errorText: {
-    fontSize: 16,
-    color: "#FF3B30",
+    ...typography.body,
+    color: colors.error,
     textAlign: "center",
-    marginBottom: 16,
+    marginBottom: spacing.base,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   retryButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
+    color: colors.textInverse,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    ...typography.h2,
+    marginBottom: spacing.sm,
     textAlign: "center",
   },
   emptyMessage: {
-    fontSize: 15,
-    color: "#666",
+    ...typography.body,
+    color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 22,
   },

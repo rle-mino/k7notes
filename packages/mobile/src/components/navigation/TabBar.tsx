@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { colors, typography, spacing, radius, shadows } from "@/theme";
 
 type RecordType = "audio";
 
@@ -72,7 +73,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
   const leftTabs = tabRoutes.slice(0, 2);
   const rightTabs = tabRoutes.slice(2, 4);
 
-  const renderTab = (route: (typeof state.routes)[0], _index: number) => {
+  const renderTab = (route: (typeof state.routes)[0]) => {
     const { options } = descriptors[route.key];
     const isFocused = state.index === state.routes.findIndex((r) => r.key === route.key);
 
@@ -112,9 +113,9 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
         <View style={styles.tabIconContainer}>
           {IconComponent && (
             <IconComponent
-              size={24}
-              color={isFocused ? "#007AFF" : "#999"}
-              strokeWidth={isFocused ? 2.5 : 2}
+              size={22}
+              color={isFocused ? colors.accent : colors.textTertiary}
+              strokeWidth={isFocused ? 2.2 : 1.8}
             />
           )}
         </View>
@@ -131,7 +132,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
         <View style={styles.tabsContainer}>
           {/* Left tabs */}
           <View style={styles.tabGroup}>
-            {leftTabs.map((route, index) => renderTab(route, index))}
+            {leftTabs.map((route) => renderTab(route))}
           </View>
 
           {/* Center record button */}
@@ -141,13 +142,13 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               onPress={handleRecordPress}
               activeOpacity={0.8}
             >
-              <Plus size={32} color="#fff" strokeWidth={2} />
+              <Plus size={28} color={colors.textInverse} strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
           {/* Right tabs */}
           <View style={styles.tabGroup}>
-            {rightTabs.map((route, index) => renderTab(route, index + 2))}
+            {rightTabs.map((route) => renderTab(route))}
           </View>
         </View>
       </View>
@@ -170,7 +171,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               activeOpacity={0.7}
             >
               <View style={styles.recordOptionIcon}>
-                <Mic size={32} color="#007AFF" strokeWidth={2} />
+                <Mic size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <Text style={styles.recordOptionLabel}>Audio</Text>
             </TouchableOpacity>
@@ -180,7 +181,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               activeOpacity={0.7}
             >
               <View style={styles.recordOptionIcon}>
-                <Pencil size={32} color="#007AFF" strokeWidth={2} />
+                <Pencil size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <Text style={styles.recordOptionLabel}>Text</Text>
             </TouchableOpacity>
@@ -199,16 +200,16 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    paddingTop: 8,
+    backgroundColor: colors.surface,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingTop: spacing.sm,
   },
   tabsContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 8,
+    paddingHorizontal: spacing.sm,
   },
   tabGroup: {
     flexDirection: "row",
@@ -218,8 +219,8 @@ const styles = StyleSheet.create({
   tabButton: {
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
     minWidth: 64,
   },
   tabIconContainer: {
@@ -227,68 +228,64 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 11,
-    color: "#999",
+    color: colors.textTertiary,
     fontWeight: "500",
   },
   tabLabelActive: {
-    color: "#007AFF",
+    color: colors.accent,
     fontWeight: "600",
   },
   recordContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginHorizontal: 8,
+    marginHorizontal: spacing.sm,
   },
   recordButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#007AFF",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#007AFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...shadows.accent,
     marginTop: -20,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: colors.overlay,
     justifyContent: "flex-end",
     alignItems: "center",
   },
   recordMenu: {
     position: "absolute",
     flexDirection: "row",
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 8,
-    gap: 8,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 12,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.sm,
+    gap: spacing.sm,
+    ...shadows.lg,
   },
   recordOption: {
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    backgroundColor: colors.background,
+    borderRadius: radius.lg,
+    paddingVertical: spacing.base,
+    paddingHorizontal: spacing.xl,
     minWidth: 100,
   },
   recordOptionIcon: {
-    marginBottom: 8,
+    width: 48,
+    height: 48,
+    borderRadius: radius.md,
+    backgroundColor: colors.accentLight,
     alignItems: "center",
     justifyContent: "center",
+    marginBottom: spacing.sm,
   },
   recordOptionLabel: {
-    fontSize: 14,
+    ...typography.label,
     fontWeight: "600",
-    color: "#1a1a1a",
+    color: colors.textPrimary,
   },
 });

@@ -19,6 +19,8 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { SidebarItem } from "@/components/ui/SidebarItem";
+import { colors, typography, spacing, radius, shadows, layout } from "@/theme";
 
 type RecordType = "audio";
 
@@ -33,11 +35,10 @@ interface NavItem {
   label: string;
 }
 
-const NAV_ITEMS: NavItem[] = [
+const MAIN_NAV: NavItem[] = [
   { name: "notes", path: "/notes", icon: FolderOpen, label: "Notes" },
   { name: "search", path: "/search", icon: Search, label: "Search" },
   { name: "recents", path: "/recents", icon: Clock, label: "Recents" },
-  { name: "settings", path: "/settings", icon: Settings, label: "Settings" },
 ];
 
 export function Sidebar({ onRecord }: SidebarProps) {
@@ -72,48 +73,44 @@ export function Sidebar({ onRecord }: SidebarProps) {
   return (
     <>
       <View style={styles.container}>
+        {/* Logo */}
         <View style={styles.header}>
           <Text style={styles.logo}>K7Notes</Text>
         </View>
 
+        {/* Main navigation */}
         <View style={styles.nav}>
-          {NAV_ITEMS.map((item) => {
-            const IconComponent = item.icon;
-            const active = isActive(item.path);
-            return (
-              <TouchableOpacity
-                key={item.name}
-                style={[styles.navItem, active && styles.navItemActive]}
-                onPress={() => handleNavPress(item.path)}
-                activeOpacity={0.7}
-              >
-                <IconComponent
-                  size={20}
-                  color={active ? "#007AFF" : "#666"}
-                  strokeWidth={active ? 2.5 : 2}
-                />
-                <Text
-                  style={[styles.navLabel, active && styles.navLabelActive]}
-                >
-                  {item.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          {MAIN_NAV.map((item) => (
+            <SidebarItem
+              key={item.name}
+              icon={item.icon}
+              label={item.label}
+              active={isActive(item.path)}
+              onPress={() => handleNavPress(item.path)}
+            />
+          ))}
         </View>
 
-        <View style={styles.footer}>
-          <Text style={styles.footerText}>K7Notes v0.0.1</Text>
+        {/* Bottom section: Settings + version */}
+        <View style={styles.bottom}>
+          <View style={styles.divider} />
+          <SidebarItem
+            icon={Settings}
+            label="Settings"
+            active={isActive("/settings")}
+            onPress={() => handleNavPress("/settings")}
+          />
+          <Text style={styles.version}>K7Notes v0.0.1</Text>
         </View>
       </View>
 
-      {/* Floating record button */}
+      {/* Floating create button */}
       <TouchableOpacity
-        style={styles.floatingRecordButton}
+        style={styles.floatingButton}
         onPress={handleRecordPress}
         activeOpacity={0.8}
       >
-        <Plus size={32} color="#fff" strokeWidth={2} />
+        <Plus size={24} color={colors.textInverse} strokeWidth={2.5} />
       </TouchableOpacity>
 
       {/* Record type selection modal */}
@@ -135,7 +132,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
               activeOpacity={0.7}
             >
               <View style={styles.recordOptionIcon}>
-                <Mic size={32} color="#007AFF" strokeWidth={2} />
+                <Mic size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <View style={styles.recordOptionText}>
                 <Text style={styles.recordOptionLabel}>Audio Note</Text>
@@ -148,7 +145,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
               activeOpacity={0.7}
             >
               <View style={styles.recordOptionIcon}>
-                <Pencil size={32} color="#007AFF" strokeWidth={2} />
+                <Pencil size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <View style={styles.recordOptionText}>
                 <Text style={styles.recordOptionLabel}>Text Note</Text>
@@ -170,108 +167,84 @@ export function Sidebar({ onRecord }: SidebarProps) {
 
 const styles = StyleSheet.create({
   container: {
-    width: 240,
-    backgroundColor: "#fafafa",
-    borderRightWidth: 1,
-    borderRightColor: "#eee",
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    width: layout.sidebarWidth,
+    backgroundColor: colors.sidebar,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRightColor: colors.border,
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.md,
   },
   header: {
-    marginBottom: 32,
-    paddingHorizontal: 8,
+    marginBottom: spacing["3xl"],
+    paddingHorizontal: spacing.md,
   },
   logo: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1a1a1a",
+    ...typography.h2,
+    letterSpacing: -0.5,
   },
   nav: {
     flex: 1,
-    gap: 4,
+    gap: spacing.xs,
   },
-  navItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    gap: 12,
+  bottom: {
+    gap: spacing.xs,
   },
-  navItemActive: {
-    backgroundColor: "#e8f4ff",
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.border,
+    marginHorizontal: spacing.sm,
+    marginBottom: spacing.sm,
   },
-  navLabel: {
-    fontSize: 15,
-    color: "#666",
-    fontWeight: "500",
+  version: {
+    ...typography.caption,
+    paddingHorizontal: spacing.md,
+    marginTop: spacing.sm,
   },
-  navLabelActive: {
-    color: "#007AFF",
-    fontWeight: "600",
-  },
-  footer: {
-    paddingHorizontal: 8,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    marginTop: 16,
-  },
-  footerText: {
-    fontSize: 12,
-    color: "#999",
-  },
-  floatingRecordButton: {
+  floatingButton: {
     position: "absolute",
-    bottom: 24,
-    right: 24,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#007AFF",
+    bottom: spacing.xl,
+    right: spacing.xl,
+    width: 52,
+    height: 52,
+    borderRadius: radius.xl,
+    backgroundColor: colors.accent,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#007AFF",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    ...shadows.accent,
     zIndex: 100,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
+    backgroundColor: colors.overlay,
     justifyContent: "center",
     alignItems: "center",
   },
   recordMenu: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 24,
+    backgroundColor: colors.surface,
+    borderRadius: radius.xl,
+    padding: spacing.xl,
     width: 320,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 12,
+    ...shadows.lg,
   },
   recordMenuTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 20,
+    ...typography.h2,
+    marginBottom: spacing.lg,
     textAlign: "center",
   },
   recordOption: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f5f5f5",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 16,
+    backgroundColor: colors.background,
+    borderRadius: radius.lg,
+    padding: spacing.base,
+    marginBottom: spacing.sm,
+    gap: spacing.base,
   },
   recordOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    backgroundColor: colors.accentLight,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -279,13 +252,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   recordOptionLabel: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
+    ...typography.bodyMedium,
     marginBottom: 2,
   },
   recordOptionDesc: {
-    fontSize: 13,
-    color: "#666",
+    ...typography.small,
   },
 });

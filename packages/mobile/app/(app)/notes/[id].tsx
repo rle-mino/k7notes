@@ -10,9 +10,10 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Trash2, RefreshCw } from "lucide-react-native";
+import { Trash2, RefreshCw, ChevronLeft } from "lucide-react-native";
 import { orpc, type Note } from "@/lib/orpc";
 import { NoteEditor, type NoteEditorRef } from "@/components/editor/NoteEditor";
+import { colors, typography, spacing, radius } from "@/theme";
 
 const AUTOSAVE_DELAY_MS = 5000;
 
@@ -223,7 +224,7 @@ export default function NoteEditorScreen() {
       <>
         <Stack.Screen options={{ title: "Loading..." }} />
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#007AFF" />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading note...</Text>
         </View>
       </>
@@ -236,7 +237,6 @@ export default function NoteEditorScreen() {
       <>
         <Stack.Screen options={{ title: "Error" }} />
         <View style={styles.centerContainer}>
-          <Text style={styles.errorIcon}>⚠️</Text>
           <Text style={styles.errorTitle}>Failed to load note</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
@@ -253,7 +253,6 @@ export default function NoteEditorScreen() {
       <>
         <Stack.Screen options={{ title: "Not Found" }} />
         <View style={styles.centerContainer}>
-          <Text style={styles.errorIcon}>📝</Text>
           <Text style={styles.errorTitle}>Note not found</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
             <Text style={styles.retryText}>Go Back</Text>
@@ -270,7 +269,8 @@ export default function NoteEditorScreen() {
           title: "",
           headerLeft: () => (
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <Text style={styles.backText}>← Back</Text>
+              <ChevronLeft size={20} color={colors.accent} strokeWidth={2} />
+              <Text style={styles.backText}>Back</Text>
             </TouchableOpacity>
           ),
           headerRight: () => (
@@ -280,14 +280,14 @@ export default function NoteEditorScreen() {
                   onPress={handleRefreshCalendar}
                   disabled={refreshing || saving || deleting}
                   style={[
-                    styles.refreshButton,
-                    (refreshing || saving || deleting) && styles.refreshButtonDisabled,
+                    styles.headerAction,
+                    (refreshing || saving || deleting) && styles.headerActionDisabled,
                   ]}
                 >
                   {refreshing ? (
-                    <ActivityIndicator size="small" color="#007AFF" />
+                    <ActivityIndicator size="small" color={colors.accent} />
                   ) : (
-                    <RefreshCw size={20} color="#007AFF" />
+                    <RefreshCw size={18} color={colors.accent} strokeWidth={1.8} />
                   )}
                 </TouchableOpacity>
               )}
@@ -295,20 +295,20 @@ export default function NoteEditorScreen() {
                 onPress={handleDelete}
                 disabled={saving || deleting}
                 style={[
-                  styles.deleteButton,
-                  (saving || deleting) && styles.deleteButtonDisabled,
+                  styles.headerAction,
+                  (saving || deleting) && styles.headerActionDisabled,
                 ]}
               >
                 {deleting ? (
-                  <ActivityIndicator size="small" color="#FF3B30" />
+                  <ActivityIndicator size="small" color={colors.error} />
                 ) : (
-                  <Trash2 size={20} color="#FF3B30" />
+                  <Trash2 size={18} color={colors.error} strokeWidth={1.8} />
                 )}
               </TouchableOpacity>
               {saving ? (
-                <View style={styles.savingIndicator}>
-                  <ActivityIndicator size="small" color="#007AFF" />
-                  <Text style={styles.savingText}>Saving...</Text>
+                <View style={styles.saveStatus}>
+                  <ActivityIndicator size="small" color={colors.accent} />
+                  <Text style={styles.savingText}>Saving</Text>
                 </View>
               ) : lastSaved ? (
                 <Text style={styles.savedText}>Saved</Text>
@@ -324,7 +324,7 @@ export default function NoteEditorScreen() {
             value={title}
             onChangeText={handleTitleChange}
             placeholder="Untitled"
-            placeholderTextColor="#999"
+            placeholderTextColor={colors.textTertiary}
             maxLength={200}
             returnKeyType="next"
           />
@@ -345,97 +345,84 @@ export default function NoteEditorScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: colors.surface,
   },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 32,
+    backgroundColor: colors.surface,
+    padding: spacing["2xl"],
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: "#666",
-  },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
+    ...typography.body,
+    color: colors.textSecondary,
+    marginTop: spacing.base,
   },
   errorTitle: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginBottom: 8,
+    ...typography.h2,
+    marginBottom: spacing.sm,
   },
   errorMessage: {
-    fontSize: 14,
-    color: "#666",
+    ...typography.body,
+    color: colors.textSecondary,
     textAlign: "center",
-    marginBottom: 24,
+    marginBottom: spacing.xl,
   },
   retryButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
+    borderRadius: radius.md,
   },
   retryText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
+    color: colors.textInverse,
   },
   backButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xs,
+    gap: spacing.xs,
   },
   backText: {
-    fontSize: 16,
-    color: "#007AFF",
+    ...typography.body,
+    color: colors.accent,
   },
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
-    paddingRight: 8,
-    gap: 12,
+    paddingRight: spacing.sm,
+    gap: spacing.md,
   },
-  refreshButton: {
-    padding: 4,
+  headerAction: {
+    padding: spacing.xs,
   },
-  refreshButtonDisabled: {
-    opacity: 0.5,
+  headerActionDisabled: {
+    opacity: 0.4,
   },
-  deleteButton: {
-    padding: 4,
-  },
-  deleteButtonDisabled: {
-    opacity: 0.5,
-  },
-  savingIndicator: {
+  saveStatus: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: spacing.xs,
   },
   savingText: {
-    fontSize: 14,
-    color: "#007AFF",
+    ...typography.caption,
+    color: colors.accent,
   },
   savedText: {
-    fontSize: 14,
-    color: "#34C759",
+    ...typography.caption,
+    color: colors.success,
   },
   titleContainer: {
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
   },
   titleInput: {
-    fontSize: 24,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    paddingVertical: 8,
+    ...typography.display,
+    paddingVertical: spacing.sm,
   },
   editorContainer: {
     flex: 1,

@@ -32,6 +32,8 @@ import {
   ConnectCalendarModal,
   CalendarConnectionItem,
 } from "@/components/calendar";
+import { SettingsGroup } from "@/components/ui/SettingsGroup";
+import { colors, typography, spacing, radius } from "@/theme";
 
 interface SettingItemProps {
   icon: LucideIcon;
@@ -58,7 +60,11 @@ function SettingItem({
       disabled={disabled || !onPress}
     >
       <View style={styles.settingIcon}>
-        <IconComponent size={20} color={destructive ? "#FF3B30" : "#666"} strokeWidth={2} />
+        <IconComponent
+          size={18}
+          color={destructive ? colors.error : colors.textSecondary}
+          strokeWidth={1.8}
+        />
       </View>
       <View style={styles.settingContent}>
         <Text style={[styles.settingLabel, destructive && styles.settingLabelDestructive]}>
@@ -67,7 +73,7 @@ function SettingItem({
         {value && <Text style={styles.settingValue}>{value}</Text>}
       </View>
       {onPress && (
-        <ChevronRight size={20} color="#ccc" strokeWidth={2} />
+        <ChevronRight size={16} color={colors.textTertiary} strokeWidth={1.8} />
       )}
     </TouchableOpacity>
   );
@@ -116,128 +122,113 @@ export default function SettingsScreen() {
   return (
     <ScrollView style={styles.container}>
       {/* Account Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        <View style={styles.sectionContent}>
-          <SettingItem
-            icon={User}
-            label="Name"
-            value={session.data?.user?.name || "—"}
-          />
-          <SettingItem
-            icon={Mail}
-            label="Email"
-            value={session.data?.user?.email || "—"}
-          />
-        </View>
-      </View>
+      <SettingsGroup title="Account">
+        <SettingItem
+          icon={User}
+          label="Name"
+          value={session.data?.user?.name || "\u2014"}
+        />
+        <SettingItem
+          icon={Mail}
+          label="Email"
+          value={session.data?.user?.email || "\u2014"}
+        />
+      </SettingsGroup>
 
       {/* Preferences Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences</Text>
-        <View style={styles.sectionContent}>
-          <SettingItem
-            icon={Palette}
-            label="Appearance"
-            value="System"
-            onPress={() => Alert.alert("Coming Soon", "Theme settings will be available in a future update.")}
-          />
-          <SettingItem
-            icon={Bell}
-            label="Notifications"
-            value="On"
-            onPress={() => Alert.alert("Coming Soon", "Notification settings will be available in a future update.")}
-          />
-        </View>
-      </View>
+      <SettingsGroup title="Preferences">
+        <SettingItem
+          icon={Palette}
+          label="Appearance"
+          value="System"
+          onPress={() => Alert.alert("Coming Soon", "Theme settings will be available in a future update.")}
+        />
+        <SettingItem
+          icon={Bell}
+          label="Notifications"
+          value="On"
+          onPress={() => Alert.alert("Coming Soon", "Notification settings will be available in a future update.")}
+        />
+      </SettingsGroup>
 
       {/* Calendar Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Calendars</Text>
-        <View style={styles.sectionContent}>
-          {loadingCalendars && connections.length === 0 ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color="#007AFF" />
-              <Text style={styles.loadingText}>Loading calendars...</Text>
+      <SettingsGroup title="Calendars">
+        {loadingCalendars && connections.length === 0 ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={colors.accent} />
+            <Text style={styles.loadingText}>Loading calendars...</Text>
+          </View>
+        ) : connections.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Calendar size={28} color={colors.textTertiary} strokeWidth={1.5} />
+            <Text style={styles.emptyText}>No calendars connected</Text>
+            <Text style={styles.emptySubtext}>
+              Connect your calendar to see events alongside your notes
+            </Text>
+          </View>
+        ) : (
+          connections.map((connection) => (
+            <View key={connection.id}>
+              <CalendarConnectionItem
+                connection={connection}
+                onDisconnect={disconnect}
+                onPress={() => router.push(`/(app)/calendar/${connection.id}`)}
+              />
+              <TouchableOpacity
+                style={styles.selectCalendarsButton}
+                onPress={() => router.push(`/(app)/calendar/select/${connection.id}`)}
+              >
+                <Settings2 size={15} color={colors.accent} strokeWidth={1.8} />
+                <Text style={styles.selectCalendarsText}>Select calendars</Text>
+                <ChevronRight size={14} color={colors.textTertiary} strokeWidth={1.8} />
+              </TouchableOpacity>
             </View>
-          ) : connections.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Calendar size={32} color="#ccc" />
-              <Text style={styles.emptyText}>No calendars connected</Text>
-              <Text style={styles.emptySubtext}>
-                Connect your calendar to see events alongside your notes
-              </Text>
-            </View>
-          ) : (
-            connections.map((connection) => (
-              <View key={connection.id}>
-                <CalendarConnectionItem
-                  connection={connection}
-                  onDisconnect={disconnect}
-                  onPress={() => router.push(`/(app)/calendar/${connection.id}`)}
-                />
-                <TouchableOpacity
-                  style={styles.selectCalendarsButton}
-                  onPress={() => router.push(`/(app)/calendar/select/${connection.id}`)}
-                >
-                  <Settings2 size={16} color="#007AFF" />
-                  <Text style={styles.selectCalendarsText}>Select calendars</Text>
-                  <ChevronRight size={16} color="#ccc" />
-                </TouchableOpacity>
-              </View>
-            ))
-          )}
-          <TouchableOpacity
-            style={styles.addCalendarButton}
-            onPress={() => setShowConnectModal(true)}
-          >
-            <Plus size={20} color="#007AFF" />
-            <Text style={styles.addCalendarText}>Connect Calendar</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+          ))
+        )}
+        <TouchableOpacity
+          style={styles.addCalendarButton}
+          onPress={() => setShowConnectModal(true)}
+        >
+          <Plus size={18} color={colors.accent} strokeWidth={2} />
+          <Text style={styles.addCalendarText}>Connect Calendar</Text>
+        </TouchableOpacity>
+      </SettingsGroup>
 
       {/* Storage Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Storage</Text>
-        <View style={styles.sectionContent}>
-          <SettingItem
-            icon={Cloud}
-            label="Sync Status"
-            value="Synced"
-          />
-          <SettingItem
-            icon={Package}
-            label="Clear Cache"
-            onPress={() => Alert.alert("Coming Soon", "Cache clearing will be available in a future update.")}
-          />
-        </View>
-      </View>
+      <SettingsGroup title="Storage">
+        <SettingItem
+          icon={Cloud}
+          label="Sync Status"
+          value="Synced"
+        />
+        <SettingItem
+          icon={Package}
+          label="Clear Cache"
+          onPress={() => Alert.alert("Coming Soon", "Cache clearing will be available in a future update.")}
+        />
+      </SettingsGroup>
 
       {/* About Section */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
-        <View style={styles.sectionContent}>
-          <SettingItem
-            icon={Info}
-            label="Version"
-            value="0.0.1"
-          />
-          <SettingItem
-            icon={FileText}
-            label="Privacy Policy"
-            onPress={() => Alert.alert("Coming Soon", "Privacy policy will be available soon.")}
-          />
-          <SettingItem
-            icon={ClipboardList}
-            label="Terms of Service"
-            onPress={() => Alert.alert("Coming Soon", "Terms of service will be available soon.")}
-          />
-        </View>
-      </View>
+      <SettingsGroup title="About">
+        <SettingItem
+          icon={Info}
+          label="Version"
+          value="0.0.1"
+        />
+        <SettingItem
+          icon={FileText}
+          label="Privacy Policy"
+          onPress={() => Alert.alert("Coming Soon", "Privacy policy will be available soon.")}
+        />
+        <SettingItem
+          icon={ClipboardList}
+          label="Terms of Service"
+          onPress={() => Alert.alert("Coming Soon", "Terms of service will be available soon.")}
+        />
+      </SettingsGroup>
 
       {/* Sign Out */}
-      <View style={styles.section}>
+      <View style={styles.signOutSection}>
         <TouchableOpacity
           style={[styles.signOutButton, loggingOut && styles.signOutButtonDisabled]}
           onPress={confirmLogout}
@@ -245,7 +236,7 @@ export default function SettingsScreen() {
           activeOpacity={0.7}
         >
           {loggingOut ? (
-            <ActivityIndicator color="#FF3B30" />
+            <ActivityIndicator color={colors.error} />
           ) : (
             <Text style={styles.signOutButtonText}>Sign Out</Text>
           )}
@@ -269,131 +260,112 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#666",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginBottom: 8,
-    marginLeft: 4,
-  },
-  sectionContent: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    overflow: "hidden",
+    backgroundColor: colors.background,
   },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    padding: spacing.base,
   },
   settingItemDisabled: {
-    opacity: 0.5,
+    opacity: 0.4,
   },
   settingIcon: {
-    marginRight: 12,
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
   },
   settingContent: {
     flex: 1,
   },
   settingLabel: {
-    fontSize: 16,
-    color: "#1a1a1a",
+    ...typography.body,
   },
   settingLabelDestructive: {
-    color: "#FF3B30",
+    color: colors.error,
   },
   settingValue: {
-    fontSize: 14,
-    color: "#999",
-    marginTop: 2,
+    ...typography.small,
+    color: colors.textTertiary,
+    marginTop: 1,
+  },
+  signOutSection: {
+    marginTop: spacing.xl,
+    paddingHorizontal: spacing.base,
   },
   signOutButton: {
-    backgroundColor: "#FEE2E2",
-    paddingVertical: 16,
-    borderRadius: 12,
+    backgroundColor: colors.errorLight,
+    paddingVertical: spacing.base,
+    borderRadius: radius.lg,
     alignItems: "center",
   },
   signOutButtonDisabled: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   signOutButtonText: {
-    color: "#FF3B30",
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.bodyMedium,
+    color: colors.error,
   },
   footer: {
-    padding: 32,
+    padding: spacing["2xl"],
     alignItems: "center",
   },
   footerText: {
-    fontSize: 13,
-    color: "#999",
+    ...typography.caption,
   },
   loadingContainer: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
-    gap: 12,
+    padding: spacing.xl,
+    gap: spacing.md,
   },
   loadingText: {
-    fontSize: 14,
-    color: "#666",
+    ...typography.body,
+    color: colors.textSecondary,
   },
   emptyContainer: {
     alignItems: "center",
-    padding: 24,
-    gap: 8,
+    padding: spacing.xl,
+    gap: spacing.sm,
   },
   emptyText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#666",
-    marginTop: 8,
+    ...typography.bodyMedium,
+    color: colors.textSecondary,
+    marginTop: spacing.sm,
   },
   emptySubtext: {
-    fontSize: 13,
-    color: "#999",
+    ...typography.small,
     textAlign: "center",
   },
   addCalendarButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
-    gap: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#eee",
+    padding: spacing.base,
+    gap: spacing.sm,
   },
   addCalendarText: {
-    fontSize: 15,
-    fontWeight: "600",
-    color: "#007AFF",
+    ...typography.bodyMedium,
+    color: colors.accent,
   },
   selectCalendarsButton: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.base,
     paddingLeft: 68,
-    gap: 8,
-    backgroundColor: "#f9f9f9",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#eee",
+    gap: spacing.sm,
+    backgroundColor: colors.background,
   },
   selectCalendarsText: {
     flex: 1,
-    fontSize: 14,
-    color: "#007AFF",
+    ...typography.small,
+    color: colors.accent,
+    fontWeight: "500",
   },
 });
