@@ -161,15 +161,27 @@ Key files:
   - Build: PASSED (exit code 0)
 - **Review**: Approved - Minimal, well-structured contract additions. Schemas use proper Zod validation (YYYY-MM-DD regex for date, UUID for noteId) consistent with existing patterns in the codebase (same regex already used in CreateNoteSchema.date). Both contracts correctly use POST method for mutation operations. Routes /api/notes/daily and /api/notes/daily/refresh are distinct from existing routes with no path conflicts. Contracts added to existing notesContract object rather than a separate group, keeping the API surface cohesive. All exports properly wired: schemas imported in contracts/notes.ts, schemas and types re-exported from contracts/src/index.ts, and notesContract is already registered in the main contract object. All completion conditions verified: type-check passes, lint has zero issues in modified files, build succeeds.
 
-### ⬜ Phase 5: Implement daily notes controller endpoints
+### ✅ Phase 5: Implement daily notes controller endpoints
 - **Step**: 4
 - **Complexity**: 2
-- [ ] Implement `getOrCreateDailyNote` endpoint using `@Implement` decorator
-- [ ] Implement `refreshDailyNoteEvents` endpoint using `@Implement` decorator
-- [ ] Register controller in NestJS module
-- **Files**: `packages/api/src/notes/notes.controller.ts` (or new `daily-notes.controller.ts`), `packages/api/src/notes/notes.module.ts`
+- [x] Implement `getOrCreateDailyNote` endpoint using `@Implement` decorator
+- [x] Implement `refreshDailyNoteEvents` endpoint using `@Implement` decorator
+- [x] Register controller in NestJS module
+- **Files**: `packages/api/src/notes/daily-notes.controller.ts` (new), `packages/api/src/notes/notes.module.ts`
 - **Commit message**: `feat: implement daily notes API endpoints`
 - **Bisect note**: Depends on Phase 3 (service) and Phase 4 (contracts)
+- **Implementation notes**:
+  - Created a new `DailyNotesController` in `packages/api/src/notes/daily-notes.controller.ts` (separate from `NotesController`, consistent with the Phase 3 decision to use a separate `DailyNotesService`)
+  - Controller uses `@Controller()` and `@UseGuards(AuthGuard)` decorators, matching the existing `NotesController` pattern
+  - `getOrCreateDailyNote()` uses `@Implement(contract.notes.getOrCreateDailyNote)` and delegates to `DailyNotesService.createDailyNote(userId, input.date)`
+  - `refreshDailyNoteEvents()` uses `@Implement(contract.notes.refreshDailyNoteEvents)` and delegates to `DailyNotesService.refreshDailyNoteEvents(userId, input.noteId)`
+  - Both handlers extract `req.user.id` from `AuthenticatedRequest` via `context.request` cast, identical to existing controller pattern
+  - Registered `DailyNotesController` in `NotesModule` controllers array (module already had `DailyNotesService` as provider from Phase 3)
+- **Validation results**:
+  - Type check: PASSED (exit code 0)
+  - Lint: Pre-existing errors in unmodified files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); zero issues in modified/new files
+  - Build: PASSED (exit code 0)
+- **Review**: Approved - Controller is a clean, minimal delegation layer matching the existing NotesController pattern exactly. Both endpoints use the same @Implement/@UseGuards/AuthenticatedRequest pattern, correctly delegate to DailyNotesService methods with matching signatures (createDailyNote(userId, date) and refreshDailyNoteEvents(userId, noteId)). Module wiring is correct: DailyNotesController added to controllers array, DailyNotesService already registered as provider from Phase 3. No orphaned code, no stubs, no unnecessary complexity. All completion conditions verified: type-check passes, lint has zero issues in modified/new files (pre-existing errors in unrelated files only), build succeeds.
 
 ### ⬜ Phase 6: Add date picker and daily note creation flow in mobile
 - **Step**: 5
@@ -218,5 +230,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 5 (Implement daily notes controller endpoints)
-- **Progress**: 4/8
+- **Current Phase**: Phase 6 (Add date picker and daily note creation flow in mobile)
+- **Progress**: 5/8
