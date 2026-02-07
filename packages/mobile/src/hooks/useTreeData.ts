@@ -1,4 +1,4 @@
-import { useCallback, useState, useRef } from "react";
+import { useCallback, useState, useRef, useMemo } from "react";
 import { orpc } from "@/lib/orpc";
 import type { Note, Folder } from "@/lib/orpc";
 
@@ -183,8 +183,17 @@ export function useTreeData() {
 
   const treeData = buildFlatTree();
 
+  // Identify the root-level "Daily" folder for special add-note behavior
+  const dailyFolderId = useMemo(() => {
+    const dailyFolder = rootFolders.find(
+      (f) => f.name === "Daily" && f.parentId === null
+    );
+    return dailyFolder?.id ?? null;
+  }, [rootFolders]);
+
   return {
     treeData,
+    dailyFolderId,
     loading,
     refreshing,
     error,

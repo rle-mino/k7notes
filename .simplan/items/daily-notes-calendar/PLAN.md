@@ -183,17 +183,27 @@ Key files:
   - Build: PASSED (exit code 0)
 - **Review**: Approved - Controller is a clean, minimal delegation layer matching the existing NotesController pattern exactly. Both endpoints use the same @Implement/@UseGuards/AuthenticatedRequest pattern, correctly delegate to DailyNotesService methods with matching signatures (createDailyNote(userId, date) and refreshDailyNoteEvents(userId, noteId)). Module wiring is correct: DailyNotesController added to controllers array, DailyNotesService already registered as provider from Phase 3. No orphaned code, no stubs, no unnecessary complexity. All completion conditions verified: type-check passes, lint has zero issues in modified/new files (pre-existing errors in unrelated files only), build succeeds.
 
-### ⬜ Phase 6: Add date picker and daily note creation flow in mobile
+### ✅ Phase 6: Add date picker and daily note creation flow in mobile
 - **Step**: 5
 - **Complexity**: 4
-- [ ] Create `DailyNoteDatePicker` component — modal with calendar/date picker UI (start on today's date)
-- [ ] Modify the "add note" action in the Daily folder tree item to open `DailyNoteDatePicker` instead of `CreateNoteModal`
-- [ ] On date selection: call `orpc.notes.getOrCreateDailyNote({ date })` → navigate to `/notes/{id}`
-- [ ] Detect "Daily" folder in tree data to show different add-note behavior (by folder name or a known convention)
-- [ ] Handle loading state while creating note + folders
-- **Files**: `packages/mobile/src/components/daily/DailyNoteDatePicker.tsx` (new), `packages/mobile/src/hooks/useTreeData.ts`, `packages/mobile/src/components/notes/TreeItem.tsx` or `packages/mobile/app/(app)/notes/index.tsx`
+- [x] Create `DailyNoteDatePicker` component — modal with calendar/date picker UI (start on today's date)
+- [x] Modify the "add note" action in the Daily folder tree item to open `DailyNoteDatePicker` instead of `CreateNoteModal`
+- [x] On date selection: call `orpc.notes.getOrCreateDailyNote({ date })` → navigate to `/notes/{id}`
+- [x] Detect "Daily" folder in tree data to show different add-note behavior (by folder name or a known convention)
+- [x] Handle loading state while creating note + folders
+- **Files**: `packages/mobile/src/components/daily/DailyNoteDatePicker.tsx` (new), `packages/mobile/src/hooks/useTreeData.ts`, `packages/mobile/app/(app)/notes/index.tsx`
 - **Commit message**: `feat: add date picker for daily note creation`
 - **Bisect note**: Depends on Phase 5 (API endpoints). New component + modified tree behavior.
+- **Implementation notes**:
+  - Created `DailyNoteDatePicker` component (`packages/mobile/src/components/daily/DailyNoteDatePicker.tsx`) — a modal with a grid-based month calendar built entirely from React Native primitives (no third-party date picker). Features: month navigation with chevron buttons, today's date highlighted with a blue circle, date selection triggers `orpc.notes.getOrCreateDailyNote({ date })` and navigates to `/notes/{id}` on success. Loading indicator ("Creating daily note...") displayed during API call. Error message shown on failure. Modal resets to current month on open via `onShow` handler.
+  - Modified `useTreeData` hook (`packages/mobile/src/hooks/useTreeData.ts`) — added `useMemo` import, computed `dailyFolderId: string | null` derived from `rootFolders` by matching `name === "Daily"` and `parentId === null`. Exposed in return value for consumers.
+  - Modified `NotesIndexScreen` (`packages/mobile/app/(app)/notes/index.tsx`) — added `dailyPickerVisible` state and `DailyNoteDatePicker` component. Updated `handleAddNote(folderId)` to check if `folderId === dailyFolderId`; if so, opens the date picker instead of the `CreateNoteModal`. `TreeItem.tsx` was not modified since the detection logic lives entirely in the parent screen's `handleAddNote` callback.
+  - No changes to `TreeItem.tsx` were needed — the plan listed it as "or `notes/index.tsx`" and all behavior routing was cleanly handled in the screen-level callback.
+- **Validation results**:
+  - Type check: PASSED (exit code 0, all 6 tasks successful)
+  - Lint: Pre-existing errors in unmodified API files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); zero issues in modified/new files (`@k7notes/mobile:lint` passed)
+  - Build: PASSED (exit code 0, all 3 tasks successful)
+- **Review**: Approved - Clean, well-structured implementation that solves all requirements. DailyNoteDatePicker is a self-contained calendar modal built from RN primitives with correct month-grid generation, YYYY-MM-DD date formatting matching the contract's regex, proper month navigation, today highlighting, loading state, and error handling. Matches existing modal patterns (same overlay approach, color scheme, StyleSheet conventions as CreateNoteModal). Daily folder detection in useTreeData is clean: useMemo-wrapped find by name="Daily" + parentId=null, correctly convention-based per the plan. notes/index.tsx integration is minimal and focused: one new state, a conditional branch in handleAddNote, and the modal rendered at the end. No third-party dependencies added. Wiring verified: DailyNoteDatePicker imported and used, dailyFolderId exported and consumed, orpc.notes.getOrCreateDailyNote matches the contract from Phase 4. No TODOs, no stubs, no orphaned code. All completion conditions independently verified: type-check passes (exit 0), mobile lint passes cleanly (API lint failures are pre-existing in unrelated files), build passes (exit 0).
 
 ### ⬜ Phase 7: Add calendar refresh button to daily note editor
 - **Step**: 6
@@ -230,5 +240,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 6 (Add date picker and daily note creation flow in mobile)
-- **Progress**: 5/8
+- **Current Phase**: Phase 7 (Add calendar refresh button to daily note editor)
+- **Progress**: 6/8

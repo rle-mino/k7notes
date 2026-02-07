@@ -15,11 +15,13 @@ import { TreeItem } from "@/components/notes/TreeItem";
 import { EmptyState } from "@/components/notes/EmptyState";
 import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { DailyNoteDatePicker } from "@/components/daily/DailyNoteDatePicker";
 import type { Note } from "@/lib/orpc";
 
 export default function NotesIndexScreen() {
   const {
     treeData,
+    dailyFolderId,
     loading,
     refreshing,
     error,
@@ -36,6 +38,7 @@ export default function NotesIndexScreen() {
   const [noteModalFolderId, setNoteModalFolderId] = useState<string | null>(
     null
   );
+  const [dailyPickerVisible, setDailyPickerVisible] = useState(false);
 
   // Refetch when screen comes into focus
   useFocusEffect(
@@ -53,6 +56,11 @@ export default function NotesIndexScreen() {
   };
 
   const handleAddNote = (folderId: string | null) => {
+    // Open date picker for the root "Daily" folder instead of the regular modal
+    if (folderId != null && folderId === dailyFolderId) {
+      setDailyPickerVisible(true);
+      return;
+    }
     setNoteModalFolderId(folderId);
     setNoteModalVisible(true);
   };
@@ -167,6 +175,11 @@ export default function NotesIndexScreen() {
         visible={noteModalVisible}
         folderId={noteModalFolderId}
         onClose={() => setNoteModalVisible(false)}
+      />
+
+      <DailyNoteDatePicker
+        visible={dailyPickerVisible}
+        onClose={() => setDailyPickerVisible(false)}
       />
     </View>
   );
