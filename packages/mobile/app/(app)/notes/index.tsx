@@ -18,6 +18,7 @@ import { CreateFolderModal } from "@/components/notes/CreateFolderModal";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { DailyNoteDatePicker } from "@/components/daily/DailyNoteDatePicker";
 import type { Note } from "@/lib/orpc";
+import type { AudioRecording } from "@/hooks/useAudioRecordings";
 import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function NotesIndexScreen() {
@@ -85,6 +86,9 @@ export default function NotesIndexScreen() {
         onPress={() => {
           if (item.type === "note") {
             handleNotePress(item.data as Note);
+          } else if (item.type === "audio-item") {
+            const recording = item.data as AudioRecording;
+            router.push(`/notes/audio/${recording.fileName}`);
           }
         }}
         onToggleExpand={

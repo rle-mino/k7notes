@@ -196,25 +196,32 @@ test.describe("Audio Recording - Skipped (requires microphone)", () => {
 
   test.skip("record audio and verify it appears in Audio folder", async () => {
     // Cannot test: requires microphone access
-    // Manual test: Record audio -> verify Audio folder shows recording card
-    // with title "Recording YYYY-MM-DD HH:MM", play button, and Transcribe button
+    // Manual test: Record audio -> verify Audio folder shows compact list item
+    // with mic icon, title "Recording YYYY-MM-DD HH:MM", and date
   });
 
-  test.skip("audio playback controls work", async () => {
+  test.skip("tapping audio item navigates to detail page", async () => {
+    // Cannot test: requires existing audio recording
+    // Manual test: Tap an audio recording in the tree ->
+    // verify navigation to /notes/audio/[fileName] detail page
+    // with player controls, transcription, and title editing
+  });
+
+  test.skip("audio detail page playback controls work", async () => {
     // Cannot test: requires Web Audio API and actual audio file
-    // Manual test: Click play on a recording card -> verify play/pause toggle,
-    // progress bar appears, and time display updates
+    // Manual test: Open audio detail page -> click play/pause toggle,
+    // verify progress bar appears and time display updates
   });
 
-  test.skip("transcribe button triggers transcription", async () => {
+  test.skip("audio detail page transcribe button works", async () => {
     // Cannot test: requires actual audio recording to send to API
-    // Manual test: Click Transcribe on un-transcribed recording ->
+    // Manual test: Open audio detail page -> click Transcribe ->
     // verify loading spinner, transcription text appears after completion
   });
 
-  test.skip("audio recording title can be edited inline", async () => {
+  test.skip("audio detail page title can be edited", async () => {
     // Cannot test: requires existing audio recording
-    // Manual test: Click pencil icon on recording card ->
+    // Manual test: Open audio detail page -> tap title to edit ->
     // verify title becomes editable, change title, blur to save
   });
 });

@@ -20,7 +20,6 @@ import {
 import type { TreeNode } from "@/hooks/useTreeData";
 import type { Note } from "@/lib/orpc";
 import type { AudioRecording } from "@/hooks/useAudioRecordings";
-import { AudioCard } from "@/components/audio/AudioCard";
 import { colors, typography, spacing, radius } from "@/theme";
 
 const INDENT_WIDTH = 24;
@@ -120,9 +119,46 @@ export function TreeItem({
     );
   }
 
-  // Audio item node — renders the AudioCard component
+  // Audio item node — compact list row (navigates to detail page)
   if (item.type === "audio-item") {
-    return <AudioCard recording={item.data as AudioRecording} />;
+    const recording = item.data as AudioRecording;
+    const audioPreview = recording.transcription
+      ? recording.transcription.text.slice(0, 60)
+      : null;
+    const audioDate = recording.createdAt.toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+    });
+
+    return (
+      <TouchableOpacity
+        style={[styles.container, styles.noteContainer, indentStyle]}
+        onPress={onPress}
+        activeOpacity={0.7}
+      >
+        <View style={styles.expandPlaceholder} />
+        <View style={[styles.iconContainer, styles.audioIconBg]}>
+          <Mic
+            size={isWeb ? 14 : 16}
+            color={colors.audio}
+            strokeWidth={2}
+          />
+        </View>
+        <View style={styles.noteContent}>
+          <Text style={styles.noteTitle} numberOfLines={1}>
+            {item.name}
+          </Text>
+          {audioPreview ? (
+            <Text style={styles.notePreview} numberOfLines={1}>
+              {audioPreview}
+            </Text>
+          ) : (
+            <Text style={styles.audioNotTranscribed}>Not transcribed</Text>
+          )}
+        </View>
+        <Text style={styles.noteDate}>{audioDate}</Text>
+      </TouchableOpacity>
+    );
   }
 
   if (item.type === "folder") {
@@ -330,5 +366,11 @@ const styles = StyleSheet.create({
     color: colors.textTertiary,
     marginLeft: spacing.sm,
     fontVariant: ["tabular-nums"],
+  },
+  audioNotTranscribed: {
+    fontSize: isWeb ? 12 : 13,
+    fontWeight: "500",
+    color: colors.textTertiary,
+    fontStyle: "italic",
   },
 });
