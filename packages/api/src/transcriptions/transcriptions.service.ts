@@ -1,5 +1,5 @@
-import { Inject, Injectable, BadRequestException } from "@nestjs/common";
-import { eq } from "drizzle-orm";
+import { Inject, Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { eq, and, desc } from "drizzle-orm";
 import type { ProviderInfo, TranscriptionProviderType } from "@k7notes/contracts";
 import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { transcriptions } from "../db/schema.js";
@@ -118,6 +118,51 @@ export class TranscriptionsService {
       .update(transcriptions)
       .set({ noteId })
       .where(eq(transcriptions.id, transcriptionId));
+  }
+
+  /**
+   * List all transcriptions for a user, ordered by most recent first
+   */
+  async list(userId: string) {
+    const rows = await this.db
+      .select({
+        id: transcriptions.id,
+        title: transcriptions.title,
+        text: transcriptions.text,
+        segments: transcriptions.segments,
+        durationSeconds: transcriptions.durationSeconds,
+        language: transcriptions.language,
+        createdAt: transcriptions.createdAt,
+      })
+      .from(transcriptions)
+      .where(eq(transcriptions.userId, userId))
+      .orderBy(desc(transcriptions.createdAt));
+
+    return rows.map((row) => ({
+      ...row,
+      segments: row.segments as { speaker: string; text: string; startTime: number; endTime: number }[],
+      createdAt: row.createdAt.toISOString(),
+    }));
+  }
+
+  /**
+   * Update the title of a transcription
+   */
+  async updateTitle(userId: string, id: string, title: string): Promise<void> {
+    const [existing] = await this.db
+      .select({ id: transcriptions.id })
+      .from(transcriptions)
+      .where(and(eq(transcriptions.id, id), eq(transcriptions.userId, userId)))
+      .limit(1);
+
+    if (!existing) {
+      throw new NotFoundException("Transcription not found");
+    }
+
+    await this.db
+      .update(transcriptions)
+      .set({ title })
+      .where(and(eq(transcriptions.id, id), eq(transcriptions.userId, userId)));
   }
 
   /**

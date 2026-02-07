@@ -50,6 +50,29 @@ export class TranscriptionsController {
     );
   }
 
+  @Implement(contract.transcriptions.list)
+  list() {
+    return authed(contract.transcriptions.list).handler(
+      async ({ context }) => {
+        return this.transcriptionsService.list(context.user.id);
+      }
+    );
+  }
+
+  @Implement(contract.transcriptions.updateTitle)
+  updateTitle() {
+    return authed(contract.transcriptions.updateTitle).handler(
+      async ({ input, context }) => {
+        await this.transcriptionsService.updateTitle(
+          context.user.id,
+          input.id,
+          input.title
+        );
+        return { success: true as const };
+      }
+    );
+  }
+
   @Implement(contract.transcriptions.listProviders)
   listProviders() {
     return implement(contract.transcriptions.listProviders).handler(async () => {

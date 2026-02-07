@@ -84,6 +84,31 @@ export const ListProvidersResponseSchema = z.object({
   defaultProvider: z.string(),
 });
 
+/** A single transcription record returned in a list */
+export const TranscriptionListItemSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().nullable(),
+  text: z.string(),
+  segments: z.array(TranscriptionSegmentSchema),
+  durationSeconds: z.number(),
+  language: z.string().nullable(),
+  createdAt: z.coerce.string(),
+});
+
+/** Response for listing transcriptions */
+export const ListTranscriptionsResponseSchema = z.array(TranscriptionListItemSchema);
+
+/** Request schema for updating a transcription title */
+export const UpdateTranscriptionTitleRequestSchema = z.object({
+  id: z.string().uuid(),
+  title: z.string().min(1).max(500),
+});
+
+/** Response schema for updating a transcription title */
+export const UpdateTranscriptionTitleResponseSchema = z.object({
+  success: z.literal(true),
+});
+
 // Type exports
 export type TranscriptionProviderType = z.infer<typeof TranscriptionProviderSchema>;
 export type TranscriptionSegment = z.infer<typeof TranscriptionSegmentSchema>;
@@ -95,3 +120,7 @@ export type ProviderInfo = z.infer<typeof ProviderInfoSchema>;
 export type ListProvidersResponse = z.infer<typeof ListProvidersResponseSchema>;
 export type LinkToNoteRequest = z.infer<typeof LinkToNoteRequestSchema>;
 export type LinkToNoteResponse = z.infer<typeof LinkToNoteResponseSchema>;
+export type TranscriptionListItem = z.infer<typeof TranscriptionListItemSchema>;
+export type ListTranscriptionsResponse = z.infer<typeof ListTranscriptionsResponseSchema>;
+export type UpdateTranscriptionTitleRequest = z.infer<typeof UpdateTranscriptionTitleRequestSchema>;
+export type UpdateTranscriptionTitleResponse = z.infer<typeof UpdateTranscriptionTitleResponseSchema>;
