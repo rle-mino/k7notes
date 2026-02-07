@@ -230,19 +230,20 @@ Key files:
   - Build: PASSED (exit code 0, all 3 tasks successful)
 - **Review**: Approved - Focused, minimal implementation that solves the stated problem correctly. Only one file modified (packages/mobile/app/(app)/notes/[id].tsx), which is appropriate given the small scope. The refresh button conditionally renders only when note.kind === "DAILY", matching the requirement. API call uses orpc.notes.refreshDailyNoteEvents({ noteId: id }) which correctly matches the RefreshDailyNoteEventsSchema (noteId: z.string().uuid()) and returns NoteSchema. Editor content is updated via editorRef.current?.setMarkdown(updatedNote.content) -- the optional chaining is correct and setMarkdown is confirmed on the NoteEditorRef interface. Loading state handled properly: ActivityIndicator replaces the RefreshCw icon during refresh, button disabled during refresh/save/delete. Error handling follows existing Alert.alert pattern. Styles (refreshButton, refreshButtonDisabled) mirror the existing deleteButton/deleteButtonDisabled pattern exactly. No TODOs, no stubs, no orphaned code. All completion conditions independently verified: type-check passes (exit 0), mobile lint clean (API lint failures are pre-existing in unmodified files), build passes (exit 0).
 
-### ⬜ Phase 8: QA testing
+### ✅ Phase 8: QA testing
 - **Step**: 7
 - **Complexity**: 2
-- [ ] Start dev servers and test on web
-- [ ] Create a daily note for today (no calendar connected) — verify folder structure YYYY/MM/DD appears under Daily
-- [ ] Verify note opens in editor with date heading
-- [ ] Create daily note for same date again — verify it navigates to existing note (no duplicate)
-- [ ] Create daily note for a different date — verify separate note and folder structure
-- [ ] Verify the refresh button appears on daily notes but not regular notes
-- [ ] Verify regular note creation still works normally
+- [x] Start dev servers and test on web
+- [x] Create a daily note for today (no calendar connected) — verify folder structure YYYY/MM/DD appears under Daily
+- [x] Verify note opens in editor with date heading
+- [x] Create daily note for same date again — verify it navigates to existing note (no duplicate)
+- [x] Create daily note for a different date — verify separate note and folder structure
+- [x] Verify the refresh button appears on daily notes but not regular notes
+- [x] Verify regular note creation still works normally
 - **Files**: None (testing only)
 - **Commit message**: N/A (no code changes)
 - **Bisect note**: N/A
+- **Implementation notes**: All QA tests passed on web. Date picker opens correctly for Daily folder, daily note created with calendar events auto-populated, folder hierarchy (Daily/2026/02/07) created correctly, duplicate prevention works (same date returns existing note), refresh button adds new events without overwriting existing content, refresh button only appears on daily notes (not regular notes), regular note creation unaffected. No console errors. User-added content is preserved during refresh.
 
 ## Phase Status Legend
 
@@ -253,5 +254,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 8 (QA testing)
-- **Progress**: 7/8
+- **Current Phase**: All phases complete
+- **Progress**: 8/8
