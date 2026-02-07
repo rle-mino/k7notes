@@ -15,11 +15,11 @@ import {
   Settings,
   Mic,
   Pencil,
-  Plus,
   type LucideIcon,
 } from "lucide-react-native";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { SidebarItem } from "@/components/ui/SidebarItem";
+import { HeroFAB } from "@/components/ui/HeroFAB";
 import { colors, typography, spacing, radius, shadows, layout } from "@/theme";
 
 type RecordType = "audio";
@@ -104,14 +104,10 @@ export function Sidebar({ onRecord }: SidebarProps) {
         </View>
       </View>
 
-      {/* Floating create button */}
-      <TouchableOpacity
-        style={styles.floatingButton}
-        onPress={handleRecordPress}
-        activeOpacity={0.8}
-      >
-        <Plus size={24} color={colors.textInverse} strokeWidth={2.5} />
-      </TouchableOpacity>
+      {/* Hero FAB — centered in the content area */}
+      <View style={styles.fabWrapper} pointerEvents="box-none">
+        <HeroFAB onPress={handleRecordPress} size={52} />
+      </View>
 
       {/* Record type selection modal */}
       <Modal
@@ -200,17 +196,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     marginTop: spacing.sm,
   },
-  floatingButton: {
+  fabWrapper: {
     position: "absolute",
-    bottom: spacing.xl,
-    right: spacing.xl,
-    width: 52,
-    height: 52,
-    borderRadius: radius.xl,
-    backgroundColor: colors.accent,
+    bottom: spacing["2xl"],
+    left: layout.sidebarWidth,
+    right: 0,
     alignItems: "center",
-    justifyContent: "center",
-    ...shadows.accent,
     zIndex: 100,
   },
   modalOverlay: {

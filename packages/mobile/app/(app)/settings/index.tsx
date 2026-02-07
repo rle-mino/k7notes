@@ -120,7 +120,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Account Section */}
       <SettingsGroup title="Account">
         <SettingItem
@@ -261,6 +261,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  scrollContent: {
+    paddingBottom: 100,
   },
   settingItem: {
     flexDirection: "row",

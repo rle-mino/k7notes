@@ -16,10 +16,10 @@ import {
   Settings,
   Mic,
   Pencil,
-  Plus,
   type LucideIcon,
 } from "lucide-react-native";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
+import { HeroFAB } from "@/components/ui/HeroFAB";
 import { colors, typography, spacing, radius, shadows } from "@/theme";
 
 type RecordType = "audio";
@@ -135,15 +135,13 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
             {leftTabs.map((route) => renderTab(route))}
           </View>
 
-          {/* Center record button */}
+          {/* Center Hero FAB */}
           <View style={styles.recordContainer}>
-            <TouchableOpacity
-              style={styles.recordButton}
+            <HeroFAB
               onPress={handleRecordPress}
-              activeOpacity={0.8}
-            >
-              <Plus size={28} color={colors.textInverse} strokeWidth={2.5} />
-            </TouchableOpacity>
+              size={52}
+              style={styles.heroFab}
+            />
           </View>
 
           {/* Right tabs */}
@@ -240,14 +238,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginHorizontal: spacing.sm,
   },
-  recordButton: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: colors.accent,
-    alignItems: "center",
-    justifyContent: "center",
-    ...shadows.accent,
+  heroFab: {
     marginTop: -20,
   },
   modalOverlay: {

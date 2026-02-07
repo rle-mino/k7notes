@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingVertical: spacing.xs,
+    paddingBottom: 100,
   },
   errorText: {
     ...typography.body,

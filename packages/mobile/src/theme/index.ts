@@ -37,8 +37,15 @@ export const colors = {
   divider: "#F1F5F9",
 
   // Folder accent (warm amber)
-  folder: "#D97706",
+  folder: "#F59E0B",
   folderLight: "#FFFBEB",
+
+  // Note icon (cool gray)
+  noteIcon: "#9CA3AF",
+
+  // Hero FAB gradient
+  heroGradientStart: "#6366F1",
+  heroGradientEnd: "#4338CA",
 
   // Audio accent
   audio: "#EA580C",
@@ -188,6 +195,13 @@ export const shadows = {
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 8,
+  },
+  hero: {
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 12,
   },
 } as const;
 

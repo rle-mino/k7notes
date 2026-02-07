@@ -328,6 +328,17 @@ export default function NoteEditorScreen() {
             maxLength={200}
             returnKeyType="next"
           />
+          {lastSaved && (
+            <Text style={styles.titleDate}>
+              {lastSaved.toLocaleDateString(undefined, {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </Text>
+          )}
+          <View style={styles.titleDivider} />
         </View>
         <View style={styles.editorContainer}>
           <NoteEditor
@@ -418,11 +429,21 @@ const styles = StyleSheet.create({
   titleContainer: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.sm,
   },
   titleInput: {
     ...typography.display,
     paddingVertical: spacing.sm,
+  },
+  titleDate: {
+    ...typography.small,
+    color: colors.textTertiary,
+    marginTop: spacing.xs,
+    fontVariant: ["tabular-nums"],
+  },
+  titleDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.borderLight,
+    marginTop: spacing.base,
   },
   editorContainer: {
     flex: 1,

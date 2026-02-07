@@ -1,6 +1,7 @@
 import React from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { colors, typography, spacing, radius, shadows } from "@/theme";
+import { StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
+import { FileText } from "lucide-react-native";
+import { colors, spacing, radius, shadows } from "@/theme";
 
 interface NoteListItemProps {
   title: string;
@@ -9,10 +10,13 @@ interface NoteListItemProps {
   onPress: () => void;
 }
 
+const isWeb = Platform.OS === "web";
+
 /**
  * Premium note card for list views (recents, search results).
- * Clean vertical rhythm: Bold title on top, 2-line gray preview below,
- * date aligned right. Uses whitespace instead of borders for separation.
+ * Responsive density: compact on web, comfy on mobile.
+ * Outlined note icon in cool gray, SemiBold title, 1-line preview,
+ * right-aligned date with monospaced digits.
  */
 export function NoteListItem({ title, preview, date, onPress }: NoteListItemProps) {
   return (
@@ -21,47 +25,77 @@ export function NoteListItem({ title, preview, date, onPress }: NoteListItemProp
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.header}>
-        <Text style={styles.title} numberOfLines={1}>
-          {title || "Untitled"}
-        </Text>
-        <Text style={styles.date}>{date}</Text>
+      <View style={styles.iconContainer}>
+        <FileText
+          size={isWeb ? 16 : 18}
+          color={colors.noteIcon}
+          strokeWidth={1.5}
+        />
       </View>
-      {preview ? (
-        <Text style={styles.preview} numberOfLines={2}>
-          {preview}
-        </Text>
-      ) : null}
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title} numberOfLines={1}>
+            {title || "Untitled"}
+          </Text>
+          <Text style={styles.date}>{date}</Text>
+        </View>
+        {preview ? (
+          <Text style={styles.preview} numberOfLines={1}>
+            {preview}
+          </Text>
+        ) : null}
+      </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
-    padding: spacing.base,
+    padding: isWeb ? spacing.md : spacing.base,
     marginHorizontal: spacing.base,
     marginVertical: spacing.xs,
+    minHeight: isWeb ? 48 : 64,
     ...shadows.sm,
+  },
+  iconContainer: {
+    width: isWeb ? 28 : 32,
+    height: isWeb ? 28 : 32,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: spacing.md,
+  },
+  content: {
+    flex: 1,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: spacing.xs,
   },
   title: {
-    ...typography.bodyMedium,
+    fontSize: isWeb ? 14 : 16,
     fontWeight: "600",
+    color: "#1E293B",
     flex: 1,
     marginRight: spacing.md,
   },
   date: {
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: "400",
+    color: colors.textTertiary,
+    fontVariant: ["tabular-nums"],
   },
   preview: {
-    ...typography.small,
-    lineHeight: 20,
+    fontSize: isWeb ? 13 : 14,
+    fontWeight: "400",
+    color: "#94A3B8",
+    lineHeight: isWeb ? 18 : 20,
+    marginTop: 2,
   },
 });

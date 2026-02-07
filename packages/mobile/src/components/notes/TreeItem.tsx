@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import {
   Folder,
@@ -23,6 +24,7 @@ import { AudioCard } from "@/components/audio/AudioCard";
 import { colors, typography, spacing, radius } from "@/theme";
 
 const INDENT_WIDTH = 24;
+const isWeb = Platform.OS === "web";
 
 interface TreeItemProps {
   item: TreeNode;
@@ -86,7 +88,7 @@ export function TreeItem({
           )}
         </View>
         <View style={[styles.iconContainer, styles.audioIconBg]}>
-          <Mic size={16} color={colors.audio} strokeWidth={2} />
+          <Mic size={isWeb ? 14 : 16} color={colors.audio} strokeWidth={2} />
         </View>
         <Text style={styles.folderName} numberOfLines={1}>
           {item.name}
@@ -122,9 +124,19 @@ export function TreeItem({
         </View>
         <View style={[styles.iconContainer, styles.folderIconBg]}>
           {item.isExpanded ? (
-            <FolderOpen size={16} color={colors.folder} strokeWidth={2} />
+            <FolderOpen
+              size={isWeb ? 14 : 16}
+              color={colors.folder}
+              fill={colors.folder}
+              strokeWidth={1.5}
+            />
           ) : (
-            <Folder size={16} color={colors.folder} strokeWidth={2} />
+            <Folder
+              size={isWeb ? 14 : 16}
+              color={colors.folder}
+              fill={colors.folder}
+              strokeWidth={1.5}
+            />
           )}
         </View>
         <Text style={styles.folderName} numberOfLines={1}>
@@ -155,7 +167,11 @@ export function TreeItem({
     >
       <View style={styles.expandPlaceholder} />
       <View style={[styles.iconContainer, styles.noteIconBg]}>
-        <FileText size={16} color={colors.accent} strokeWidth={1.8} />
+        <FileText
+          size={isWeb ? 14 : 16}
+          color={colors.noteIcon}
+          strokeWidth={1.5}
+        />
       </View>
       <View style={styles.noteContent}>
         <Text style={styles.noteTitle} numberOfLines={1}>
@@ -176,8 +192,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: spacing.md,
+    paddingVertical: isWeb ? spacing.sm : spacing.md,
     paddingRight: spacing.base,
+    minHeight: isWeb ? 48 : undefined,
   },
   folderContainer: {
     backgroundColor: colors.surface,
@@ -221,8 +238,8 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginRight: spacing.sm,
-    width: 28,
-    height: 28,
+    width: isWeb ? 24 : 28,
+    height: isWeb ? 24 : 28,
     borderRadius: radius.sm,
     justifyContent: "center",
     alignItems: "center",
@@ -234,10 +251,12 @@ const styles = StyleSheet.create({
     backgroundColor: colors.audioLight,
   },
   noteIconBg: {
-    backgroundColor: colors.accentLight,
+    backgroundColor: colors.background,
   },
   folderName: {
-    ...typography.bodyMedium,
+    fontSize: isWeb ? 14 : 15,
+    fontWeight: "600",
+    color: "#1E293B",
     flex: 1,
   },
   noteContent: {
@@ -245,14 +264,20 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   noteTitle: {
-    ...typography.bodyMedium,
+    fontSize: isWeb ? 14 : 15,
+    fontWeight: "600",
+    color: "#1E293B",
   },
   notePreview: {
-    ...typography.small,
-    color: colors.textTertiary,
+    fontSize: isWeb ? 12 : 13,
+    fontWeight: "400",
+    color: "#94A3B8",
   },
   noteDate: {
-    ...typography.caption,
+    fontSize: 12,
+    fontWeight: "400",
+    color: colors.textTertiary,
     marginLeft: spacing.sm,
+    fontVariant: ["tabular-nums"],
   },
 });
