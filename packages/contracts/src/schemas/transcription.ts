@@ -53,6 +53,10 @@ export const TranscribeRequestSchema = TranscriptionOptionsSchema.extend({
   audioBase64: z.string(),
   /** MIME type of the audio (e.g., "audio/mp3", "audio/wav") */
   mimeType: z.string(),
+  /** Optional title for the transcription (e.g., "Recording 2025-01-15 14:30") */
+  title: z.string().max(500).optional(),
+  /** Optional local file name for linking on-device audio to transcription */
+  localFileName: z.string().max(500).optional(),
 });
 
 /** Response for transcription endpoint */

@@ -40,7 +40,7 @@ export class TranscriptionsService {
     userId: string,
     audioBuffer: Buffer,
     mimeType: string,
-    options?: TranscriptionOptions & { provider?: TranscriptionProviderType }
+    options?: TranscriptionOptions & { provider?: TranscriptionProviderType; title?: string; localFileName?: string }
   ): Promise<ProviderTranscriptionResult & { id: string }> {
     const provider = this.getProvider(options?.provider);
 
@@ -71,17 +71,26 @@ export class TranscriptionsService {
       speakerNames: options?.speakerNames,
     });
 
+    // Merge localFileName into metadata if provided
+    const metadata: Record<string, unknown> = {
+      ...(result.metadata as Record<string, unknown> | null),
+    };
+    if (options?.localFileName) {
+      metadata.localFileName = options.localFileName;
+    }
+
     // Persist to database
     const rows = await this.db
       .insert(transcriptions)
       .values({
         userId,
         provider: provider.name,
+        title: options?.title ?? null,
         text: result.text,
         segments: result.segments,
         durationSeconds: result.durationSeconds,
         language: result.language ?? null,
-        metadata: result.metadata ?? null,
+        metadata: Object.keys(metadata).length > 0 ? metadata : null,
       })
       .returning({ id: transcriptions.id });
 
@@ -104,7 +113,7 @@ export class TranscriptionsService {
     userId: string,
     audioBase64: string,
     mimeType: string,
-    options?: TranscriptionOptions & { provider?: TranscriptionProviderType }
+    options?: TranscriptionOptions & { provider?: TranscriptionProviderType; title?: string; localFileName?: string }
   ): Promise<ProviderTranscriptionResult & { id: string }> {
     const audioBuffer = Buffer.from(audioBase64, "base64");
     return this.transcribe(userId, audioBuffer, mimeType, options);
