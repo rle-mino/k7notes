@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Trash2 } from "lucide-react-native";
+import { Trash2, RefreshCw } from "lucide-react-native";
 import { orpc, type Note } from "@/lib/orpc";
 import { NoteEditor, type NoteEditorRef } from "@/components/editor/NoteEditor";
 
@@ -29,6 +29,7 @@ export default function NoteEditorScreen() {
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Track pending changes for debounced save
   const pendingContentRef = useRef<string | null>(null);
@@ -196,6 +197,26 @@ export default function NoteEditorScreen() {
     );
   }, [id]);
 
+  // Handle calendar refresh for daily notes
+  const handleRefreshCalendar = useCallback(async () => {
+    if (!id || !note || note.kind !== "DAILY") return;
+
+    try {
+      setRefreshing(true);
+      const updatedNote = await orpc.notes.refreshDailyNoteEvents({ noteId: id });
+      setNote(updatedNote);
+      editorRef.current?.setMarkdown(updatedNote.content);
+    } catch (err) {
+      console.error("Failed to refresh calendar events:", err);
+      Alert.alert(
+        "Refresh Failed",
+        err instanceof Error ? err.message : "Could not refresh calendar events. Please try again."
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  }, [id, note]);
+
   // Loading state
   if (loading) {
     return (
@@ -254,6 +275,22 @@ export default function NoteEditorScreen() {
           ),
           headerRight: () => (
             <View style={styles.headerRight}>
+              {note.kind === "DAILY" && (
+                <TouchableOpacity
+                  onPress={handleRefreshCalendar}
+                  disabled={refreshing || saving || deleting}
+                  style={[
+                    styles.refreshButton,
+                    (refreshing || saving || deleting) && styles.refreshButtonDisabled,
+                  ]}
+                >
+                  {refreshing ? (
+                    <ActivityIndicator size="small" color="#007AFF" />
+                  ) : (
+                    <RefreshCw size={20} color="#007AFF" />
+                  )}
+                </TouchableOpacity>
+              )}
               <TouchableOpacity
                 onPress={handleDelete}
                 disabled={saving || deleting}
@@ -362,6 +399,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingRight: 8,
     gap: 12,
+  },
+  refreshButton: {
+    padding: 4,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.5,
   },
   deleteButton: {
     padding: 4,

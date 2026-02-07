@@ -205,17 +205,30 @@ Key files:
   - Build: PASSED (exit code 0, all 3 tasks successful)
 - **Review**: Approved - Clean, well-structured implementation that solves all requirements. DailyNoteDatePicker is a self-contained calendar modal built from RN primitives with correct month-grid generation, YYYY-MM-DD date formatting matching the contract's regex, proper month navigation, today highlighting, loading state, and error handling. Matches existing modal patterns (same overlay approach, color scheme, StyleSheet conventions as CreateNoteModal). Daily folder detection in useTreeData is clean: useMemo-wrapped find by name="Daily" + parentId=null, correctly convention-based per the plan. notes/index.tsx integration is minimal and focused: one new state, a conditional branch in handleAddNote, and the modal rendered at the end. No third-party dependencies added. Wiring verified: DailyNoteDatePicker imported and used, dailyFolderId exported and consumed, orpc.notes.getOrCreateDailyNote matches the contract from Phase 4. No TODOs, no stubs, no orphaned code. All completion conditions independently verified: type-check passes (exit 0), mobile lint passes cleanly (API lint failures are pre-existing in unrelated files), build passes (exit 0).
 
-### ⬜ Phase 7: Add calendar refresh button to daily note editor
+### ✅ Phase 7: Add calendar refresh button to daily note editor
 - **Step**: 6
 - **Complexity**: 3
-- [ ] Detect when editing a daily note (check `kind === 'DAILY'`) in the note editor route
-- [ ] Show a "Refresh Calendar" button in the header/toolbar for daily notes
-- [ ] On tap: call `orpc.notes.refreshDailyNoteEvents({ noteId })` → update editor content
-- [ ] Handle case where no calendar is connected (show informational message or hide button)
-- [ ] Show loading indicator during refresh
+- [x] Detect when editing a daily note (check `kind === 'DAILY'`) in the note editor route
+- [x] Show a "Refresh Calendar" button in the header/toolbar for daily notes
+- [x] On tap: call `orpc.notes.refreshDailyNoteEvents({ noteId })` → update editor content
+- [x] Handle case where no calendar is connected (show informational message or hide button)
+- [x] Show loading indicator during refresh
 - **Files**: `packages/mobile/app/(app)/notes/[id].tsx`, possibly a new `DailyNoteToolbar` component
 - **Commit message**: `feat: add calendar refresh button to daily note editor`
 - **Bisect note**: Depends on Phase 5 (refresh endpoint) and Phase 6 (daily notes being creatable)
+- **Implementation notes**:
+  - All changes in a single file: `packages/mobile/app/(app)/notes/[id].tsx` -- no separate `DailyNoteToolbar` component needed since the changes are small and self-contained
+  - Imported `RefreshCw` from `lucide-react-native` alongside existing `Trash2` icon
+  - Added `refreshing` boolean state to track the refresh API call
+  - Added `handleRefreshCalendar` callback: guards on `note.kind !== "DAILY"`, calls `orpc.notes.refreshDailyNoteEvents({ noteId: id })`, updates `note` state with the response, and calls `editorRef.current?.setMarkdown(updatedNote.content)` to update the editor display. Error handling via `Alert.alert` matching existing patterns.
+  - In `headerRight`, added a conditional `RefreshCw` button that only renders when `note.kind === "DAILY"`. Shows `ActivityIndicator` while refreshing, disabled during refresh/save/delete operations.
+  - For the "no calendar connected" case: button is always shown for daily notes per the plan guidance -- the API handles this gracefully (returns note unchanged if no calendars exist), so no frontend check needed.
+  - Added `refreshButton` and `refreshButtonDisabled` styles matching the existing `deleteButton`/`deleteButtonDisabled` pattern
+- **Validation results**:
+  - Type check: PASSED (exit code 0, all 6 tasks successful)
+  - Lint: Pre-existing errors in unmodified API files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); zero issues in modified file (`@k7notes/mobile:lint` passed)
+  - Build: PASSED (exit code 0, all 3 tasks successful)
+- **Review**: Approved - Focused, minimal implementation that solves the stated problem correctly. Only one file modified (packages/mobile/app/(app)/notes/[id].tsx), which is appropriate given the small scope. The refresh button conditionally renders only when note.kind === "DAILY", matching the requirement. API call uses orpc.notes.refreshDailyNoteEvents({ noteId: id }) which correctly matches the RefreshDailyNoteEventsSchema (noteId: z.string().uuid()) and returns NoteSchema. Editor content is updated via editorRef.current?.setMarkdown(updatedNote.content) -- the optional chaining is correct and setMarkdown is confirmed on the NoteEditorRef interface. Loading state handled properly: ActivityIndicator replaces the RefreshCw icon during refresh, button disabled during refresh/save/delete. Error handling follows existing Alert.alert pattern. Styles (refreshButton, refreshButtonDisabled) mirror the existing deleteButton/deleteButtonDisabled pattern exactly. No TODOs, no stubs, no orphaned code. All completion conditions independently verified: type-check passes (exit 0), mobile lint clean (API lint failures are pre-existing in unmodified files), build passes (exit 0).
 
 ### ⬜ Phase 8: QA testing
 - **Step**: 7
@@ -240,5 +253,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 7 (Add calendar refresh button to daily note editor)
-- **Progress**: 6/8
+- **Current Phase**: Phase 8 (QA testing)
+- **Progress**: 7/8
