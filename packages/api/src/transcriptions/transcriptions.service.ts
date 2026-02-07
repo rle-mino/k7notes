@@ -141,17 +141,26 @@ export class TranscriptionsService {
         segments: transcriptions.segments,
         durationSeconds: transcriptions.durationSeconds,
         language: transcriptions.language,
+        metadata: transcriptions.metadata,
         createdAt: transcriptions.createdAt,
       })
       .from(transcriptions)
       .where(eq(transcriptions.userId, userId))
       .orderBy(desc(transcriptions.createdAt));
 
-    return rows.map((row) => ({
-      ...row,
-      segments: row.segments as { speaker: string; text: string; startTime: number; endTime: number }[],
-      createdAt: row.createdAt.toISOString(),
-    }));
+    return rows.map((row) => {
+      const meta = row.metadata as Record<string, unknown> | null;
+      return {
+        id: row.id,
+        title: row.title,
+        text: row.text,
+        segments: row.segments as { speaker: string; text: string; startTime: number; endTime: number }[],
+        durationSeconds: row.durationSeconds,
+        language: row.language,
+        localFileName: (meta?.localFileName as string) ?? null,
+        createdAt: row.createdAt.toISOString(),
+      };
+    });
   }
 
   /**

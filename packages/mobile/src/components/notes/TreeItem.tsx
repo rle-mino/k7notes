@@ -14,9 +14,12 @@ import {
   ChevronDown,
   FilePlus,
   FolderPlus,
+  Mic,
 } from "lucide-react-native";
 import type { TreeNode } from "@/hooks/useTreeData";
 import type { Note } from "@/lib/orpc";
+import type { AudioRecording } from "@/hooks/useAudioRecordings";
+import { AudioCard } from "@/components/audio/AudioCard";
 
 const INDENT_WIDTH = 24;
 
@@ -60,6 +63,40 @@ export function TreeItem({
         </TouchableOpacity>
       </View>
     );
+  }
+
+  // Audio folder node
+  if (item.type === "audio-folder") {
+    return (
+      <TouchableOpacity
+        style={[styles.container, styles.audioFolderContainer, indentStyle]}
+        onPress={onToggleExpand}
+        activeOpacity={0.7}
+      >
+        <View style={styles.expandIcon}>
+          {item.hasChildren ? (
+            item.isExpanded ? (
+              <ChevronDown size={18} color="#666" />
+            ) : (
+              <ChevronRight size={18} color="#666" />
+            )
+          ) : (
+            <View style={styles.expandPlaceholder} />
+          )}
+        </View>
+        <View style={styles.iconContainer}>
+          <Mic size={20} color="#FF6B35" strokeWidth={2} />
+        </View>
+        <Text style={styles.folderName} numberOfLines={1}>
+          {item.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  }
+
+  // Audio item node — renders the AudioCard component
+  if (item.type === "audio-item") {
+    return <AudioCard recording={item.data as AudioRecording} />;
   }
 
   if (item.type === "folder") {
@@ -145,6 +182,9 @@ const styles = StyleSheet.create({
   },
   folderContainer: {
     backgroundColor: "#fafafa",
+  },
+  audioFolderContainer: {
+    backgroundColor: "#fff8f4",
   },
   noteContainer: {
     backgroundColor: "#fff",

@@ -96,6 +96,8 @@ export const TranscriptionListItemSchema = z.object({
   segments: z.array(TranscriptionSegmentSchema),
   durationSeconds: z.number(),
   language: z.string().nullable(),
+  /** Local file name used to match on-device audio to this transcription */
+  localFileName: z.string().nullable(),
   createdAt: z.coerce.string(),
 });
 

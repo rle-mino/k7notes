@@ -144,28 +144,43 @@ The codebase already has a full audio recording + transcription pipeline:
   - QA testing: Skipped (manual step).
 - **Review**: Approved - All stated requirements met: (1) Audio saved on-device via audioStorage.saveRecording() before transcription attempt, (2) Note creation completely removed (orpc.notes.create, orpc.transcriptions.linkToNote, router.push all deleted), (3) Title and localFileName passed through contracts->controller->service, with title persisted to DB column and localFileName stored in metadata JSONB, (4) Transcription failure handled gracefully -- audio already saved, user gets informative error message, modal stays open in idle state for dismissal. Code is clean, follows existing patterns, and metadata merging handles null/empty edge cases correctly. Type check passes (6/6), lint clean for changed packages (API error pre-existing in mock-calendar.provider.ts), mobile tests pass (58/58).
 
-### ⬜ Phase 4: Audio virtual folder in the notes tree
+### ✅ Phase 4: Audio virtual folder in the notes tree
 - **Step**: 4
 - **Complexity**: 4
-- [ ] Create `packages/mobile/src/hooks/useAudioRecordings.ts` hook:
+- [x] Create `packages/mobile/src/hooks/useAudioRecordings.ts` hook:
   - Combines local audio files from `audioStorage.listRecordings()` with transcription metadata from `orpc.transcriptions.list()`
   - Matches files by `localFileName` in transcription metadata
   - Returns unified list: `{ fileUri, fileName, title, transcription?, durationSeconds?, createdAt }`
-- [ ] Modify `useTreeData.ts` to inject a virtual "Audio" folder node at the top of the tree:
+- [x] Modify `useTreeData.ts` to inject a virtual "Audio" folder node at the top of the tree:
   - ID: `"__audio__"` (special sentinel)
   - Type: `"audio-folder"` (new TreeItemType)
   - When expanded, shows audio recording items
-- [ ] Create `packages/mobile/src/components/audio/AudioCard.tsx` component:
+- [x] Create `packages/mobile/src/components/audio/AudioCard.tsx` component:
   - Title (editable, with pencil icon)
   - Date and duration metadata
   - Transcription preview text (first ~100 chars) or "Not transcribed" badge
   - Play/pause button placeholder (wired in Phase 5)
   - "Transcribe" button if no transcription exists
-- [ ] Add `"audio-folder"` and `"audio-item"` types to `TreeItem.tsx` rendering logic
-- [ ] Render AudioCard for `"audio-item"` type nodes
+- [x] Add `"audio-folder"` and `"audio-item"` types to `TreeItem.tsx` rendering logic
+- [x] Render AudioCard for `"audio-item"` type nodes
 - **Files**: `packages/mobile/src/hooks/useAudioRecordings.ts`, `packages/mobile/src/hooks/useTreeData.ts`, `packages/mobile/src/components/audio/AudioCard.tsx`, `packages/mobile/src/components/notes/TreeItem.tsx`
 - **Commit message**: `feat: add virtual Audio folder with recording cards to notes tree`
 - **Bisect note**: Playback and transcribe-from-card come in Phase 5, but the folder and cards are visible. Buttons may be placeholders briefly.
+- **Implementation notes**:
+  - Created `useAudioRecordings.ts` hook: fetches local files via `audioStorage.listRecordings()` and transcriptions via `orpc.transcriptions.list({})` in parallel. Transcription fetch is wrapped in `.catch()` so local files still show if API is unreachable. Builds a `Map<string, transcription>` indexed by `localFileName` for O(1) matching. Returns `AudioRecording[]` with unified shape. Generates default titles as "Recording YYYY-MM-DD HH:MM" when no transcription title exists.
+  - **Deviation**: Added `localFileName` (nullable string) to `TranscriptionListItemSchema` in `packages/contracts/src/schemas/transcription.ts` and updated `TranscriptionsService.list()` in `packages/api/src/transcriptions/transcriptions.service.ts` to extract `localFileName` from the `metadata` JSONB column. This was a necessary prerequisite -- the plan says "Matches files by `localFileName` in transcription metadata" but Phase 2's list endpoint did not include this field. Without it, matching local files to transcriptions is impossible. This is a small additive schema change (one new nullable field in response) with no breaking impact.
+  - Modified `useTreeData.ts`: Added `useAudioRecordings` hook integration. Extended `TreeItemType` union with `"audio-folder"` and `"audio-item"`. Extended `TreeNode.data` type union to include `AudioRecording`. Exported `AUDIO_FOLDER_ID = "__audio__"` constant. In `buildFlatTree()`, the Audio folder is always injected at index 0 before regular folders/notes. When expanded, audio items are rendered at depth 1 with `id: "audio-${fileName}"`. The `toggleExpand` function handles the audio folder specially (no fetch needed). Refresh also triggers `refreshAudio()`.
+  - Created `AudioCard.tsx` component: Displays recording title with pencil icon (placeholder, wired in Phase 6), formatted date/time, duration (formatted as "Xm Ys"), transcription preview (first 100 chars with "..." ellipsis) or "Not transcribed" badge, Play button (placeholder, wired in Phase 5), and Transcribe button (placeholder, wired in Phase 5). Uses Mic icon from lucide for Transcribe, Play icon for playback.
+  - Modified `TreeItem.tsx`: Added imports for `Mic` icon, `AudioRecording` type, and `AudioCard` component. Added rendering logic for `audio-folder` type (uses Mic icon with orange #FF6B35 color, warm background #fff8f4, chevron expand/collapse). Added rendering for `audio-item` type (delegates to `AudioCard` component). Added `audioFolderContainer` style.
+  - Updated `notes/index.tsx`: Extended `onToggleExpand` prop to also fire for `audio-folder` type items.
+  - Updated `useTreeData.test.ts`: Added mock for `useAudioRecordings` (returns empty recordings by default) to avoid React Native transitive import failures in test environment. Updated 10+ test assertions to account for the Audio folder always being at index 0 in the flat tree (shifted indices, adjusted length checks). All 28 existing tests updated and passing.
+- **Validation results**:
+  - Type check (`pnpm type-check`): PASSED -- all 6 tasks successful, 0 errors.
+  - Lint (`pnpm lint`): Mobile, contracts, and e2e PASSED. API has 1 pre-existing lint error in `mock-calendar.provider.ts:142` (unused `code` variable) -- not caused by this phase.
+  - Tests (`pnpm test`): Mobile tests PASSED (58/58: 16 audioStorage.web + 14 audioStorage + 28 useTreeData). API tests cannot run -- require Docker (testcontainers) which is not available in this environment. Pre-existing infrastructure constraint.
+  - E2E tests: Skipped (requires running server and browser).
+  - QA testing: Skipped (manual step).
+- **Review**: Approved - All Phase 4 requirements met. Virtual Audio folder correctly injected at tree position 0 with sentinel ID "__audio__" and "audio-folder" type. Expand/collapse works without API fetches (data from useAudioRecordings hook). AudioCard displays all required fields: title with pencil icon, formatted date/time, duration ("Xm Ys"), transcription preview (100-char truncation) or "Not transcribed" badge, Play and Transcribe placeholder buttons. useAudioRecordings hook robustly merges local files with transcription metadata via Map-based O(1) lookup, with graceful degradation when API is unreachable. Necessary deviation (adding localFileName to list response schema/service) is well-documented and additive. TreeItem.tsx and notes/index.tsx correctly extended for new types. All 28 useTreeData tests updated to account for audio folder at index 0. Type check passes (6/6), lint clean for changed packages (API error pre-existing), mobile tests pass (58/58). E2E and API tests cannot run due to pre-existing infrastructure constraints (no Docker, no database).
 
 ### ⬜ Phase 5: Inline audio playback and transcription trigger
 - **Step**: 5
@@ -223,5 +238,5 @@ The codebase already has a full audio recording + transcription pipeline:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 4
-- **Progress**: 3/7
+- **Current Phase**: Phase 5
+- **Progress**: 4/7
