@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, Stack, router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { Trash2, RefreshCw, ChevronLeft } from "lucide-react-native";
 import { orpc, type Note } from "@/lib/orpc";
 import { NoteEditor, type NoteEditorRef } from "@/components/editor/NoteEditor";
@@ -18,6 +19,7 @@ import { colors, typography, spacing, radius } from "@/theme";
 const AUTOSAVE_DELAY_MS = 5000;
 
 export default function NoteEditorScreen() {
+  const { t, i18n } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const editorRef = useRef<NoteEditorRef>(null);
@@ -55,7 +57,7 @@ export default function NoteEditorScreen() {
       } catch (err) {
         console.error("Failed to fetch note:", err);
         setError(
-          err instanceof Error ? err.message : "Failed to load note"
+          err instanceof Error ? err.message : t("notes.failedToLoad")
         );
       } finally {
         setLoading(false);
@@ -96,8 +98,8 @@ export default function NoteEditorScreen() {
     } catch (err) {
       console.error("Failed to save note:", err);
       Alert.alert(
-        "Save Failed",
-        err instanceof Error ? err.message : "Could not save your changes. Please try again."
+        t("notes.saveFailed"),
+        err instanceof Error ? err.message : t("notes.saveFailedMessage")
       );
     } finally {
       setSaving(false);
@@ -163,12 +165,12 @@ export default function NoteEditorScreen() {
     if (!id) return;
 
     Alert.alert(
-      "Delete Note?",
-      "This action cannot be undone.",
+      t("notes.deleteNote"),
+      t("notes.deleteNoteMessage"),
       [
-        { text: "Cancel", style: "cancel" },
+        { text: t("notes.cancel"), style: "cancel" },
         {
-          text: "Delete",
+          text: t("notes.delete"),
           style: "destructive",
           onPress: async () => {
             try {
@@ -188,8 +190,8 @@ export default function NoteEditorScreen() {
               console.error("Failed to delete note:", err);
               setDeleting(false);
               Alert.alert(
-                "Delete Failed",
-                err instanceof Error ? err.message : "Could not delete the note. Please try again."
+                t("notes.deleteFailed"),
+                err instanceof Error ? err.message : t("notes.deleteFailedMessage")
               );
             }
           },
@@ -210,8 +212,8 @@ export default function NoteEditorScreen() {
     } catch (err) {
       console.error("Failed to refresh calendar events:", err);
       Alert.alert(
-        "Refresh Failed",
-        err instanceof Error ? err.message : "Could not refresh calendar events. Please try again."
+        t("notes.refreshFailed"),
+        err instanceof Error ? err.message : t("notes.refreshFailedMessage")
       );
     } finally {
       setRefreshing(false);
@@ -222,10 +224,10 @@ export default function NoteEditorScreen() {
   if (loading) {
     return (
       <>
-        <Stack.Screen options={{ title: "Loading..." }} />
+        <Stack.Screen options={{ title: t("notes.loading") }} />
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.loadingText}>Loading note...</Text>
+          <Text style={styles.loadingText}>{t("notes.loadingNote")}</Text>
         </View>
       </>
     );
@@ -235,12 +237,12 @@ export default function NoteEditorScreen() {
   if (error) {
     return (
       <>
-        <Stack.Screen options={{ title: "Error" }} />
+        <Stack.Screen options={{ title: t("notes.error") }} />
         <View style={styles.centerContainer}>
-          <Text style={styles.errorTitle}>Failed to load note</Text>
+          <Text style={styles.errorTitle}>{t("notes.failedToLoad")}</Text>
           <Text style={styles.errorMessage}>{error}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-            <Text style={styles.retryText}>Go Back</Text>
+            <Text style={styles.retryText}>{t("notes.goBack")}</Text>
           </TouchableOpacity>
         </View>
       </>
@@ -251,11 +253,11 @@ export default function NoteEditorScreen() {
   if (!note) {
     return (
       <>
-        <Stack.Screen options={{ title: "Not Found" }} />
+        <Stack.Screen options={{ title: t("notes.noteNotFound") }} />
         <View style={styles.centerContainer}>
-          <Text style={styles.errorTitle}>Note not found</Text>
+          <Text style={styles.errorTitle}>{t("notes.noteNotFound")}</Text>
           <TouchableOpacity style={styles.retryButton} onPress={() => router.back()}>
-            <Text style={styles.retryText}>Go Back</Text>
+            <Text style={styles.retryText}>{t("notes.goBack")}</Text>
           </TouchableOpacity>
         </View>
       </>
@@ -270,7 +272,7 @@ export default function NoteEditorScreen() {
           headerLeft: () => (
             <TouchableOpacity onPress={handleBack} style={styles.backButton}>
               <ChevronLeft size={20} color={colors.accent} strokeWidth={2} />
-              <Text style={styles.backText}>Back</Text>
+              <Text style={styles.backText}>{t("notes.back")}</Text>
             </TouchableOpacity>
           ),
           headerRight: () => (
@@ -308,10 +310,10 @@ export default function NoteEditorScreen() {
               {saving ? (
                 <View style={styles.saveStatus}>
                   <ActivityIndicator size="small" color={colors.accent} />
-                  <Text style={styles.savingText}>Saving</Text>
+                  <Text style={styles.savingText}>{t("notes.saving")}</Text>
                 </View>
               ) : lastSaved ? (
-                <Text style={styles.savedText}>Saved</Text>
+                <Text style={styles.savedText}>{t("notes.saved")}</Text>
               ) : null}
             </View>
           ),
@@ -323,14 +325,14 @@ export default function NoteEditorScreen() {
             style={styles.titleInput}
             value={title}
             onChangeText={handleTitleChange}
-            placeholder="Untitled"
+            placeholder={t("notes.untitled")}
             placeholderTextColor={colors.textTertiary}
             maxLength={200}
             returnKeyType="next"
           />
           {lastSaved && (
             <Text style={styles.titleDate}>
-              {lastSaved.toLocaleDateString(undefined, {
+              {lastSaved.toLocaleDateString(i18n.language, {
                 weekday: "long",
                 month: "long",
                 day: "numeric",

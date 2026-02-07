@@ -17,6 +17,7 @@ import {
   Pencil,
   type LucideIcon,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { SidebarItem } from "@/components/ui/SidebarItem";
 import { HeroFAB } from "@/components/ui/HeroFAB";
@@ -32,16 +33,17 @@ interface NavItem {
   name: string;
   path: string;
   icon: LucideIcon;
-  label: string;
+  labelKey: string;
 }
 
 const MAIN_NAV: NavItem[] = [
-  { name: "notes", path: "/notes", icon: FolderOpen, label: "Notes" },
-  { name: "search", path: "/search", icon: Search, label: "Search" },
-  { name: "recents", path: "/recents", icon: Clock, label: "Recents" },
+  { name: "notes", path: "/notes", icon: FolderOpen, labelKey: "tabs.notes" },
+  { name: "search", path: "/search", icon: Search, labelKey: "tabs.search" },
+  { name: "recents", path: "/recents", icon: Clock, labelKey: "tabs.recents" },
 ];
 
 export function Sidebar({ onRecord }: SidebarProps) {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const [recordMenuVisible, setRecordMenuVisible] = useState(false);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
@@ -84,7 +86,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
             <SidebarItem
               key={item.name}
               icon={item.icon}
-              label={item.label}
+              label={t(item.labelKey)}
               active={isActive(item.path)}
               onPress={() => handleNavPress(item.path)}
             />
@@ -96,7 +98,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
           <View style={styles.divider} />
           <SidebarItem
             icon={Settings}
-            label="Settings"
+            label={t("tabs.settings")}
             active={isActive("/settings")}
             onPress={() => handleNavPress("/settings")}
           />
@@ -121,7 +123,7 @@ export function Sidebar({ onRecord }: SidebarProps) {
           onPress={() => setRecordMenuVisible(false)}
         >
           <View style={styles.recordMenu}>
-            <Text style={styles.recordMenuTitle}>Create New</Text>
+            <Text style={styles.recordMenuTitle}>{t("sidebar.createNew")}</Text>
             <TouchableOpacity
               style={styles.recordOption}
               onPress={() => handleRecordSelect("audio")}
@@ -131,8 +133,8 @@ export function Sidebar({ onRecord }: SidebarProps) {
                 <Mic size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <View style={styles.recordOptionText}>
-                <Text style={styles.recordOptionLabel}>Audio Note</Text>
-                <Text style={styles.recordOptionDesc}>Record voice memo</Text>
+                <Text style={styles.recordOptionLabel}>{t("sidebar.audioNote")}</Text>
+                <Text style={styles.recordOptionDesc}>{t("sidebar.recordVoiceMemo")}</Text>
               </View>
             </TouchableOpacity>
             <TouchableOpacity
@@ -144,8 +146,8 @@ export function Sidebar({ onRecord }: SidebarProps) {
                 <Pencil size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
               <View style={styles.recordOptionText}>
-                <Text style={styles.recordOptionLabel}>Text Note</Text>
-                <Text style={styles.recordOptionDesc}>Write a new note</Text>
+                <Text style={styles.recordOptionLabel}>{t("sidebar.textNote")}</Text>
+                <Text style={styles.recordOptionDesc}>{t("sidebar.writeNewNote")}</Text>
               </View>
             </TouchableOpacity>
           </View>

@@ -16,9 +16,12 @@ import {
 } from "expo-audio";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
 import { Mic, Square, X } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { ORPCError } from "@orpc/client";
 import { orpc } from "@/lib/orpc";
 import { saveRecording } from "@/lib/audioStorage";
+import { usePreferences } from "@/hooks/usePreferences";
+import { colors, spacing, radius } from "@/theme";
 
 type RecordingState = "idle" | "recording" | "stopped" | "saving" | "transcribing";
 
@@ -44,9 +47,12 @@ interface AudioRecordingModalProps {
 }
 
 export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalProps) {
+  const { t } = useTranslation();
+  const { resolvedTranscriptionLanguage } = usePreferences();
   const [recordingState, setRecordingState] = useState<RecordingState>("idle");
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [transcriptionLang, setTranscriptionLang] = useState<string | null>(null);
   const durationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -67,12 +73,14 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
   // Start recording when modal opens
   useEffect(() => {
     if (visible) {
+      setTranscriptionLang(resolvedTranscriptionLanguage);
       startRecording();
     } else {
       // Reset state when modal closes
       setRecordingState("idle");
       setDuration(0);
       setError(null);
+      setTranscriptionLang(null);
       if (durationIntervalRef.current) {
         clearInterval(durationIntervalRef.current);
         durationIntervalRef.current = null;
@@ -88,7 +96,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
       // Request permissions
       const { granted } = await requestRecordingPermissionsAsync();
       if (!granted) {
-        setError("Microphone permission is required to record audio");
+        setError(t("audio.micPermissionRequired"));
         return;
       }
 
@@ -209,12 +217,13 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
           diarization: true,
           title,
           localFileName: fileName,
+          language: transcriptionLang || undefined,
         }, { signal: controller.signal });
       } catch (transcribeErr) {
         // Transcription failed but audio is saved locally — user can retry later
         if (controller.signal.aborted) return;
         console.error("Transcription failed (audio saved locally):", transcribeErr);
-        setError(`Transcription failed: ${getErrorMessage(transcribeErr)}. Audio saved locally.`);
+        setError(t("audio.transcriptionFailed", { error: getErrorMessage(transcribeErr) }));
         setRecordingState("idle");
         return;
       }
@@ -259,15 +268,15 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
   const getStatusText = () => {
     switch (recordingState) {
       case "recording":
-        return "Recording...";
+        return t("audio.recording");
       case "stopped":
-        return "Processing...";
+        return t("audio.processing");
       case "saving":
-        return "Saving...";
+        return t("audio.saving");
       case "transcribing":
-        return "Transcribing...";
+        return t("audio.transcribing");
       default:
-        return "Preparing...";
+        return t("audio.preparing");
     }
   };
 
@@ -308,6 +317,18 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
             )}
           </View>
 
+          {/* Language chip */}
+          {(recordingState === "idle" || recordingState === "recording") && (
+            <TouchableOpacity
+              style={styles.langChip}
+              onPress={() => setTranscriptionLang(transcriptionLang === "fr" ? "en" : "fr")}
+            >
+              <Text style={styles.langChipText}>
+                {(transcriptionLang || resolvedTranscriptionLanguage).toUpperCase()}
+              </Text>
+            </TouchableOpacity>
+          )}
+
           {/* Status text */}
           <Text style={styles.statusText}>{getStatusText()}</Text>
 
@@ -327,7 +348,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
               activeOpacity={0.8}
             >
               <Square size={24} color="#fff" fill="#fff" />
-              <Text style={styles.stopButtonText}>Stop Recording</Text>
+              <Text style={styles.stopButtonText}>{t("audio.stopRecording")}</Text>
             </TouchableOpacity>
           )}
 
@@ -337,7 +358,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
               style={styles.cancelButton}
               onPress={handleCancel}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t("audio.cancel")}</Text>
             </TouchableOpacity>
           )}
 
@@ -348,13 +369,13 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
                 style={styles.retryButton}
                 onPress={startRecording}
               >
-                <Text style={styles.retryButtonText}>Try Again</Text>
+                <Text style={styles.retryButtonText}>{t("audio.tryAgain")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={handleCancel}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+                <Text style={styles.cancelButtonText}>{t("audio.cancel")}</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -475,5 +496,19 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 16,
     fontWeight: "600",
+  },
+  langChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.lg,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: spacing.sm,
+  },
+  langChipText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.textSecondary,
   },
 });

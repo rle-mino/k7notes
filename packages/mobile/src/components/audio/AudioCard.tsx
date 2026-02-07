@@ -9,11 +9,14 @@ import {
   TextInput,
 } from "react-native";
 import { Pencil, Play, Pause, Mic } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { AudioRecording } from "@/hooks/useAudioRecordings";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { usePreferences } from "@/hooks/usePreferences";
 import { getRecordingBase64 } from "@/lib/audioStorage";
 import { storage } from "@/lib/storage";
 import { orpc } from "@/lib/orpc";
+import { colors, spacing, radius } from "@/theme";
 
 const LOCAL_TITLES_KEY = "audio_local_titles";
 
@@ -29,6 +32,8 @@ function getMimeType(fileName: string): string {
 }
 
 export function AudioCard({ recording }: AudioCardProps) {
+  const { t, i18n } = useTranslation();
+  const { resolvedTranscriptionLanguage } = usePreferences();
   const { play, pause, isPlaying, progress, duration, currentUri } =
     useAudioPlayer();
   const [isTranscribing, setIsTranscribing] = useState(false);
@@ -39,6 +44,7 @@ export function AudioCard({ recording }: AudioCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState("");
   const [localTitle, setLocalTitle] = useState<string | undefined>();
+  const [selectedLang, setSelectedLang] = useState<string | null>(null);
 
   const isThisPlaying = isPlaying && currentUri === recording.fileUri;
   const transcription = localTranscription ?? recording.transcription;
@@ -48,13 +54,13 @@ export function AudioCard({ recording }: AudioCardProps) {
     isThisPlaying && duration > 0 ? progress / duration : 0;
   const fillPercent = Math.min(Math.round(playbackProgress * 100), 100);
 
-  const formattedDate = recording.createdAt.toLocaleDateString(undefined, {
+  const formattedDate = recording.createdAt.toLocaleDateString(i18n.language, {
     month: "short",
     day: "numeric",
     year: "numeric",
   });
 
-  const formattedTime = recording.createdAt.toLocaleTimeString(undefined, {
+  const formattedTime = recording.createdAt.toLocaleTimeString(i18n.language, {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -131,6 +137,7 @@ export function AudioCard({ recording }: AudioCardProps) {
         diarization: true,
         title: currentTitle,
         localFileName: recording.fileName,
+        language: selectedLang || resolvedTranscriptionLanguage || undefined,
       });
 
       setLocalTranscription({
@@ -152,6 +159,41 @@ export function AudioCard({ recording }: AudioCardProps) {
       }
     } catch (err) {
       console.error("Transcription failed:", err);
+      setTranscribeError(
+        err instanceof Error ? err.message : "Transcription failed",
+      );
+    } finally {
+      setIsTranscribing(false);
+    }
+  };
+
+  const handleRetranscribe = async () => {
+    setIsTranscribing(true);
+    setTranscribeError(null);
+
+    try {
+      const fileArg =
+        Platform.OS === "web" ? recording.fileName : recording.fileUri;
+      const base64 = await getRecordingBase64(fileArg);
+      const mimeType = getMimeType(recording.fileName);
+      const currentTitle = localTitle ?? recording.title;
+
+      const result = await orpc.transcriptions.transcribe({
+        audioBase64: base64,
+        mimeType,
+        diarization: true,
+        title: currentTitle,
+        localFileName: recording.fileName,
+        language: selectedLang || resolvedTranscriptionLanguage || undefined,
+      });
+
+      setLocalTranscription({
+        id: result.id,
+        text: result.text,
+        language: result.language ?? null,
+      });
+    } catch (err) {
+      console.error("Re-transcription failed:", err);
       setTranscribeError(
         err instanceof Error ? err.message : "Transcription failed",
       );
@@ -208,7 +250,7 @@ export function AudioCard({ recording }: AudioCardProps) {
           </Text>
         ) : (
           <View style={styles.notTranscribedBadge}>
-            <Text style={styles.notTranscribedText}>Not transcribed</Text>
+            <Text style={styles.notTranscribedText}>{t("audio.notTranscribed")}</Text>
           </View>
         )}
       </View>
@@ -229,7 +271,7 @@ export function AudioCard({ recording }: AudioCardProps) {
             <Play size={16} color="#007AFF" />
           )}
           <Text style={styles.playButtonText}>
-            {isThisPlaying ? "Pause" : "Play"}
+            {isThisPlaying ? t("audio.pause") : t("audio.play")}
           </Text>
         </TouchableOpacity>
 
@@ -263,10 +305,40 @@ export function AudioCard({ recording }: AudioCardProps) {
               <Mic size={16} color="#fff" />
             )}
             <Text style={styles.transcribeButtonText}>
-              {isTranscribing ? "Transcribing..." : "Transcribe"}
+              {isTranscribing ? t("audio.transcribingBtn") : t("audio.transcribe")}
             </Text>
           </TouchableOpacity>
-        ) : null}
+        ) : (
+          <TouchableOpacity
+            style={[
+              styles.retranscribeButton,
+              isTranscribing && styles.transcribeButtonDisabled,
+            ]}
+            activeOpacity={0.7}
+            onPress={handleRetranscribe}
+            disabled={isTranscribing}
+          >
+            {isTranscribing ? (
+              <ActivityIndicator size="small" color={colors.accent} />
+            ) : (
+              <Mic size={16} color={colors.accent} />
+            )}
+            <Text style={styles.retranscribeButtonText}>
+              {isTranscribing ? t("audio.transcribingBtn") : t("audio.retranscribe")}
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <TouchableOpacity
+          style={styles.langChip}
+          onPress={() => setSelectedLang(
+            (selectedLang || resolvedTranscriptionLanguage) === "fr" ? "en" : "fr"
+          )}
+        >
+          <Text style={styles.langChipText}>
+            {(selectedLang || resolvedTranscriptionLanguage).toUpperCase()}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -421,5 +493,34 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "500",
     color: "#fff",
+  },
+  retranscribeButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.md,
+    backgroundColor: colors.accentLight,
+    borderWidth: 1,
+    borderColor: colors.accentMuted,
+  },
+  retranscribeButtonText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: colors.accent,
+  },
+  langChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.sm,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  langChipText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.textSecondary,
   },
 });

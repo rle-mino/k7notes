@@ -9,12 +9,14 @@ import {
   RefreshControl,
 } from "react-native";
 import { router, useFocusEffect } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { orpc } from "@/lib/orpc";
 import type { Note } from "@/lib/orpc";
 import { NoteListItem } from "@/components/ui/NoteListItem";
 import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function RecentsScreen() {
+  const { t, i18n } = useTranslation();
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -67,12 +69,12 @@ export default function RecentsScreen() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return "Just now";
-    if (diffMins < 60) return `${diffMins}m ago`;
-    if (diffHours < 24) return `${diffHours}h ago`;
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays}d ago`;
-    return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+    if (diffMins < 1) return t("recents.justNow");
+    if (diffMins < 60) return t("recents.minutesAgo", { count: diffMins });
+    if (diffHours < 24) return t("recents.hoursAgo", { count: diffHours });
+    if (diffDays === 1) return t("recents.yesterday");
+    if (diffDays < 7) return t("recents.daysAgo", { count: diffDays });
+    return date.toLocaleDateString(i18n.language, { month: "short", day: "numeric" });
   };
 
   const getPreview = (content: string) => {
@@ -87,7 +89,7 @@ export default function RecentsScreen() {
 
   const renderNote = ({ item }: { item: Note }) => (
     <NoteListItem
-      title={item.title || "Untitled"}
+      title={item.title || t("notes.untitled")}
       preview={item.content ? getPreview(item.content) : undefined}
       date={formatDate(item.updatedAt)}
       onPress={() => handleNotePress(item)}
@@ -107,7 +109,7 @@ export default function RecentsScreen() {
       <View style={styles.centered}>
         <Text style={styles.errorText}>{error}</Text>
         <TouchableOpacity style={styles.retryButton} onPress={() => fetchRecentNotes()}>
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>{t("recents.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -116,9 +118,9 @@ export default function RecentsScreen() {
   if (notes.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text style={styles.emptyTitle}>No recent notes</Text>
+        <Text style={styles.emptyTitle}>{t("recents.noRecentNotes")}</Text>
         <Text style={styles.emptyMessage}>
-          Notes you create or edit will appear here.
+          {t("recents.noRecentMessage")}
         </Text>
       </View>
     );

@@ -1,3 +1,4 @@
+import "@/i18n";
 import { useState, useEffect } from "react";
 import {
   View,
@@ -11,9 +12,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { authClient } from "@/lib/auth";
 
 export default function SignUpScreen() {
+  const { t } = useTranslation();
   const { data: session, isPending } = authClient.useSession();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -29,12 +32,12 @@ export default function SignUpScreen() {
 
   const handleSignUp = async () => {
     if (!name || !email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert(t("common.error"), t("auth.errorFillFields"));
       return;
     }
 
     if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters");
+      Alert.alert(t("common.error"), t("auth.errorPasswordLength"));
       return;
     }
 
@@ -48,15 +51,15 @@ export default function SignUpScreen() {
 
       if (error) {
         Alert.alert(
-          "Sign Up Failed",
-          error.message || "Could not create account"
+          t("auth.signUpFailed"),
+          error.message || t("auth.errorCreateAccount")
         );
       } else {
         // Success: navigate to notes tab
         router.replace("/(app)/notes");
       }
     } catch (err) {
-      Alert.alert("Error", "Network error. Please try again.");
+      Alert.alert(t("common.error"), t("auth.errorNetwork"));
     } finally {
       setLoading(false);
     }
@@ -77,13 +80,13 @@ export default function SignUpScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Sign up to get started</Text>
+        <Text style={styles.title}>{t("auth.createAccount")}</Text>
+        <Text style={styles.subtitle}>{t("auth.signUpToContinue")}</Text>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Full Name"
+            placeholder={t("auth.fullName")}
             value={name}
             onChangeText={setName}
             autoCapitalize="words"
@@ -91,7 +94,7 @@ export default function SignUpScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={t("auth.email")}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -100,7 +103,7 @@ export default function SignUpScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password (min 8 characters)"
+            placeholder={t("auth.passwordHint")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -113,7 +116,7 @@ export default function SignUpScreen() {
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? "Creating account..." : "Create Account"}
+              {loading ? t("auth.creatingAccount") : t("auth.createAccount")}
             </Text>
           </TouchableOpacity>
         </View>
@@ -121,8 +124,8 @@ export default function SignUpScreen() {
         <Link href="/(auth)/login" asChild>
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkText}>
-              Already have an account?{" "}
-              <Text style={styles.linkBold}>Sign in</Text>
+              {t("auth.haveAccount")}{" "}
+              <Text style={styles.linkBold}>{t("auth.signInLink")}</Text>
             </Text>
           </TouchableOpacity>
         </Link>

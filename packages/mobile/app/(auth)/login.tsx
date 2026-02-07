@@ -1,3 +1,4 @@
+import "@/i18n";
 import { useState, useEffect } from "react";
 import {
   View,
@@ -11,9 +12,11 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Link, router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { authClient, signInWithGoogle } from "@/lib/auth";
 
 export default function LoginScreen() {
+  const { t } = useTranslation();
   const { data: session, isPending } = authClient.useSession();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,7 +32,7 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all fields");
+      Alert.alert(t("common.error"), t("auth.errorFillFields"));
       return;
     }
 
@@ -41,13 +44,13 @@ export default function LoginScreen() {
       });
 
       if (error) {
-        Alert.alert("Sign In Failed", error.message || "Invalid credentials");
+        Alert.alert(t("auth.signInFailed"), error.message || t("auth.errorInvalidCredentials"));
       } else {
         // Success: navigate to notes tab
         router.replace("/(app)/notes");
       }
     } catch (err) {
-      Alert.alert("Error", "Network error. Please try again.");
+      Alert.alert(t("common.error"), t("auth.errorNetwork"));
     } finally {
       setLoading(false);
     }
@@ -60,15 +63,15 @@ export default function LoginScreen() {
 
       if (error) {
         Alert.alert(
-          "Google Sign In Failed",
-          error.message || "Could not sign in with Google"
+          t("auth.googleSignInFailed"),
+          error.message || t("auth.errorGoogleMessage")
         );
       } else {
         // Success: navigate to notes tab
         router.replace("/(app)/notes");
       }
     } catch (err) {
-      Alert.alert("Error", "Could not open Google sign-in. Please try again.");
+      Alert.alert(t("common.error"), t("auth.errorGoogle"));
     } finally {
       setGoogleLoading(false);
     }
@@ -89,13 +92,13 @@ export default function LoginScreen() {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <View style={styles.content}>
-        <Text style={styles.title}>K7Notes</Text>
-        <Text style={styles.subtitle}>Sign in to continue</Text>
+        <Text style={styles.title}>{t("auth.appName")}</Text>
+        <Text style={styles.subtitle}>{t("auth.signInToContinue")}</Text>
 
         <View style={styles.form}>
           <TextInput
             style={styles.input}
-            placeholder="Email"
+            placeholder={t("auth.email")}
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -104,7 +107,7 @@ export default function LoginScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder={t("auth.password")}
             value={password}
             onChangeText={setPassword}
             secureTextEntry
@@ -119,14 +122,14 @@ export default function LoginScreen() {
             {loading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.buttonText}>Sign In</Text>
+              <Text style={styles.buttonText}>{t("auth.signIn")}</Text>
             )}
           </TouchableOpacity>
         </View>
 
         <View style={styles.divider}>
           <View style={styles.dividerLine} />
-          <Text style={styles.dividerText}>or</Text>
+          <Text style={styles.dividerText}>{t("auth.or")}</Text>
           <View style={styles.dividerLine} />
         </View>
 
@@ -142,15 +145,15 @@ export default function LoginScreen() {
           {googleLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={styles.buttonText}>Sign in with Google</Text>
+            <Text style={styles.buttonText}>{t("auth.signInWithGoogle")}</Text>
           )}
         </TouchableOpacity>
 
         <Link href="/(auth)/signup" asChild>
           <TouchableOpacity style={styles.linkButton}>
             <Text style={styles.linkText}>
-              Don't have an account?{" "}
-              <Text style={styles.linkBold}>Sign up</Text>
+              {t("auth.noAccount")}{" "}
+              <Text style={styles.linkBold}>{t("auth.signUp")}</Text>
             </Text>
           </TouchableOpacity>
         </Link>

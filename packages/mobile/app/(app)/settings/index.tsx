@@ -10,12 +10,15 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useFocusEffect } from "@react-navigation/native";
+import { useTranslation } from "react-i18next";
 import { authClient } from "@/lib/auth";
 import {
   User,
   Mail,
   Palette,
   Bell,
+  Globe,
+  Languages,
   Cloud,
   Package,
   Info,
@@ -28,12 +31,15 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { useCalendarConnections } from "@/hooks/useCalendarConnections";
+import { usePreferences } from "@/hooks/usePreferences";
 import {
   ConnectCalendarModal,
   CalendarConnectionItem,
 } from "@/components/calendar";
+import { LanguagePicker } from "@/components/settings/LanguagePicker";
 import { SettingsGroup } from "@/components/ui/SettingsGroup";
 import { colors, typography, spacing, radius, layout } from "@/theme";
+import type { SupportedLanguage } from "@k7notes/contracts";
 
 interface SettingItemProps {
   icon: LucideIcon;
@@ -80,9 +86,13 @@ function SettingItem({
 }
 
 export default function SettingsScreen() {
+  const { t } = useTranslation();
   const session = authClient.useSession();
   const [loggingOut, setLoggingOut] = useState(false);
   const [showConnectModal, setShowConnectModal] = useState(false);
+  const [langPickerVisible, setLangPickerVisible] = useState(false);
+  const [transLangPickerVisible, setTransLangPickerVisible] = useState(false);
+  const { appLanguage, transcriptionLanguage, updateAppLanguage, updateTranscriptionLanguage } = usePreferences();
 
   const {
     connections,
@@ -107,63 +117,75 @@ export default function SettingsScreen() {
       // Navigate to auth after sign out
       router.replace("/(auth)/login");
     } catch (err) {
-      Alert.alert("Error", "Could not sign out. Please try again.");
+      Alert.alert(t("common.error"), t("settings.signOutError"));
       setLoggingOut(false);
     }
   };
 
   const confirmLogout = () => {
-    Alert.alert("Sign Out", "Are you sure you want to sign out?", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: handleLogout },
+    Alert.alert(t("settings.signOut"), t("settings.signOutConfirm"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.signOut"), style: "destructive", onPress: handleLogout },
     ]);
   };
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
       {/* Account Section */}
-      <SettingsGroup title="Account">
+      <SettingsGroup title={t("settings.account")}>
         <SettingItem
           icon={User}
-          label="Name"
+          label={t("settings.name")}
           value={session.data?.user?.name || "\u2014"}
         />
         <SettingItem
           icon={Mail}
-          label="Email"
+          label={t("settings.email")}
           value={session.data?.user?.email || "\u2014"}
         />
       </SettingsGroup>
 
       {/* Preferences Section */}
-      <SettingsGroup title="Preferences">
+      <SettingsGroup title={t("settings.preferences")}>
         <SettingItem
           icon={Palette}
-          label="Appearance"
-          value="System"
-          onPress={() => Alert.alert("Coming Soon", "Theme settings will be available in a future update.")}
+          label={t("settings.appearance")}
+          value={t("settings.appearanceSystem")}
+          onPress={() => Alert.alert(t("settings.comingSoon"), t("settings.comingSoonTheme"))}
         />
         <SettingItem
           icon={Bell}
-          label="Notifications"
-          value="On"
-          onPress={() => Alert.alert("Coming Soon", "Notification settings will be available in a future update.")}
+          label={t("settings.notifications")}
+          value={t("settings.notificationsOn")}
+          onPress={() => Alert.alert(t("settings.comingSoon"), t("settings.comingSoonNotifications"))}
+        />
+        <SettingItem
+          icon={Globe}
+          label={t("settings.language")}
+          value={t(`languages.${appLanguage}`)}
+          onPress={() => setLangPickerVisible(true)}
+        />
+        <SettingItem
+          icon={Languages}
+          label={t("settings.transcriptionLanguage")}
+          value={transcriptionLanguage ? t(`languages.${transcriptionLanguage}`) : `${t("settings.useAppLanguage")} (${t(`languages.${appLanguage}`)})`}
+          onPress={() => setTransLangPickerVisible(true)}
         />
       </SettingsGroup>
 
       {/* Calendar Section */}
-      <SettingsGroup title="Calendars">
+      <SettingsGroup title={t("settings.calendars")}>
         {loadingCalendars && connections.length === 0 ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="small" color={colors.accent} />
-            <Text style={styles.loadingText}>Loading calendars...</Text>
+            <Text style={styles.loadingText}>{t("settings.loadingCalendars")}</Text>
           </View>
         ) : connections.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Calendar size={28} color={colors.textTertiary} strokeWidth={1.5} />
-            <Text style={styles.emptyText}>No calendars connected</Text>
+            <Text style={styles.emptyText}>{t("settings.noCalendars")}</Text>
             <Text style={styles.emptySubtext}>
-              Connect your calendar to see events alongside your notes
+              {t("settings.noCalendarsHint")}
             </Text>
           </View>
         ) : (
@@ -179,7 +201,7 @@ export default function SettingsScreen() {
                 onPress={() => router.push(`/(app)/calendar/select/${connection.id}`)}
               >
                 <Settings2 size={15} color={colors.accent} strokeWidth={1.8} />
-                <Text style={styles.selectCalendarsText}>Select calendars</Text>
+                <Text style={styles.selectCalendarsText}>{t("settings.selectCalendars")}</Text>
                 <ChevronRight size={14} color={colors.textTertiary} strokeWidth={1.8} />
               </TouchableOpacity>
             </View>
@@ -190,40 +212,40 @@ export default function SettingsScreen() {
           onPress={() => setShowConnectModal(true)}
         >
           <Plus size={18} color={colors.accent} strokeWidth={2} />
-          <Text style={styles.addCalendarText}>Connect Calendar</Text>
+          <Text style={styles.addCalendarText}>{t("settings.connectCalendar")}</Text>
         </TouchableOpacity>
       </SettingsGroup>
 
       {/* Storage Section */}
-      <SettingsGroup title="Storage">
+      <SettingsGroup title={t("settings.storage")}>
         <SettingItem
           icon={Cloud}
-          label="Sync Status"
-          value="Synced"
+          label={t("settings.syncStatus")}
+          value={t("settings.synced")}
         />
         <SettingItem
           icon={Package}
-          label="Clear Cache"
-          onPress={() => Alert.alert("Coming Soon", "Cache clearing will be available in a future update.")}
+          label={t("settings.clearCache")}
+          onPress={() => Alert.alert(t("settings.comingSoon"), t("settings.comingSoonCache"))}
         />
       </SettingsGroup>
 
       {/* About Section */}
-      <SettingsGroup title="About">
+      <SettingsGroup title={t("settings.about")}>
         <SettingItem
           icon={Info}
-          label="Version"
+          label={t("settings.version")}
           value="0.0.1"
         />
         <SettingItem
           icon={FileText}
-          label="Privacy Policy"
-          onPress={() => Alert.alert("Coming Soon", "Privacy policy will be available soon.")}
+          label={t("settings.privacyPolicy")}
+          onPress={() => Alert.alert(t("settings.comingSoon"), t("settings.comingSoonPrivacy"))}
         />
         <SettingItem
           icon={ClipboardList}
-          label="Terms of Service"
-          onPress={() => Alert.alert("Coming Soon", "Terms of service will be available soon.")}
+          label={t("settings.termsOfService")}
+          onPress={() => Alert.alert(t("settings.comingSoon"), t("settings.comingSoonTerms"))}
         />
       </SettingsGroup>
 
@@ -238,13 +260,13 @@ export default function SettingsScreen() {
           {loggingOut ? (
             <ActivityIndicator color={colors.error} />
           ) : (
-            <Text style={styles.signOutButtonText}>Sign Out</Text>
+            <Text style={styles.signOutButtonText}>{t("settings.signOut")}</Text>
           )}
         </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>Made with care for your notes</Text>
+        <Text style={styles.footerText}>{t("settings.footer")}</Text>
       </View>
 
       <ConnectCalendarModal
@@ -252,6 +274,22 @@ export default function SettingsScreen() {
         onClose={() => setShowConnectModal(false)}
         onGetOAuthUrl={getOAuthUrl}
         onHandleCallback={handleOAuthCallback}
+      />
+
+      <LanguagePicker
+        visible={langPickerVisible}
+        onClose={() => setLangPickerVisible(false)}
+        title={t("settings.language")}
+        currentValue={appLanguage}
+        onSelect={(val) => { updateAppLanguage(val as SupportedLanguage); setLangPickerVisible(false); }}
+      />
+      <LanguagePicker
+        visible={transLangPickerVisible}
+        onClose={() => setTransLangPickerVisible(false)}
+        title={t("settings.transcriptionLanguage")}
+        currentValue={transcriptionLanguage}
+        onSelect={(val) => { updateTranscriptionLanguage(val as SupportedLanguage | null); setTransLangPickerVisible(false); }}
+        showUseAppLanguage
       />
     </ScrollView>
   );

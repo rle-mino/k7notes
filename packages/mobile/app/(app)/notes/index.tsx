@@ -9,6 +9,7 @@ import {
   RefreshControl,
 } from "react-native";
 import { router, Stack, useFocusEffect } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { FolderPlus, FilePlus } from "lucide-react-native";
 import { useTreeData, type TreeNode } from "@/hooks/useTreeData";
 import { TreeItem } from "@/components/notes/TreeItem";
@@ -20,6 +21,7 @@ import type { Note } from "@/lib/orpc";
 import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function NotesIndexScreen() {
+  const { t } = useTranslation();
   const {
     treeData,
     dailyFolderId,
@@ -112,7 +114,7 @@ export default function NotesIndexScreen() {
           style={styles.retryButton}
           onPress={() => fetchRootData()}
         >
-          <Text style={styles.retryButtonText}>Retry</Text>
+          <Text style={styles.retryButtonText}>{t("notes.retry")}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -122,7 +124,7 @@ export default function NotesIndexScreen() {
     <View style={styles.container}>
       <Stack.Screen
         options={{
-          title: "Notes",
+          title: t("notes.title"),
           headerRight: () => (
             <View style={styles.headerActions}>
               <TouchableOpacity
@@ -144,8 +146,8 @@ export default function NotesIndexScreen() {
 
       {treeData.length === 0 ? (
         <EmptyState
-          title="No notes yet"
-          message="Create your first note or folder to get started."
+          title={t("notes.noNotesYet")}
+          message={t("notes.noNotesMessage")}
         />
       ) : (
         <FlatList

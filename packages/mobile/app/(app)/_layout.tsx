@@ -1,14 +1,18 @@
+import "@/i18n";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, ActivityIndicator, StyleSheet } from "react-native";
 import { Tabs, router } from "expo-router";
 import { TabBar } from "@/components/navigation/TabBar";
 import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
+import { useTranslation } from "react-i18next";
+import { PreferencesProvider } from "@/hooks/usePreferences";
 import { authClient } from "@/lib/auth";
 import { colors } from "@/theme";
 
 type RecordType = "audio";
 
 export default function AppLayout() {
+  const { t } = useTranslation();
   const { data: session, isPending } = authClient.useSession();
   const [audioModalVisible, setAudioModalVisible] = useState(false);
   // Track whether we've ever confirmed a valid session to avoid
@@ -44,7 +48,7 @@ export default function AppLayout() {
 
   // Mobile uses bottom tabs
   return (
-    <>
+    <PreferencesProvider>
       <Tabs
         tabBar={(props) => <TabBar {...props} onRecord={handleRecord} />}
         screenOptions={{
@@ -60,25 +64,25 @@ export default function AppLayout() {
         <Tabs.Screen
           name="notes/index"
           options={{
-            title: "Notes",
+            title: t("tabs.notes"),
           }}
         />
         <Tabs.Screen
           name="search/index"
           options={{
-            title: "Search",
+            title: t("tabs.search"),
           }}
         />
         <Tabs.Screen
           name="recents/index"
           options={{
-            title: "Recents",
+            title: t("tabs.recents"),
           }}
         />
         <Tabs.Screen
           name="settings/index"
           options={{
-            title: "Settings",
+            title: t("tabs.settings"),
           }}
         />
         {/* Hidden screens - not shown in tab bar but accessible via navigation */}
@@ -86,21 +90,21 @@ export default function AppLayout() {
           name="notes/[id]"
           options={{
             href: null,
-            title: "Edit Note",
+            title: t("notes.editNote"),
           }}
         />
         <Tabs.Screen
           name="notes/folder/[id]"
           options={{
             href: null,
-            title: "Folder",
+            title: t("notes.folder"),
           }}
         />
         <Tabs.Screen
           name="notes/new"
           options={{
             href: null,
-            title: "New Note",
+            title: t("notes.newNote"),
           }}
         />
         <Tabs.Screen
@@ -115,7 +119,7 @@ export default function AppLayout() {
         visible={audioModalVisible}
         onClose={() => setAudioModalVisible(false)}
       />
-    </>
+    </PreferencesProvider>
   );
 }
 

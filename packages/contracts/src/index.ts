@@ -1,5 +1,5 @@
 // Re-export contracts
-export { contract, notesContract, foldersContract, calendarContract, transcriptionsContract } from "./contracts/index";
+export { contract, notesContract, foldersContract, calendarContract, transcriptionsContract, preferencesContract } from "./contracts/index";
 export type { Contract } from "./contracts/index";
 
 // Re-export schemas
@@ -108,3 +108,17 @@ export type {
   UpdateTranscriptionTitleRequest,
   UpdateTranscriptionTitleResponse,
 } from "./schemas/transcription";
+
+export {
+  SUPPORTED_LANGUAGES,
+  SupportedLanguageSchema,
+  UserPreferencesSchema,
+  GetPreferencesInputSchema,
+  UpdatePreferencesSchema,
+} from "./schemas/preferences";
+export type {
+  SupportedLanguage,
+  UserPreferences,
+  GetPreferencesInput,
+  UpdatePreferences,
+} from "./schemas/preferences";

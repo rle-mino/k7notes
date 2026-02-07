@@ -127,6 +127,16 @@ export const notes = pgTable("notes", {
   unique("notes_user_kind_date_unique").on(table.userId, table.kind, table.date),
 ]);
 
+// User preferences table for app/transcription language settings
+export const userPreferences = pgTable("user_preferences", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: text("user_id").notNull().unique().references(() => user.id, { onDelete: "cascade" }),
+  appLanguage: text("app_language").notNull().default("en"),
+  transcriptionLanguage: text("transcription_language"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Calendar connections table for external calendar integrations
 export const calendarConnections = pgTable("calendar_connections", {
   id: uuid("id").defaultRandom().primaryKey(),

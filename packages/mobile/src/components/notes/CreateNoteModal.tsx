@@ -11,6 +11,7 @@ import {
   Platform,
 } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { ORPCError } from "@orpc/client";
 import { orpc } from "@/lib/orpc";
 
@@ -39,7 +40,7 @@ function getErrorMessage(err: unknown): string {
     return err.message;
   }
 
-  return "Failed to create note";
+  return "failed";
 }
 
 interface CreateNoteModalProps {
@@ -53,6 +54,7 @@ export function CreateNoteModal({
   folderId,
   onClose,
 }: CreateNoteModalProps) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -109,11 +111,11 @@ export function CreateNoteModal({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.container}>
-          <Text style={styles.title}>New Note</Text>
+          <Text style={styles.title}>{t("modals.newNote")}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Note title"
+            placeholder={t("modals.noteTitle")}
             placeholderTextColor="#999"
             value={title}
             onChangeText={setTitle}
@@ -131,7 +133,7 @@ export function CreateNoteModal({
               onPress={onClose}
               disabled={creating}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t("modals.cancel")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -142,7 +144,7 @@ export function CreateNoteModal({
               {creating ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.createButtonText}>Create</Text>
+                <Text style={styles.createButtonText}>{t("modals.create")}</Text>
               )}
             </TouchableOpacity>
           </View>

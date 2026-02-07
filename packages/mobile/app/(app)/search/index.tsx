@@ -9,12 +9,14 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
 import { orpc } from "@/lib/orpc";
 import type { SearchResult } from "@/lib/orpc";
 import { NoteListItem } from "@/components/ui/NoteListItem";
 import { colors, typography, spacing, radius, layout } from "@/theme";
 
 export default function SearchScreen() {
+  const { t, i18n } = useTranslation();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -51,13 +53,13 @@ export default function SearchScreen() {
 
   const renderResult = ({ item }: { item: SearchResult }) => {
     const formattedDate = new Date(item.note.updatedAt).toLocaleDateString(
-      undefined,
+      i18n.language,
       { month: "short", day: "numeric" }
     );
 
     return (
       <NoteListItem
-        title={item.note.title || "Untitled"}
+        title={item.note.title || t("notes.untitled")}
         preview={item.snippet}
         date={formattedDate}
         onPress={() => handleNotePress(item.note.id)}
@@ -70,7 +72,7 @@ export default function SearchScreen() {
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search notes..."
+          placeholder={t("search.placeholder")}
           placeholderTextColor={colors.textTertiary}
           value={query}
           onChangeText={setQuery}
@@ -92,21 +94,21 @@ export default function SearchScreen() {
             style={styles.retryButton}
             onPress={() => handleSearch(query)}
           >
-            <Text style={styles.retryButtonText}>Retry</Text>
+            <Text style={styles.retryButtonText}>{t("search.retry")}</Text>
           </TouchableOpacity>
         </View>
       ) : hasSearched && results.length === 0 ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyTitle}>No results</Text>
+          <Text style={styles.emptyTitle}>{t("search.noResults")}</Text>
           <Text style={styles.emptyMessage}>
-            No notes found matching "{query}"
+            {t("search.noResultsFor", { query })}
           </Text>
         </View>
       ) : !hasSearched ? (
         <View style={styles.centered}>
-          <Text style={styles.emptyTitle}>Search your notes</Text>
+          <Text style={styles.emptyTitle}>{t("search.searchYourNotes")}</Text>
           <Text style={styles.emptyMessage}>
-            Enter a search term and press return to find notes.
+            {t("search.searchHint")}
           </Text>
         </View>
       ) : (

@@ -1,14 +1,18 @@
+import "@/i18n";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Stack, router } from "expo-router";
 import { Sidebar } from "@/components/navigation/Sidebar";
 import { AudioRecordingModal } from "@/components/audio/AudioRecordingModal";
+import { useTranslation } from "react-i18next";
+import { PreferencesProvider } from "@/hooks/usePreferences";
 import { authClient } from "@/lib/auth";
 import { colors } from "@/theme";
 
 type RecordType = "audio";
 
 export default function AppLayoutWeb() {
+  const { t } = useTranslation();
   const { data: session, isPending } = authClient.useSession();
   const [audioModalVisible, setAudioModalVisible] = useState(false);
   // Track whether we've ever confirmed a valid session to avoid
@@ -43,7 +47,7 @@ export default function AppLayoutWeb() {
   }
 
   return (
-    <>
+    <PreferencesProvider>
       <View style={styles.container}>
         <Sidebar onRecord={handleRecord} />
         <View style={styles.content}>
@@ -64,43 +68,43 @@ export default function AppLayoutWeb() {
             <Stack.Screen
               name="notes/index"
               options={{
-                title: "Notes",
+                title: t("tabs.notes"),
               }}
             />
             <Stack.Screen
               name="notes/[id]"
               options={{
-                title: "Edit Note",
+                title: t("notes.editNote"),
               }}
             />
             <Stack.Screen
               name="notes/folder/[id]"
               options={{
-                title: "Folder",
+                title: t("notes.folder"),
               }}
             />
             <Stack.Screen
               name="notes/new"
               options={{
-                title: "New Note",
+                title: t("notes.newNote"),
               }}
             />
             <Stack.Screen
               name="search/index"
               options={{
-                title: "Search",
+                title: t("tabs.search"),
               }}
             />
             <Stack.Screen
               name="recents/index"
               options={{
-                title: "Recents",
+                title: t("tabs.recents"),
               }}
             />
             <Stack.Screen
               name="settings/index"
               options={{
-                title: "Settings",
+                title: t("tabs.settings"),
               }}
             />
             <Stack.Screen
@@ -117,7 +121,7 @@ export default function AppLayoutWeb() {
         visible={audioModalVisible}
         onClose={() => setAudioModalVisible(false)}
       />
-    </>
+    </PreferencesProvider>
   );
 }
 

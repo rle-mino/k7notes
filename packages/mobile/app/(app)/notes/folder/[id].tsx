@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Folder screen - placeholder for online-first implementation.
@@ -12,20 +13,21 @@ import { useLocalSearchParams, Stack } from 'expo-router';
  * - POST /api/folders (create subfolder)
  */
 export default function FolderScreen() {
+  const { t } = useTranslation();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   return (
     <>
-      <Stack.Screen options={{ title: 'Folder' }} />
+      <Stack.Screen options={{ title: t('notes.folder') }} />
       <View style={styles.container}>
         <View style={styles.placeholder}>
-          <Text style={styles.title}>Folder</Text>
+          <Text style={styles.title}>{t('notes.folder')}</Text>
           <Text style={styles.folderId}>ID: {id}</Text>
           <Text style={styles.message}>
-            Online-first implementation pending.
+            {t('modals.moveImplementationPending')}
           </Text>
           <Text style={styles.hint}>
-            Connect to server API to display folder contents.
+            {t('modals.moveHint')}
           </Text>
         </View>
       </View>

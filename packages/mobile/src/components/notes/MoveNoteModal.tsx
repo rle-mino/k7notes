@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 
 interface MoveNoteModalProps {
   visible: boolean;
@@ -29,23 +30,24 @@ export function MoveNoteModal({
   onClose,
   onMoved: _onMoved,
 }: MoveNoteModalProps) {
+  const { t } = useTranslation();
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.title}>Move to folder</Text>
+            <Text style={styles.title}>{t('modals.moveToFolder')}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <Text style={styles.closeButtonText}>Cancel</Text>
+              <Text style={styles.closeButtonText}>{t('modals.cancel')}</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.placeholder}>
             <Text style={styles.message}>
-              Online-first implementation pending.
+              {t('modals.moveImplementationPending')}
             </Text>
             <Text style={styles.hint}>
-              Connect to server API to move notes.
+              {t('modals.moveHint')}
             </Text>
           </View>
         </View>

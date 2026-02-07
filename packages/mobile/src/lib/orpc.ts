@@ -58,22 +58,26 @@ function getAuthCookie(): string {
 const link = new OpenAPILink(contract, {
   url: getApiUrl(),
   fetch: (input: RequestInfo | URL, init?: RequestInit) => {
-    const headers = new Headers(init?.headers);
+    // Merge headers from Request object (if input is a Request) with init headers
+    const baseHeaders = input instanceof Request ? new Headers(input.headers) : new Headers();
+    const initHeaders = new Headers(init?.headers);
+    initHeaders.forEach((value: string, key: string) => baseHeaders.set(key, value));
 
     // Set Content-Type for requests with body
-    if (init?.body && !headers.has("Content-Type")) {
-      headers.set("Content-Type", "application/json");
+    const hasBody = init?.body || (input instanceof Request && input.method !== "GET");
+    if (hasBody && !baseHeaders.has("Content-Type")) {
+      baseHeaders.set("Content-Type", "application/json");
     }
 
     // Add auth cookie from SecureStore
     const cookie = getAuthCookie();
     if (cookie) {
-      headers.set("Cookie", cookie);
+      baseHeaders.set("Cookie", cookie);
     }
 
     return fetch(input, {
       ...init,
-      headers,
+      headers: baseHeaders,
       credentials: "include",
     });
   },

@@ -18,6 +18,7 @@ import {
   Pencil,
   type LucideIcon,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { CreateNoteModal } from "@/components/notes/CreateNoteModal";
 import { HeroFAB } from "@/components/ui/HeroFAB";
 import { colors, typography, spacing, radius, shadows } from "@/theme";
@@ -35,14 +36,15 @@ const TAB_ICONS: Record<string, LucideIcon> = {
   "settings/index": Settings,
 };
 
-const TAB_LABELS: Record<string, string> = {
-  "notes/index": "Notes",
-  "search/index": "Search",
-  "recents/index": "Recents",
-  "settings/index": "Settings",
+const TAB_LABEL_KEYS: Record<string, string> = {
+  "notes/index": "tabs.notes",
+  "search/index": "tabs.search",
+  "recents/index": "tabs.recents",
+  "settings/index": "tabs.settings",
 };
 
 export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [recordMenuVisible, setRecordMenuVisible] = useState(false);
   const [noteModalVisible, setNoteModalVisible] = useState(false);
@@ -120,7 +122,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
           )}
         </View>
         <Text style={[styles.tabLabel, isFocused && styles.tabLabelActive]}>
-          {TAB_LABELS[route.name]}
+          {t(TAB_LABEL_KEYS[route.name])}
         </Text>
       </TouchableOpacity>
     );
@@ -171,7 +173,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               <View style={styles.recordOptionIcon}>
                 <Mic size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
-              <Text style={styles.recordOptionLabel}>Audio</Text>
+              <Text style={styles.recordOptionLabel}>{t("record.audio")}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.recordOption}
@@ -181,7 +183,7 @@ export function TabBar({ state, descriptors, navigation, onRecord }: TabBarProps
               <View style={styles.recordOptionIcon}>
                 <Pencil size={28} color={colors.accent} strokeWidth={1.8} />
               </View>
-              <Text style={styles.recordOptionLabel}>Text</Text>
+              <Text style={styles.recordOptionLabel}>{t("record.text")}</Text>
             </TouchableOpacity>
           </View>
         </Pressable>

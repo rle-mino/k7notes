@@ -10,6 +10,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ORPCError } from "@orpc/client";
 import { orpc } from "@/lib/orpc";
 
@@ -38,7 +39,7 @@ function getErrorMessage(err: unknown): string {
     return err.message;
   }
 
-  return "Failed to create folder";
+  return "failed";
 }
 
 interface CreateFolderModalProps {
@@ -54,6 +55,7 @@ export function CreateFolderModal({
   onClose,
   onCreated,
 }: CreateFolderModalProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,7 +71,7 @@ export function CreateFolderModal({
   const handleCreate = useCallback(async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("Please enter a folder name");
+      setError(t("modals.folderNameRequired"));
       return;
     }
 
@@ -112,11 +114,11 @@ export function CreateFolderModal({
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.container}>
-          <Text style={styles.title}>New Folder</Text>
+          <Text style={styles.title}>{t("modals.newFolder")}</Text>
 
           <TextInput
             style={styles.input}
-            placeholder="Folder name"
+            placeholder={t("modals.folderName")}
             placeholderTextColor="#999"
             value={name}
             onChangeText={setName}
@@ -134,7 +136,7 @@ export function CreateFolderModal({
               onPress={onClose}
               disabled={creating}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t("modals.cancel")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -145,7 +147,7 @@ export function CreateFolderModal({
               {creating ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
-                <Text style={styles.createButtonText}>Create</Text>
+                <Text style={styles.createButtonText}>{t("modals.create")}</Text>
               )}
             </TouchableOpacity>
           </View>
