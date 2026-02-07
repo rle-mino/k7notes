@@ -13,7 +13,19 @@ vi.mock("@/lib/orpc", () => ({
   },
 }));
 
-import { useTreeData } from "./useTreeData";
+// Mock the useAudioRecordings hook (avoids react-native transitive imports)
+const mockRefreshAudio = vi.fn();
+
+vi.mock("./useAudioRecordings", () => ({
+  useAudioRecordings: () => ({
+    recordings: [],
+    loading: false,
+    error: null,
+    refresh: mockRefreshAudio,
+  }),
+}));
+
+import { useTreeData, AUDIO_FOLDER_ID } from "./useTreeData";
 
 // Helper factories for mock data
 function createFolder(overrides: Partial<Folder> = {}): Folder {
@@ -75,13 +87,15 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      expect(result.current.treeData).toHaveLength(2);
-      expect(result.current.treeData[0]).toMatchObject({
+      // Audio folder + 1 folder + 1 note = 3
+      expect(result.current.treeData).toHaveLength(3);
+      expect(result.current.treeData[0]!.type).toBe("audio-folder");
+      expect(result.current.treeData[1]).toMatchObject({
         id: "f1",
         type: "folder",
         name: "My Folder",
       });
-      expect(result.current.treeData[1]).toMatchObject({
+      expect(result.current.treeData[2]).toMatchObject({
         id: "n1",
         type: "note",
         name: "My Note",
@@ -104,9 +118,14 @@ describe("useTreeData", () => {
   });
 
   describe("buildFlatTree", () => {
-    it("returns empty array when no data is loaded", () => {
+    it("returns only the audio folder when no data is loaded", () => {
       const { result } = renderHook(() => useTreeData());
-      expect(result.current.treeData).toEqual([]);
+      expect(result.current.treeData).toHaveLength(1);
+      expect(result.current.treeData[0]).toMatchObject({
+        id: AUDIO_FOLDER_ID,
+        type: "audio-folder",
+        name: "Audio",
+      });
     });
 
     it("places folders before notes at the same level", async () => {
@@ -123,8 +142,9 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      expect(result.current.treeData[0]!.type).toBe("folder");
-      expect(result.current.treeData[1]!.type).toBe("note");
+      // Index 0 is audio folder; regular items start at 1
+      expect(result.current.treeData[1]!.type).toBe("folder");
+      expect(result.current.treeData[2]!.type).toBe("note");
     });
 
     it("sets depth 0 for root items", async () => {
@@ -141,8 +161,9 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      expect(result.current.treeData[0]!.depth).toBe(0);
+      // Index 0 is audio folder; folder and note at indices 1 and 2
       expect(result.current.treeData[1]!.depth).toBe(0);
+      expect(result.current.treeData[2]!.depth).toBe(0);
     });
 
     it("sets correct depth for nested items when folder is expanded", async () => {
@@ -204,8 +225,9 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      expect(result.current.treeData[0]!.parentFolderId).toBeNull();
+      // Index 0 is audio folder; folder and note at indices 1 and 2
       expect(result.current.treeData[1]!.parentFolderId).toBeNull();
+      expect(result.current.treeData[2]!.parentFolderId).toBeNull();
     });
 
     it("sets parentFolderId to folder id for children", async () => {
@@ -255,7 +277,8 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      expect(result.current.treeData[0]!.name).toBe("Untitled");
+      // Index 0 is audio folder; note at index 1
+      expect(result.current.treeData[1]!.name).toBe("Untitled");
     });
 
     it("assumes folders have children until expanded", async () => {
@@ -271,8 +294,9 @@ describe("useTreeData", () => {
         await result.current.fetchRootData();
       });
 
-      // Before expanding, hasChildren is true (assumed)
-      expect(result.current.treeData[0]!.hasChildren).toBe(true);
+      // Before expanding, hasChildren is true (assumed); index 1 (after audio folder)
+      const folderBefore = result.current.treeData.find((n) => n.id === "f1");
+      expect(folderBefore!.hasChildren).toBe(true);
 
       // Expand reveals empty folder
       mockGetContents.mockResolvedValueOnce({
@@ -285,7 +309,8 @@ describe("useTreeData", () => {
       });
 
       // After expanding with no children, hasChildren is false
-      expect(result.current.treeData[0]!.hasChildren).toBe(false);
+      const folderAfter = result.current.treeData.find((n) => n.id === "f1");
+      expect(folderAfter!.hasChildren).toBe(false);
     });
   });
 
@@ -694,12 +719,13 @@ describe("useTreeData", () => {
       });
 
       const tree = result.current.treeData;
-      // Expected order: f1, cf1, cn1, add-f1
-      expect(tree[0]!.id).toBe("f1");
-      expect(tree[1]!.id).toBe("cf1");
-      expect(tree[2]!.id).toBe("cn1");
-      expect(tree[3]!.id).toBe("add-f1");
-      expect(tree[3]!.type).toBe("add-item");
+      // Expected order: __audio__, f1, cf1, cn1, add-f1
+      expect(tree[0]!.id).toBe(AUDIO_FOLDER_ID);
+      expect(tree[1]!.id).toBe("f1");
+      expect(tree[2]!.id).toBe("cf1");
+      expect(tree[3]!.id).toBe("cn1");
+      expect(tree[4]!.id).toBe("add-f1");
+      expect(tree[4]!.type).toBe("add-item");
     });
 
     it("adds add-item even when folder has no children", async () => {
@@ -727,10 +753,10 @@ describe("useTreeData", () => {
       });
 
       const tree = result.current.treeData;
-      // folder + add-item
-      expect(tree).toHaveLength(2);
-      expect(tree[1]!.type).toBe("add-item");
-      expect(tree[1]!.parentFolderId).toBe("f1");
+      // audio-folder + folder + add-item
+      expect(tree).toHaveLength(3);
+      expect(tree[2]!.type).toBe("add-item");
+      expect(tree[2]!.parentFolderId).toBe("f1");
     });
 
     it("does not show add-item when folder is collapsed", async () => {

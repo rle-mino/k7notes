@@ -1,8 +1,19 @@
 import { useCallback, useState, useRef, useMemo } from "react";
 import { orpc } from "@/lib/orpc";
 import type { Note, Folder } from "@/lib/orpc";
+import {
+  useAudioRecordings,
+  type AudioRecording,
+} from "./useAudioRecordings";
 
-export type TreeItemType = "folder" | "note" | "add-item";
+export const AUDIO_FOLDER_ID = "__audio__";
+
+export type TreeItemType =
+  | "folder"
+  | "note"
+  | "add-item"
+  | "audio-folder"
+  | "audio-item";
 
 export interface TreeNode {
   id: string;
@@ -13,7 +24,7 @@ export interface TreeNode {
   isLoading: boolean;
   hasChildren: boolean;
   parentFolderId: string | null;
-  data: Folder | Note | null;
+  data: Folder | Note | AudioRecording | null;
 }
 
 interface ExpandedState {
@@ -32,6 +43,12 @@ export function useTreeData() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Audio recordings hook
+  const {
+    recordings: audioRecordings,
+    refresh: refreshAudio,
+  } = useAudioRecordings();
 
   // Track if we've done initial load
   const hasLoaded = useRef(false);
@@ -100,6 +117,11 @@ export function useTreeData() {
       } else {
         // Expand
         setExpandedIds((prev) => new Set(prev).add(folderId));
+
+        // Audio folder doesn't need a fetch — data comes from the hook
+        if (folderId === AUDIO_FOLDER_ID) {
+          return;
+        }
 
         // Fetch contents if not already loaded
         if (!expandedState[folderId]) {
@@ -177,9 +199,39 @@ export function useTreeData() {
       }
     };
 
+    // Inject virtual Audio folder at the top of the tree
+    const isAudioExpanded = expandedIds.has(AUDIO_FOLDER_ID);
+    result.push({
+      id: AUDIO_FOLDER_ID,
+      type: "audio-folder",
+      name: "Audio",
+      depth: 0,
+      isExpanded: isAudioExpanded,
+      isLoading: false,
+      hasChildren: audioRecordings.length > 0,
+      parentFolderId: null,
+      data: null,
+    });
+
+    if (isAudioExpanded) {
+      for (const recording of audioRecordings) {
+        result.push({
+          id: `audio-${recording.fileName}`,
+          type: "audio-item",
+          name: recording.title,
+          depth: 1,
+          isExpanded: false,
+          isLoading: false,
+          hasChildren: false,
+          parentFolderId: AUDIO_FOLDER_ID,
+          data: recording,
+        });
+      }
+    }
+
     addItems(rootFolders, rootNotes, 0, null);
     return result;
-  }, [rootFolders, rootNotes, expandedIds, loadingIds, expandedState]);
+  }, [rootFolders, rootNotes, expandedIds, loadingIds, expandedState, audioRecordings]);
 
   const treeData = buildFlatTree();
 
@@ -191,6 +243,11 @@ export function useTreeData() {
     return dailyFolder?.id ?? null;
   }, [rootFolders]);
 
+  const refresh = useCallback(() => {
+    refreshAudio();
+    return fetchRootData(true);
+  }, [fetchRootData, refreshAudio]);
+
   return {
     treeData,
     dailyFolderId,
@@ -199,6 +256,6 @@ export function useTreeData() {
     error,
     fetchRootData,
     toggleExpand,
-    refresh: () => fetchRootData(true),
+    refresh,
   };
 }

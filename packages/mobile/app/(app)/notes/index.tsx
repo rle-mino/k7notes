@@ -85,7 +85,7 @@ export default function NotesIndexScreen() {
           }
         }}
         onToggleExpand={
-          item.type === "folder"
+          item.type === "folder" || item.type === "audio-folder"
             ? () => handleToggleExpand(item.id)
             : undefined
         }
