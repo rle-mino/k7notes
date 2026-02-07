@@ -1,10 +1,14 @@
 import { z } from "zod";
 
+export const NoteKindSchema = z.enum(["REGULAR", "DAILY"]);
+
 export const NoteSchema = z.object({
   id: z.string().uuid(),
   userId: z.string(),
   title: z.string(),
   content: z.string(),
+  kind: NoteKindSchema,
+  date: z.string().nullable(), // ISO date YYYY-MM-DD, used for daily notes
   folderId: z.string().uuid().nullable(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
@@ -13,6 +17,8 @@ export const NoteSchema = z.object({
 export const CreateNoteSchema = z.object({
   title: z.string().min(1),
   content: z.string().optional(),
+  kind: NoteKindSchema.optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format").nullable().optional(),
   folderId: z.string().uuid().nullable().optional(),
 });
 
@@ -36,6 +42,7 @@ export const SearchResultSchema = z.object({
   snippet: z.string(),
 });
 
+export type NoteKind = z.infer<typeof NoteKindSchema>;
 export type Note = z.infer<typeof NoteSchema>;
 export type CreateNote = z.infer<typeof CreateNoteSchema>;
 export type UpdateNote = z.infer<typeof UpdateNoteSchema>;

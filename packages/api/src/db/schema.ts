@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, uuid, boolean, real, jsonb, AnyPgColumn } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, text, timestamp, uuid, boolean, real, jsonb, unique, AnyPgColumn } from "drizzle-orm/pg-core";
 
 // ============================================================================
 // Better-auth tables
@@ -105,6 +105,9 @@ export const transcriptions = pgTable("transcriptions", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Note kind enum
+export const noteKindEnum = pgEnum("note_kind", ["REGULAR", "DAILY"]);
+
 // Notes table for storing user notes
 export const notes = pgTable("notes", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -113,10 +116,14 @@ export const notes = pgTable("notes", {
     .references(() => user.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   content: text("content").notNull().default(""),
+  kind: noteKindEnum("kind").notNull().default("REGULAR"),
+  date: text("date"), // ISO date YYYY-MM-DD, used for daily notes
   folderId: uuid("folder_id").references(() => folders.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+}, (table) => [
+  unique("notes_user_kind_date_unique").on(table.userId, table.kind, table.date),
+]);
 
 // Calendar connections table for external calendar integrations
 export const calendarConnections = pgTable("calendar_connections", {

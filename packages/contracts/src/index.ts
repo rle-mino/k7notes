@@ -10,6 +10,7 @@ export {
 export type { IdParam, SuccessResponse } from "./schemas/common";
 
 export {
+  NoteKindSchema,
   NoteSchema,
   CreateNoteSchema,
   UpdateNoteSchema,
@@ -18,6 +19,7 @@ export {
   SearchResultSchema,
 } from "./schemas/note";
 export type {
+  NoteKind,
   Note,
   CreateNote,
   UpdateNote,

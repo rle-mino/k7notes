@@ -56,28 +56,50 @@ Key files:
 
 ## Phases
 
-### ⬜ Phase 1: Add `kind` field to notes schema
+### ✅ Phase 1: Add `kind` field to notes schema
 - **Step**: 1
 - **Complexity**: 2
-- [ ] Add `noteKind` enum type to schema (`REGULAR`, `DAILY`)
-- [ ] Add `kind` column to notes table (default `REGULAR`)
-- [ ] Add `date` column to notes table (nullable, text ISO date `YYYY-MM-DD`) — used for daily notes to identify the date
-- [ ] Add unique constraint on `(userId, kind, date)` to prevent duplicate daily notes per date
-- [ ] Update `NoteSchema` and `CreateNoteSchema` in contracts to include `kind` and `date` fields
-- [ ] Push schema changes with `db:push`
-- **Files**: `packages/api/src/db/schema.ts`, `packages/contracts/src/schemas/notes.ts`
+- [x] Add `noteKind` enum type to schema (`REGULAR`, `DAILY`)
+- [x] Add `kind` column to notes table (default `REGULAR`)
+- [x] Add `date` column to notes table (nullable, text ISO date `YYYY-MM-DD`) — used for daily notes to identify the date
+- [x] Add unique constraint on `(userId, kind, date)` to prevent duplicate daily notes per date
+- [x] Update `NoteSchema` and `CreateNoteSchema` in contracts to include `kind` and `date` fields
+- [ ] Push schema changes with `db:push` (skipped -- no database available in this environment; must be run manually)
+- **Files**: `packages/api/src/db/schema.ts`, `packages/contracts/src/schemas/note.ts`
 - **Commit message**: `feat: add kind and date fields to notes schema`
 - **Bisect note**: Schema change only — no consumers yet, existing code unaffected since `kind` defaults to `REGULAR`
+- **Implementation notes**:
+  - Added `noteKindEnum` pgEnum with values `["REGULAR", "DAILY"]` and `kind` column (default `REGULAR`) to `packages/api/src/db/schema.ts`
+  - Added nullable `date` text column for ISO `YYYY-MM-DD` dates
+  - Added composite unique constraint `notes_user_kind_date_unique` on `(userId, kind, date)` using Drizzle's array-style third argument
+  - Added `NoteKindSchema = z.enum(["REGULAR", "DAILY"])` to `packages/contracts/src/schemas/note.ts`
+  - Added `kind` and `date` fields to `NoteSchema`, `CreateNoteSchema`; exported `NoteKindSchema`/`NoteKind` from barrel index
+  - `CreateNoteSchema.date` includes regex validation for `YYYY-MM-DD` format
+  - **Auto-fix deviations** (type errors caused by schema changes):
+    - Updated `Note` interface and `CreateNoteDto` in `packages/api/src/notes/notes.service.ts` to include `kind` and `date`
+    - Updated `create()` method to pass `kind`/`date` through to the insert
+    - Updated raw SQL `search()` method to select and return `kind`/`date` fields
+    - Updated `Note` interface in `packages/api/src/folders/folders.service.ts` to include `kind` and `date`
+    - Updated `createNote` factory in `packages/mobile/src/hooks/useTreeData.test.ts` to include `kind`/`date` defaults
+- **Validation results**:
+  - Type check: PASSED (exit code 0)
+  - Lint: Pre-existing errors in unmodified files (`calendar.service.spec.ts`, `mock-calendar.provider.ts`, `transcriptions.service.spec.ts`); no regressions from this phase
+  - Build: PASSED (exit code 0)
+  - `db:push`: Skipped (no database available in this environment)
+- **Review**: Approved - Schema changes are correct: pgEnum with proper values, kind column with REGULAR default, nullable date text column, composite unique constraint. Contract schemas updated with regex validation for date format. All downstream consumers (NotesService, FoldersService Note interface, search SQL, test factories) updated to include new fields. No regressions; backward compatible since kind defaults to REGULAR.
 
-### ⬜ Phase 2: Add folder hierarchy auto-creation service
+### ✅ Phase 2: Add folder hierarchy auto-creation service
 - **Step**: 1
 - **Complexity**: 3
-- [ ] Add `findByName(userId, name, parentId)` method to `FoldersService` — finds folder by name within a parent
-- [ ] Add `findOrCreatePath(userId, path: string[])` method to `FoldersService` — takes array like `["Daily", "2026", "01", "15"]` and creates any missing folders, returns the leaf folder
-- [ ] Write unit tests for `findOrCreatePath` logic
+- [x] Add `findByName(userId, name, parentId)` method to `FoldersService` — finds folder by name within a parent
+- [x] Add `findOrCreatePath(userId, path: string[])` method to `FoldersService` — takes array like `["Daily", "2026", "01", "15"]` and creates any missing folders, returns the leaf folder
+- [x] Write unit tests for `findOrCreatePath` logic
 - **Files**: `packages/api/src/folders/folders.service.ts`, `packages/api/src/folders/folders.service.spec.ts` (if exists, or create)
 - **Commit message**: `feat: add folder hierarchy auto-creation service`
 - **Bisect note**: New methods only, no existing behavior changed
+- **Implementation notes**: Added `findByName()` method that queries by userId + name + parentId (handling null parentId with `isNull`). Added `findOrCreatePath()` that iterates through the path array, calling `findByName` at each level and falling back to `create` when a folder doesn't exist. Added 13 new tests: 5 for `findByName` (root lookup, child lookup, not found, user isolation, same name in different parents) and 8 for `findOrCreatePath` (single-level, multi-level creation, reusing existing folders, full path already exists, empty path error, user isolation, idempotency, branching paths).
+- **Validation results**: Type check passes for modified files (pre-existing errors in notes/folders controllers from parallel Phase 1 schema changes are unrelated). Lint passes with zero issues in modified files (pre-existing errors in calendar/transcription files are unrelated). Build succeeds (exit code 0). Unit tests could not run due to Docker/testcontainers unavailability in this environment, but test file compiles correctly.
+- **Review**: Approved - findByName correctly handles null vs non-null parentId with isNull/eq conditions. findOrCreatePath is clean iterative find-or-create with proper empty-path guard. 13 tests provide thorough coverage including user isolation, idempotency, branching paths, and reuse of existing folders. New methods are additive only, no existing behavior modified.
 
 ### ⬜ Phase 3: Implement daily notes service
 - **Step**: 2
@@ -169,5 +191,5 @@ Key files:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Not started
-- **Progress**: 0/8
+- **Current Phase**: Phase 3 (Implement daily notes service)
+- **Progress**: 2/8
