@@ -13,6 +13,7 @@ import { TranscriptionsModule } from "./transcriptions/transcriptions.module.js"
 declare module "@orpc/nest" {
   interface ORPCGlobalContext {
     request: Request;
+    headers: Headers;
   }
 }
 
@@ -24,20 +25,28 @@ const logger = new Logger("oRPC");
       throttlers: [{ name: "default", ttl: 60_000, limit: 60 }],
     }),
     ORPCModule.forRootAsync({
-      useFactory: (request: Request) => ({
-        context: { request },
-        interceptors: [
-          onError((error) => {
-            if (error instanceof ORPCError) {
-              logger.error(
-                `${error.code} (${error.status}): ${error.message}`
-              );
-            } else if (error instanceof Error) {
-              logger.error(error.message);
-            }
-          }),
-        ],
-      }),
+      useFactory: (request: Request) => {
+        const headers = new Headers();
+        for (const [key, value] of Object.entries(request.headers)) {
+          if (value) {
+            headers.set(key, Array.isArray(value) ? value.join(", ") : value);
+          }
+        }
+        return {
+          context: { request, headers },
+          interceptors: [
+            onError((error) => {
+              if (error instanceof ORPCError) {
+                logger.error(
+                  `${error.code} (${error.status}): ${error.message}`
+                );
+              } else if (error instanceof Error) {
+                logger.error(error.message);
+              }
+            }),
+          ],
+        };
+      },
       inject: [REQUEST],
     }),
     DatabaseModule,

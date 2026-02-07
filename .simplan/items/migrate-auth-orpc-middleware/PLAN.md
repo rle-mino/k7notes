@@ -48,25 +48,31 @@ The oRPC `implement()` function supports `.use()` middleware chaining, which can
 
 ## Phases
 
-### ⬜ Phase 1: Extend ORPCGlobalContext with headers
+### ✅ Phase 1: Extend ORPCGlobalContext with headers
 - **Step**: 1
 - **Complexity**: 2
-- [ ] In `app.module.ts`, add `headers: Headers` to the `ORPCGlobalContext` interface declaration
-- [ ] In the `ORPCModule.forRootAsync` factory, convert Express request headers to a web `Headers` object and include it in the context alongside `request`
+- [x] In `app.module.ts`, add `headers: Headers` to the `ORPCGlobalContext` interface declaration
+- [x] In the `ORPCModule.forRootAsync` factory, convert Express request headers to a web `Headers` object and include it in the context alongside `request`
 - **Files**: `packages/api/src/app.module.ts`
 - **Commit message**: `refactor: add headers to oRPC global context`
 - **Bisect note**: N/A — additive change, existing code still works with `context.request`
+- **Implementation notes**: Added `headers: Headers` to the `ORPCGlobalContext` interface. Converted the `useFactory` arrow function from an expression body to a block body to accommodate the header conversion logic. Iterates over Express `request.headers` entries, converts to a web `Headers` object (joining array values with `", "`), and passes both `request` and `headers` in the context object.
+- **Validation results**: Type-check passes (exit 0). Lint fails with pre-existing errors in `mock-calendar.provider.ts` (unused var) and spec files (`no-explicit-any`) -- confirmed identical on main branch before changes, not introduced by this phase.
+- **Review**: Approved - Header conversion logic matches existing AuthGuard pattern exactly. ORPCGlobalContext correctly extended. Clean, minimal change.
 
-### ⬜ Phase 2: Create oRPC auth middleware
+### ✅ Phase 2: Create oRPC auth middleware
 - **Step**: 1
 - **Complexity**: 3
-- [ ] Create `packages/api/src/auth/auth.middleware.ts`
-- [ ] Export an `authMiddleware` function that uses `implement` from `@orpc/nest` to create a middleware: reads `context.headers`, calls `auth.api.getSession()`, throws `ORPCError('UNAUTHORIZED')` if no session, otherwise calls `next()` with `{ user, session }` in context
-- [ ] Export a helper `authed(contractProcedure)` function that returns `implement(contractProcedure).use(authMiddleware)` for ergonomic use in controllers
-- [ ] Export TypeScript types for the user/session shape injected into context
+- [x] Create `packages/api/src/auth/auth.middleware.ts`
+- [x] Export an `authMiddleware` function that uses `implement` from `@orpc/nest` to create a middleware: reads `context.headers`, calls `auth.api.getSession()`, throws `ORPCError('UNAUTHORIZED')` if no session, otherwise calls `next()` with `{ user, session }` in context
+- [x] Export a helper `authed(contractProcedure)` function that returns `implement(contractProcedure).use(authMiddleware)` for ergonomic use in controllers
+- [x] Export TypeScript types for the user/session shape injected into context
 - **Files**: `packages/api/src/auth/auth.middleware.ts`
 - **Commit message**: `feat: add oRPC auth middleware for typed user context`
 - **Bisect note**: New file, not yet used — safe standalone
+- **Implementation notes**: Created the middleware file. The auth middleware is defined as an inline arrow function inside the `authed()` helper rather than a standalone `authMiddleware` variable, because the oRPC `Middleware` type has 6 generic parameters that made standalone typing cumbersome. Inlining it lets TypeScript infer all generics from the `implement(contractProcedure).use()` call site. Used `AnyContractProcedure` (not `AnyContractRouter`) as the generic constraint for `authed()` to avoid a union type error where `.use()` signatures from `ProcedureImplementer` and `RouterImplementer` were incompatible. Exported types: `AuthUser`, `AuthSession`, `AuthContext`.
+- **Validation results**: Type-check passes (exit 0). Lint has pre-existing errors in unrelated files (`mock-calendar.provider.ts`, spec files) -- not introduced by this phase.
+- **Review**: Approved - Middleware correctly validates session via better-auth, throws ORPCError on failure, injects typed user/session context. Type shapes match existing AuthenticatedRequest interface. Good use of satisfies for type safety.
 
 ### ⬜ Phase 3: Migrate NotesController
 - **Step**: 2
@@ -128,5 +134,5 @@ The oRPC `implement()` function supports `.use()` middleware chaining, which can
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Not started
-- **Progress**: 0/7
+- **Current Phase**: Phase 3 (Migrate NotesController)
+- **Progress**: 2/7
