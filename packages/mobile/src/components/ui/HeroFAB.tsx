@@ -1,11 +1,11 @@
 import React from "react";
 import {
   TouchableOpacity,
+  View,
   StyleSheet,
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Plus } from "lucide-react-native";
 import { colors } from "@/theme";
 
@@ -16,7 +16,7 @@ interface HeroFABProps {
 }
 
 /**
- * Premium floating action button with indigo gradient and colored glow shadow.
+ * Premium floating action button with deep indigo and colored glow shadow.
  * Bottom-center placement on both platforms.
  */
 export function HeroFAB({ onPress, size = 56, style }: HeroFABProps) {
@@ -32,17 +32,14 @@ export function HeroFAB({ onPress, size = 56, style }: HeroFABProps) {
         style,
       ]}
     >
-      <LinearGradient
-        colors={[colors.heroGradientStart, colors.heroGradientEnd]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+      <View
         style={[
-          styles.gradient,
+          styles.circle,
           { width: size, height: size, borderRadius: half },
         ]}
       >
         <Plus size={size * 0.43} color="#FFFFFF" strokeWidth={1.5} />
-      </LinearGradient>
+      </View>
     </TouchableOpacity>
   );
 }
@@ -55,7 +52,8 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 12,
   },
-  gradient: {
+  circle: {
+    backgroundColor: colors.heroGradientEnd,
     alignItems: "center",
     justifyContent: "center",
   },
