@@ -22,6 +22,8 @@ export class TranscriptionsController {
             language: input.language,
             diarization: input.diarization,
             speakerNames: input.speakerNames,
+            title: input.title,
+            localFileName: input.localFileName,
           }
         );
 

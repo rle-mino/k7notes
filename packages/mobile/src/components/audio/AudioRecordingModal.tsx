@@ -15,12 +15,12 @@ import {
   setAudioModeAsync,
 } from "expo-audio";
 import { readAsStringAsync, EncodingType } from "expo-file-system";
-import { router } from "expo-router";
 import { Mic, Square, X } from "lucide-react-native";
 import { ORPCError } from "@orpc/client";
 import { orpc } from "@/lib/orpc";
+import { saveRecording } from "@/lib/audioStorage";
 
-type RecordingState = "idle" | "recording" | "stopped" | "transcribing" | "creating";
+type RecordingState = "idle" | "recording" | "stopped" | "saving" | "transcribing";
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof ORPCError) {
@@ -170,7 +170,7 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
     abortControllerRef.current = controller;
 
     try {
-      setRecordingState("transcribing");
+      setRecordingState("saving");
 
       let base64: string;
       let mimeType: string;
@@ -191,47 +191,36 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
         mimeType = "audio/m4a";
       }
 
-      // Call transcription API
-      const result = await orpc.transcriptions.transcribe({
-        audioBase64: base64,
-        mimeType,
-        diarization: true,
-      }, { signal: controller.signal });
+      // Save audio file locally first (so it persists even if transcription fails)
+      const { fileName } = await saveRecording(base64, mimeType);
 
-      // Create a note with the transcription
-      setRecordingState("creating");
+      // Generate a default title with timestamp
+      const now = new Date();
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const title = `Recording ${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
 
-      // Format content with speaker labels if available
-      let content: string;
-      if (result.segments && result.segments.length > 0) {
-        content = result.segments
-          .map((seg) => `**${seg.speaker}:** ${seg.text}`)
-          .join("\n\n");
-      } else {
-        content = result.text;
+      // Transcribe the audio
+      setRecordingState("transcribing");
+
+      try {
+        await orpc.transcriptions.transcribe({
+          audioBase64: base64,
+          mimeType,
+          diarization: true,
+          title,
+          localFileName: fileName,
+        }, { signal: controller.signal });
+      } catch (transcribeErr) {
+        // Transcription failed but audio is saved locally — user can retry later
+        if (controller.signal.aborted) return;
+        console.error("Transcription failed (audio saved locally):", transcribeErr);
+        setError(`Transcription failed: ${getErrorMessage(transcribeErr)}. Audio saved locally.`);
+        setRecordingState("idle");
+        return;
       }
 
-      // Generate title from first few words or use timestamp
-      const firstWords = result.text.split(" ").slice(0, 5).join(" ");
-      const title = firstWords.length > 0
-        ? `${firstWords}${result.text.split(" ").length > 5 ? "..." : ""}`
-        : `Audio Note ${new Date().toLocaleString()}`;
-
-      const newNote = await orpc.notes.create({
-        title,
-        content,
-        folderId: null,
-      }, { signal: controller.signal });
-
-      // Link transcription to the newly created note
-      await orpc.transcriptions.linkToNote({
-        transcriptionId: result.id,
-        noteId: newNote.id,
-      }, { signal: controller.signal });
-
-      // Close modal and navigate to the note
+      // Close modal (no note creation, no navigation)
       onClose();
-      router.push(`/notes/${newNote.id}`);
     } catch (err) {
       if (controller.signal.aborted) return;
       console.error("Failed to process recording:", err);
@@ -273,16 +262,16 @@ export function AudioRecordingModal({ visible, onClose }: AudioRecordingModalPro
         return "Recording...";
       case "stopped":
         return "Processing...";
+      case "saving":
+        return "Saving...";
       case "transcribing":
         return "Transcribing...";
-      case "creating":
-        return "Creating note...";
       default:
         return "Preparing...";
     }
   };
 
-  const isProcessing = ["stopped", "transcribing", "creating"].includes(recordingState);
+  const isProcessing = ["stopped", "saving", "transcribing"].includes(recordingState);
 
   return (
     <Modal
