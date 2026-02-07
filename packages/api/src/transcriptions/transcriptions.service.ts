@@ -1,5 +1,6 @@
-import { Inject, Injectable, BadRequestException, NotFoundException } from "@nestjs/common";
+import { Inject, Injectable, BadRequestException } from "@nestjs/common";
 import { eq, and, desc } from "drizzle-orm";
+import { ORPCError } from "@orpc/nest";
 import type { ProviderInfo, TranscriptionProviderType } from "@k7notes/contracts";
 import { DB_TOKEN, type Database } from "../db/db.types.js";
 import { transcriptions } from "../db/schema.js";
@@ -174,7 +175,7 @@ export class TranscriptionsService {
       .limit(1);
 
     if (!existing) {
-      throw new NotFoundException("Transcription not found");
+      throw new ORPCError("NOT_FOUND", { message: "Transcription not found" });
     }
 
     await this.db
