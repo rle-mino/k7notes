@@ -17,6 +17,8 @@ export {
   ListNotesQuerySchema,
   SearchNotesSchema,
   SearchResultSchema,
+  GetOrCreateDailyNoteSchema,
+  RefreshDailyNoteEventsSchema,
 } from "./schemas/note";
 export type {
   NoteKind,
@@ -26,6 +28,8 @@ export type {
   ListNotesQuery,
   SearchNotes,
   SearchResult,
+  GetOrCreateDailyNote,
+  RefreshDailyNoteEvents,
 } from "./schemas/note";
 
 export {

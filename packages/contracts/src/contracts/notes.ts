@@ -7,6 +7,8 @@ import {
   ListNotesQuerySchema,
   SearchNotesSchema,
   SearchResultSchema,
+  GetOrCreateDailyNoteSchema,
+  RefreshDailyNoteEventsSchema,
 } from "../schemas/note";
 import { IdParamSchema, SuccessResponseSchema } from "../schemas/common";
 
@@ -40,4 +42,15 @@ export const notesContract = {
     .route({ method: "GET", path: "/api/notes/search" })
     .input(SearchNotesSchema)
     .output(z.array(SearchResultSchema)),
+
+  // Daily notes
+  getOrCreateDailyNote: oc
+    .route({ method: "POST", path: "/api/notes/daily" })
+    .input(GetOrCreateDailyNoteSchema)
+    .output(NoteSchema),
+
+  refreshDailyNoteEvents: oc
+    .route({ method: "POST", path: "/api/notes/daily/refresh" })
+    .input(RefreshDailyNoteEventsSchema)
+    .output(NoteSchema),
 };
