@@ -13,7 +13,8 @@ export type TreeItemType =
   | "note"
   | "add-item"
   | "audio-folder"
-  | "audio-item";
+  | "audio-item"
+  | "audio-status";
 
 export interface TreeNode {
   id: string;
@@ -25,6 +26,7 @@ export interface TreeNode {
   hasChildren: boolean;
   parentFolderId: string | null;
   data: Folder | Note | AudioRecording | null;
+  badge?: number;
 }
 
 interface ExpandedState {
@@ -47,6 +49,8 @@ export function useTreeData() {
   // Audio recordings hook
   const {
     recordings: audioRecordings,
+    loading: audioLoading,
+    error: audioError,
     refresh: refreshAudio,
   } = useAudioRecordings();
 
@@ -201,37 +205,77 @@ export function useTreeData() {
 
     // Inject virtual Audio folder at the top of the tree
     const isAudioExpanded = expandedIds.has(AUDIO_FOLDER_ID);
+    const audioCount = audioRecordings.length;
     result.push({
       id: AUDIO_FOLDER_ID,
       type: "audio-folder",
       name: "Audio",
       depth: 0,
       isExpanded: isAudioExpanded,
-      isLoading: false,
-      hasChildren: audioRecordings.length > 0,
+      isLoading: audioLoading,
+      hasChildren: audioCount > 0 || audioLoading,
       parentFolderId: null,
       data: null,
+      badge: audioCount > 0 ? audioCount : undefined,
     });
 
     if (isAudioExpanded) {
-      for (const recording of audioRecordings) {
+      if (audioLoading) {
         result.push({
-          id: `audio-${recording.fileName}`,
-          type: "audio-item",
-          name: recording.title,
+          id: "audio-loading",
+          type: "audio-status",
+          name: "Loading recordings...",
+          depth: 1,
+          isExpanded: false,
+          isLoading: true,
+          hasChildren: false,
+          parentFolderId: AUDIO_FOLDER_ID,
+          data: null,
+        });
+      } else if (audioError) {
+        result.push({
+          id: "audio-error",
+          type: "audio-status",
+          name: audioError,
           depth: 1,
           isExpanded: false,
           isLoading: false,
           hasChildren: false,
           parentFolderId: AUDIO_FOLDER_ID,
-          data: recording,
+          data: null,
         });
+      } else if (audioCount === 0) {
+        result.push({
+          id: "audio-empty",
+          type: "audio-status",
+          name: "No recordings yet",
+          depth: 1,
+          isExpanded: false,
+          isLoading: false,
+          hasChildren: false,
+          parentFolderId: AUDIO_FOLDER_ID,
+          data: null,
+        });
+      } else {
+        for (const recording of audioRecordings) {
+          result.push({
+            id: `audio-${recording.fileName}`,
+            type: "audio-item",
+            name: recording.title,
+            depth: 1,
+            isExpanded: false,
+            isLoading: false,
+            hasChildren: false,
+            parentFolderId: AUDIO_FOLDER_ID,
+            data: recording,
+          });
+        }
       }
     }
 
     addItems(rootFolders, rootNotes, 0, null);
     return result;
-  }, [rootFolders, rootNotes, expandedIds, loadingIds, expandedState, audioRecordings]);
+  }, [rootFolders, rootNotes, expandedIds, loadingIds, expandedState, audioRecordings, audioLoading, audioError]);
 
   const treeData = buildFlatTree();
 

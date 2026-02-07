@@ -6,12 +6,16 @@ import {
   View,
   ActivityIndicator,
   Platform,
+  TextInput,
 } from "react-native";
 import { Pencil, Play, Pause, Mic } from "lucide-react-native";
 import type { AudioRecording } from "@/hooks/useAudioRecordings";
 import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 import { getRecordingBase64 } from "@/lib/audioStorage";
+import { storage } from "@/lib/storage";
 import { orpc } from "@/lib/orpc";
+
+const LOCAL_TITLES_KEY = "audio_local_titles";
 
 interface AudioCardProps {
   recording: AudioRecording;
@@ -32,9 +36,13 @@ export function AudioCard({ recording }: AudioCardProps) {
     AudioRecording["transcription"] | undefined
   >(undefined);
   const [transcribeError, setTranscribeError] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState("");
+  const [localTitle, setLocalTitle] = useState<string | undefined>();
 
   const isThisPlaying = isPlaying && currentUri === recording.fileUri;
   const transcription = localTranscription ?? recording.transcription;
+  const displayTitle = localTitle ?? recording.title;
 
   const playbackProgress =
     isThisPlaying && duration > 0 ? progress / duration : 0;
@@ -60,6 +68,42 @@ export function AudioCard({ recording }: AudioCardProps) {
       (transcription.text.length > 100 ? "..." : "")
     : null;
 
+  const handleEditStart = () => {
+    setEditedTitle(displayTitle);
+    setIsEditing(true);
+  };
+
+  const handleTitleSave = async () => {
+    setIsEditing(false);
+    const trimmed = editedTitle.trim();
+    if (!trimmed || trimmed === displayTitle) return;
+
+    setLocalTitle(trimmed);
+
+    if (transcription) {
+      // Recording has a transcription: update on server
+      try {
+        await orpc.transcriptions.updateTitle({
+          id: transcription.id,
+          title: trimmed,
+        });
+      } catch (err) {
+        console.error("Failed to update title:", err);
+        setLocalTitle(undefined); // revert on failure
+      }
+    } else {
+      // Un-transcribed: persist locally via storage
+      try {
+        const raw = await storage.getItem(LOCAL_TITLES_KEY);
+        const titles: Record<string, string> = raw ? JSON.parse(raw) : {};
+        titles[recording.fileName] = trimmed;
+        await storage.setItem(LOCAL_TITLES_KEY, JSON.stringify(titles));
+      } catch (err) {
+        console.error("Failed to save local title:", err);
+      }
+    }
+  };
+
   const handlePlayPause = async () => {
     if (isThisPlaying) {
       pause();
@@ -79,11 +123,13 @@ export function AudioCard({ recording }: AudioCardProps) {
       const base64 = await getRecordingBase64(fileArg);
       const mimeType = getMimeType(recording.fileName);
 
+      const currentTitle = localTitle ?? recording.title;
+
       const result = await orpc.transcriptions.transcribe({
         audioBase64: base64,
         mimeType,
         diarization: true,
-        title: recording.title,
+        title: currentTitle,
         localFileName: recording.fileName,
       });
 
@@ -92,6 +138,18 @@ export function AudioCard({ recording }: AudioCardProps) {
         text: result.text,
         language: result.language ?? null,
       });
+
+      // Clear local title override -- it is now stored server-side
+      try {
+        const raw = await storage.getItem(LOCAL_TITLES_KEY);
+        if (raw) {
+          const titles: Record<string, string> = JSON.parse(raw);
+          delete titles[recording.fileName];
+          await storage.setItem(LOCAL_TITLES_KEY, JSON.stringify(titles));
+        }
+      } catch {
+        // ignore cleanup errors
+      }
     } catch (err) {
       console.error("Transcription failed:", err);
       setTranscribeError(
@@ -106,12 +164,32 @@ export function AudioCard({ recording }: AudioCardProps) {
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.titleRow}>
-          <Text style={styles.title} numberOfLines={1}>
-            {recording.title}
-          </Text>
-          <TouchableOpacity style={styles.editButton} activeOpacity={0.7}>
-            <Pencil size={14} color="#999" />
-          </TouchableOpacity>
+          {isEditing ? (
+            <TextInput
+              style={styles.titleInput}
+              value={editedTitle}
+              onChangeText={setEditedTitle}
+              onBlur={handleTitleSave}
+              onSubmitEditing={handleTitleSave}
+              autoFocus
+              selectTextOnFocus
+              returnKeyType="done"
+              maxLength={500}
+            />
+          ) : (
+            <>
+              <Text style={styles.title} numberOfLines={1}>
+                {displayTitle}
+              </Text>
+              <TouchableOpacity
+                style={styles.editButton}
+                activeOpacity={0.7}
+                onPress={handleEditStart}
+              >
+                <Pencil size={14} color="#999" />
+              </TouchableOpacity>
+            </>
+          )}
         </View>
         <View style={styles.metaRow}>
           <Text style={styles.metaText}>
@@ -238,6 +316,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#1a1a1a",
     flex: 1,
+  },
+  titleInput: {
+    flex: 1,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    borderBottomWidth: 1,
+    borderBottomColor: "#007AFF",
+    paddingVertical: 2,
+    paddingHorizontal: 0,
   },
   editButton: {
     padding: 4,

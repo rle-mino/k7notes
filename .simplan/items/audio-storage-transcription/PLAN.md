@@ -214,19 +214,33 @@ The codebase already has a full audio recording + transcription pipeline:
   - QA testing: Skipped (manual step).
 - **Review**: Approved - All four Phase 5 requirements fully implemented: (1) Native playback hook uses expo-audio singleton AudioPlayer with lazy init, useAudioPlayerStatus for reactive state, setAudioModeAsync for iOS silent mode, and module-level activeUri tracking. (2) Web playback hook uses singleton HTMLAudioElement with proper event listener setup/cleanup, requestAnimationFrame loop for smooth progress updates, and isFinite guard on duration. (3) AudioCard correctly wires play/pause toggle via isThisPlaying check (isPlaying AND currentUri match), flex-based progress bar with formatTime display, and transcription trigger with platform-aware base64 retrieval (fileName on web for IndexedDB, fileUri on native), loading spinner with disabled state, error display, and immediate local state update on success. (4) Single-active-player constraint enforced by singleton pattern in both hooks -- calling play(uri) replaces source on shared instance, stopping any previous playback. Both hooks export identical interfaces for cross-platform compatibility. Type check passes (mobile 0 errors), lint passes (all 3 files clean), mobile tests pass (58/58). API/E2E failures are pre-existing infrastructure issues (missing tsconfig, third-party type errors) not caused by this phase.
 
-### ⬜ Phase 6: Title editing and polish
+### ✅ Phase 6: Title editing and polish
 - **Step**: 6
 - **Complexity**: 2
-- [ ] Add inline title editing to `AudioCard.tsx`:
+- [x] Add inline title editing to `AudioCard.tsx`:
   - Tap pencil icon → title becomes editable TextInput
   - On blur or submit → call `orpc.transcriptions.updateTitle()`
   - For un-transcribed recordings, store title locally (update when transcribed)
-- [ ] Add pull-to-refresh for the Audio folder contents
-- [ ] Handle edge cases: empty state (no recordings), error states, loading states
-- [ ] Ensure the "Audio" folder shows correct recording count badge
+- [x] Add pull-to-refresh for the Audio folder contents
+- [x] Handle edge cases: empty state (no recordings), error states, loading states
+- [x] Ensure the "Audio" folder shows correct recording count badge
 - **Files**: `packages/mobile/src/components/audio/AudioCard.tsx`, `packages/mobile/src/hooks/useAudioRecordings.ts`
 - **Commit message**: `feat: add title editing and polish audio recordings UI`
 - **Bisect note**: N/A
+- **Implementation notes**:
+  - **AudioCard.tsx**: Added inline title editing with `isEditing`, `editedTitle`, and `localTitle` state. Tapping pencil icon enters editing mode, replacing the Text with a TextInput (autoFocus, selectTextOnFocus). On blur or submit: if recording has a transcription, calls `orpc.transcriptions.updateTitle()` with optimistic local update and revert on failure; if un-transcribed, persists title to AsyncStorage under `audio_local_titles` key. `displayTitle` derived as `localTitle ?? recording.title` for immediate visual feedback. Updated `handleTranscribe` to use `localTitle ?? recording.title` as the title sent to the transcription API. After successful transcription, clears the local title override from AsyncStorage since it is now stored server-side.
+  - **useAudioRecordings.ts**: Added `storage` import and `loadLocalTitles()` helper that reads the `audio_local_titles` key from AsyncStorage, returning a `Record<string, string>` of fileName-to-title overrides. Local titles are fetched in parallel with local files and transcription metadata during `fetchRecordings()`. Title merge priority: transcription title (server, authoritative) > local title override (for un-transcribed) > generated default ("Recording YYYY-MM-DD HH:MM").
+  - **Pull-to-refresh**: Already functional from Phase 4 -- the FlatList in `notes/index.tsx` has a `RefreshControl` that calls `refresh()` on `useTreeData`, which in turn calls `refreshAudio()` from `useAudioRecordings`. The hook's `fetchRecordings` re-fetches both local files and transcription metadata. No additional changes needed.
+  - **Deviation**: Modified `useTreeData.ts` and `TreeItem.tsx` (not in the plan's file list) to implement the count badge and edge case states. These are minor additive changes required by the plan's tasks:
+    - `useTreeData.ts`: Added `audio-status` to `TreeItemType` union. Added optional `badge?: number` to `TreeNode`. Destructured `loading: audioLoading` and `error: audioError` from `useAudioRecordings`. Audio folder node now sets `badge: audioCount > 0 ? audioCount : undefined` and `isLoading: audioLoading`. When audio folder is expanded: injects `audio-status` type nodes for loading ("Loading recordings..."), error (displays error message), or empty ("No recordings yet") states. Added `audioLoading` and `audioError` to `buildFlatTree` dependency array.
+    - `TreeItem.tsx`: Added rendering for `audio-status` type (italic text with optional ActivityIndicator for loading state). Added count badge rendering on audio-folder: orange (#FF6B35) pill with white text count, displayed after folder name when `item.badge > 0`. Added loading spinner to audio-folder expand icon when `item.isLoading`. Added styles: `badge`, `badgeText`, `audioStatusContainer`, `audioStatusIndicator`, `audioStatusText`.
+- **Validation results**:
+  - Type check (`pnpm type-check`): PASSED -- all 6 tasks successful, 0 errors.
+  - Lint (`pnpm lint`): Mobile, contracts, and e2e PASSED. API has 1 pre-existing lint error in `mock-calendar.provider.ts:142` (unused `code` variable) -- not caused by this phase.
+  - Tests (`pnpm turbo test --filter=@k7notes/mobile`): PASSED -- 58/58 tests passing (16 audioStorage.web + 14 audioStorage + 28 useTreeData). All existing tests pass unchanged. API tests cannot run -- require Docker (testcontainers) which is not available in this environment. Pre-existing infrastructure constraint.
+  - E2E tests: Skipped (requires running server and database -- pre-existing infrastructure constraint).
+  - QA testing: Skipped (manual step).
+- **Review**: Approved - All four Phase 6 requirements are fully and correctly implemented. (1) Inline title editing: pencil icon tap triggers handleEditStart which populates editedTitle state and swaps Text for TextInput with autoFocus/selectTextOnFocus. On blur/submit, handleTitleSave either calls orpc.transcriptions.updateTitle() for transcribed recordings (with optimistic update and revert on failure) or persists to AsyncStorage under "audio_local_titles" key for un-transcribed ones. displayTitle properly derives from localTitle falling back to recording.title. (2) Pull-to-refresh: already wired from Phase 4 via useTreeData.refresh() calling refreshAudio(), confirmed working -- no additional changes needed. (3) Edge cases: useTreeData now injects audio-status nodes when expanded -- "Loading recordings..." with spinner during audioLoading, error message text when audioError is set, "No recordings yet" when audioCount === 0. TreeItem renders these with italic text and optional ActivityIndicator. hasChildren correctly includes audioLoading to show expand chevron during load. (4) Recording count badge: TreeNode.badge is set to audioCount when > 0, rendered in TreeItem as an orange (#FF6B35) pill with white text after the folder name. Deviation to modify useTreeData.ts and TreeItem.tsx (not in plan's file list) was necessary and appropriate for the badge and edge-case requirements. Local title storage uses the same LOCAL_TITLES_KEY constant in both AudioCard and useAudioRecordings for consistency. Title merge priority (server > local > default) in useAudioRecordings is correct. After transcription succeeds, local title override is cleaned up from AsyncStorage. Type check passes (6/6 tasks, 0 errors). Lint passes for mobile/contracts/e2e (API failure is pre-existing). Mobile tests pass (58/58). E2E tests cannot run (no database).
 
 ### ⬜ Phase 7: Update E2E tests
 - **Step**: 7
@@ -249,5 +263,5 @@ The codebase already has a full audio recording + transcription pipeline:
 | ✅ | Completed |
 
 ## Current Status
-- **Current Phase**: Phase 6
-- **Progress**: 5/7
+- **Current Phase**: Phase 7
+- **Progress**: 6/7
