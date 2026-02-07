@@ -6,6 +6,9 @@ import {
   ListProvidersResponseSchema,
   LinkToNoteRequestSchema,
   LinkToNoteResponseSchema,
+  ListTranscriptionsResponseSchema,
+  UpdateTranscriptionTitleRequestSchema,
+  UpdateTranscriptionTitleResponseSchema,
 } from "../schemas/transcription";
 
 export const transcriptionsContract = {
@@ -26,6 +29,22 @@ export const transcriptionsContract = {
     .route({ method: "POST", path: "/api/transcriptions/link-note" })
     .input(LinkToNoteRequestSchema)
     .output(LinkToNoteResponseSchema),
+
+  /**
+   * List all transcriptions for the authenticated user
+   */
+  list: oc
+    .route({ method: "GET", path: "/api/transcriptions" })
+    .input(z.object({}))
+    .output(ListTranscriptionsResponseSchema),
+
+  /**
+   * Update the title of a transcription
+   */
+  updateTitle: oc
+    .route({ method: "PUT", path: "/api/transcriptions/{id}/title" })
+    .input(UpdateTranscriptionTitleRequestSchema)
+    .output(UpdateTranscriptionTitleResponseSchema),
 
   /**
    * List available transcription providers

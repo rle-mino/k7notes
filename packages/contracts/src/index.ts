@@ -87,6 +87,10 @@ export {
   ListProvidersResponseSchema,
   LinkToNoteRequestSchema,
   LinkToNoteResponseSchema,
+  TranscriptionListItemSchema,
+  ListTranscriptionsResponseSchema,
+  UpdateTranscriptionTitleRequestSchema,
+  UpdateTranscriptionTitleResponseSchema,
 } from "./schemas/transcription";
 export type {
   TranscriptionProviderType,
@@ -99,4 +103,8 @@ export type {
   ListProvidersResponse,
   LinkToNoteRequest,
   LinkToNoteResponse,
+  TranscriptionListItem,
+  ListTranscriptionsResponse,
+  UpdateTranscriptionTitleRequest,
+  UpdateTranscriptionTitleResponse,
 } from "./schemas/transcription";
