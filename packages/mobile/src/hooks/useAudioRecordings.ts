@@ -1,6 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { listRecordings, type SavedRecording } from "@/lib/audioStorage";
 import { orpc } from "@/lib/orpc";
+import { storage } from "@/lib/storage";
+
+const LOCAL_TITLES_KEY = "audio_local_titles";
+
+/** Load locally-persisted title overrides for un-transcribed recordings. */
+async function loadLocalTitles(): Promise<Record<string, string>> {
+  try {
+    const raw = await storage.getItem(LOCAL_TITLES_KEY);
+    if (raw) {
+      return JSON.parse(raw) as Record<string, string>;
+    }
+  } catch {
+    // ignore parse errors
+  }
+  return {};
+}
 
 /** Unified audio recording with optional transcription data */
 export interface AudioRecording {
@@ -31,13 +47,14 @@ export function useAudioRecordings() {
     try {
       setError(null);
 
-      // Fetch local files and transcription metadata in parallel
-      const [localFiles, transcriptions] = await Promise.all([
+      // Fetch local files, transcription metadata, and local title overrides in parallel
+      const [localFiles, transcriptions, localTitles] = await Promise.all([
         listRecordings(),
         orpc.transcriptions.list({}).catch((err: unknown) => {
           console.warn("Failed to fetch transcriptions:", err);
           return [] as Awaited<ReturnType<typeof orpc.transcriptions.list>>;
         }),
+        loadLocalTitles(),
       ]);
 
       // Index transcriptions by localFileName for fast lookup
@@ -58,6 +75,7 @@ export function useAudioRecordings() {
 
           const title =
             transcription?.title ??
+            localTitles[file.fileName] ??
             formatDefaultTitle(file.createdAt);
 
           const result: AudioRecording = {

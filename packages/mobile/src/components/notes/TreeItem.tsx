@@ -74,7 +74,9 @@ export function TreeItem({
         activeOpacity={0.7}
       >
         <View style={styles.expandIcon}>
-          {item.hasChildren ? (
+          {item.isLoading ? (
+            <ActivityIndicator size="small" color="#666" />
+          ) : item.hasChildren ? (
             item.isExpanded ? (
               <ChevronDown size={18} color="#666" />
             ) : (
@@ -90,7 +92,28 @@ export function TreeItem({
         <Text style={styles.folderName} numberOfLines={1}>
           {item.name}
         </Text>
+        {item.badge != null && item.badge > 0 ? (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{item.badge}</Text>
+          </View>
+        ) : null}
       </TouchableOpacity>
+    );
+  }
+
+  // Audio status node (loading, empty, error states)
+  if (item.type === "audio-status") {
+    return (
+      <View style={[styles.container, styles.audioStatusContainer, indentStyle]}>
+        {item.isLoading ? (
+          <ActivityIndicator
+            size="small"
+            color="#999"
+            style={styles.audioStatusIndicator}
+          />
+        ) : null}
+        <Text style={styles.audioStatusText}>{item.name}</Text>
+      </View>
     );
   }
 
@@ -185,6 +208,34 @@ const styles = StyleSheet.create({
   },
   audioFolderContainer: {
     backgroundColor: "#fff8f4",
+  },
+  badge: {
+    backgroundColor: "#FF6B35",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 6,
+    marginLeft: 8,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#fff",
+  },
+  audioStatusContainer: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingLeft: 60,
+  },
+  audioStatusIndicator: {
+    marginRight: 8,
+  },
+  audioStatusText: {
+    fontSize: 13,
+    color: "#999",
+    fontStyle: "italic",
   },
   noteContainer: {
     backgroundColor: "#fff",
