@@ -34,11 +34,13 @@ function createNote(overrides: Partial<Note> = {}): Note {
     userId: "user-1",
     title: "Test Note",
     content: "<p>content</p>",
+    kind: "REGULAR",
+    date: null,
     folderId: null,
     createdAt: "2025-01-01T00:00:00.000Z",
     updatedAt: "2025-01-01T00:00:00.000Z",
     ...overrides,
-  };
+  } as Note;
 }
 
 describe("useTreeData", () => {

@@ -6,6 +6,8 @@ import { notes } from "../db/schema.js";
 export interface CreateNoteDto {
   title: string;
   content?: string;
+  kind?: "REGULAR" | "DAILY";
+  date?: string | null;
   folderId?: string | null;
 }
 
@@ -20,6 +22,8 @@ export interface Note {
   userId: string;
   title: string;
   content: string;
+  kind: "REGULAR" | "DAILY";
+  date: string | null;
   folderId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -42,6 +46,8 @@ export class NotesService {
         userId,
         title: dto.title,
         content: dto.content ?? "",
+        kind: dto.kind ?? "REGULAR",
+        date: dto.date ?? null,
         folderId: dto.folderId ?? null,
       })
       .returning();
@@ -155,6 +161,8 @@ export class NotesService {
         user_id as "userId",
         title,
         content,
+        kind,
+        date,
         folder_id as "folderId",
         created_at as "createdAt",
         updated_at as "updatedAt",
@@ -182,6 +190,8 @@ export class NotesService {
         userId: row.userId as string,
         title: row.title as string,
         content: row.content as string,
+        kind: row.kind as "REGULAR" | "DAILY",
+        date: row.date as string | null,
         folderId: row.folderId as string | null,
         createdAt: new Date(row.createdAt as string),
         updatedAt: new Date(row.updatedAt as string),
