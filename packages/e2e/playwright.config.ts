@@ -71,13 +71,15 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev servers before starting the tests */
+  /* Run your local dev servers before starting the tests.
+   * Each command first kills any process on the target port to avoid EADDRINUSE,
+   * then starts the server. This makes e2e tests resilient to leftover processes
+   * from dev servers or previous failed test runs. */
   webServer: [
     {
-      command: "pnpm turbo dev --filter=@k7notes/api",
+      command:
+        "lsof -ti :4000 | xargs kill -9 2>/dev/null || true; pnpm turbo dev --filter=@k7notes/api",
       url: "http://localhost:4000/health",
-      // Never reuse existing servers - we need to ensure the test database is used
-      // If you have dev servers running, stop them before running e2e tests
       reuseExistingServer: false,
       env: {
         DATABASE_URL: testDatabaseUrl,
@@ -85,7 +87,8 @@ export default defineConfig({
       timeout: 120000, // 2 minutes for server startup
     },
     {
-      command: "pnpm turbo start --filter=@k7notes/mobile -- --web",
+      command:
+        "lsof -ti :4001 | xargs kill -9 2>/dev/null || true; pnpm turbo start --filter=@k7notes/mobile -- --web",
       url: "http://localhost:4001",
       reuseExistingServer: false,
       timeout: 120000,

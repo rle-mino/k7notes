@@ -1,32 +1,42 @@
 import { execSync } from "child_process";
 
 /**
+ * Kill processes on a given port, trying graceful SIGTERM first then SIGKILL.
+ */
+function killPort(port: number) {
+  try {
+    const pids = execSync(`lsof -ti :${port} 2>/dev/null || true`, {
+      encoding: "utf-8",
+    }).trim();
+
+    if (!pids) return;
+
+    console.log(`  Killing processes on port ${port} (PIDs: ${pids})`);
+
+    // Graceful shutdown first
+    execSync(`echo "${pids}" | xargs kill 2>/dev/null || true`, {
+      stdio: "ignore",
+    });
+
+    // Wait briefly then force kill any survivors
+    execSync("sleep 1", { stdio: "ignore" });
+    execSync(`echo "${pids}" | xargs kill -9 2>/dev/null || true`, {
+      stdio: "ignore",
+    });
+  } catch {
+    // Ignore - processes may already be gone
+  }
+}
+
+/**
  * Global teardown for Playwright tests.
  * Ensures all test servers are stopped after tests complete.
  */
 async function globalTeardown() {
   console.log("Cleaning up test servers...");
-
-  try {
-    // Kill any processes on port 4000 (API)
-    if (process.platform === "win32") {
-      execSync('for /f "tokens=5" %a in (\'netstat -aon ^| findstr :4000\') do taskkill /F /PID %a', { stdio: "ignore" });
-    } else {
-      execSync("lsof -ti :4000 | xargs kill -9 2>/dev/null || true", { stdio: "ignore" });
-    }
-
-    // Kill any processes on port 4001 (Web)
-    if (process.platform === "win32") {
-      execSync('for /f "tokens=5" %a in (\'netstat -aon ^| findstr :4001\') do taskkill /F /PID %a', { stdio: "ignore" });
-    } else {
-      execSync("lsof -ti :4001 | xargs kill -9 2>/dev/null || true", { stdio: "ignore" });
-    }
-
-    console.log("Test servers cleaned up.");
-  } catch {
-    // Ignore errors - servers may already be stopped
-    console.log("Server cleanup completed (some processes may have already exited).");
-  }
+  killPort(4000);
+  killPort(4001);
+  console.log("Test servers cleaned up.");
 }
 
 export default globalTeardown;

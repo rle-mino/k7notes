@@ -17,16 +17,43 @@ cd "$REPO_ROOT"
 # Track if we started postgres (so we know whether to clean up)
 POSTGRES_STARTED=0
 
-# Cleanup function - stops containers if we started them
+# --- Helper functions ---
+
+# Kill any processes listening on the given ports
+kill_ports() {
+    for port in "$@"; do
+        pids=$(lsof -ti :"$port" 2>/dev/null || true)
+        if [ -n "$pids" ]; then
+            echo "    Killing processes on port $port (PIDs: $pids)"
+            echo "$pids" | xargs kill -9 2>/dev/null || true
+        fi
+    done
+}
+
+# Cleanup function - stops containers and frees ports
 cleanup() {
+    echo "==> Cleaning up..."
+    kill_ports 4000 4001
     if [ "$POSTGRES_STARTED" -eq 1 ]; then
-        echo "==> Cleaning up: stopping Docker containers..."
+        echo "    Stopping Docker containers..."
         docker compose -f packages/stack-k7/docker-compose.yml down --timeout 5 2>/dev/null || true
     fi
 }
 
 # Set trap to cleanup on exit (success or failure)
 trap cleanup EXIT
+
+# --- Pre-flight checks ---
+
+# Check Docker is running
+if ! docker info > /dev/null 2>&1; then
+    echo "==> ERROR: Docker is not running. Start Docker Desktop and try again."
+    exit 1
+fi
+
+# Free ports before we start anything (leftover from dev or previous failed runs)
+echo "==> Freeing ports 4000, 4001 if occupied..."
+kill_ports 4000 4001
 
 # Step 1: Start PostgreSQL container
 echo "==> Starting PostgreSQL container..."
@@ -59,7 +86,9 @@ pnpm lint-staged
 echo "==> Running unit & integration tests..."
 pnpm turbo test
 
-# Step 5: Run E2E tests
+# Step 5: Run E2E tests (kill ports again in case unit tests started servers)
+echo "==> Freeing ports before E2E tests..."
+kill_ports 4000 4001
 echo "==> Running E2E tests..."
 pnpm turbo test:e2e
 
