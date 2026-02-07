@@ -480,6 +480,223 @@ describe("FoldersService", () => {
   });
 
   // ---------------------------------------------------------------------------
+  // findByName
+  // ---------------------------------------------------------------------------
+  describe("findByName", () => {
+    it("should find a root folder by name", async () => {
+      await createTestFolder(db, userA.id, { name: "Daily" });
+
+      const found = await service.findByName(userA.id, "Daily", null);
+
+      expect(found).not.toBeNull();
+      expect(found!.name).toBe("Daily");
+      expect(found!.parentId).toBeNull();
+    });
+
+    it("should find a child folder by name within a parent", async () => {
+      const parent = await createTestFolder(db, userA.id, { name: "Daily" });
+      await createTestFolder(db, userA.id, {
+        name: "2026",
+        parentId: parent.id,
+      });
+
+      const found = await service.findByName(userA.id, "2026", parent.id);
+
+      expect(found).not.toBeNull();
+      expect(found!.name).toBe("2026");
+      expect(found!.parentId).toBe(parent.id);
+    });
+
+    it("should return null when folder does not exist", async () => {
+      const found = await service.findByName(userA.id, "NonExistent", null);
+
+      expect(found).toBeNull();
+    });
+
+    it("should return null when folder exists but belongs to another user", async () => {
+      await createTestFolder(db, userB.id, { name: "Secret" });
+
+      const found = await service.findByName(userA.id, "Secret", null);
+
+      expect(found).toBeNull();
+    });
+
+    it("should distinguish between folders with the same name in different parents", async () => {
+      const parentA = await createTestFolder(db, userA.id, { name: "A" });
+      const parentB = await createTestFolder(db, userA.id, { name: "B" });
+      await createTestFolder(db, userA.id, {
+        name: "Same",
+        parentId: parentA.id,
+      });
+      await createTestFolder(db, userA.id, {
+        name: "Same",
+        parentId: parentB.id,
+      });
+
+      const foundInA = await service.findByName(userA.id, "Same", parentA.id);
+      const foundInB = await service.findByName(userA.id, "Same", parentB.id);
+
+      expect(foundInA).not.toBeNull();
+      expect(foundInB).not.toBeNull();
+      expect(foundInA!.parentId).toBe(parentA.id);
+      expect(foundInB!.parentId).toBe(parentB.id);
+      expect(foundInA!.id).not.toBe(foundInB!.id);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
+  // findOrCreatePath
+  // ---------------------------------------------------------------------------
+  describe("findOrCreatePath", () => {
+    it("should create a single-level path when nothing exists", async () => {
+      const leaf = await service.findOrCreatePath(userA.id, ["Daily"]);
+
+      expect(leaf.name).toBe("Daily");
+      expect(leaf.parentId).toBeNull();
+    });
+
+    it("should create a multi-level path when nothing exists", async () => {
+      const leaf = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "01",
+        "15",
+      ]);
+
+      expect(leaf.name).toBe("15");
+
+      // Verify the full hierarchy was created
+      const path = await service.getPath(userA.id, leaf.id);
+      expect(path).toHaveLength(4);
+      expect(path.map((p) => p.name)).toEqual(["Daily", "2026", "01", "15"]);
+    });
+
+    it("should reuse existing folders and only create missing ones", async () => {
+      // Pre-create the first two levels
+      const daily = await createTestFolder(db, userA.id, { name: "Daily" });
+      const year = await createTestFolder(db, userA.id, {
+        name: "2026",
+        parentId: daily.id,
+      });
+
+      const leaf = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "01",
+        "15",
+      ]);
+
+      expect(leaf.name).toBe("15");
+
+      // Verify the pre-existing folders were reused
+      const path = await service.getPath(userA.id, leaf.id);
+      expect(path).toHaveLength(4);
+      expect(path[0]!.id).toBe(daily.id);
+      expect(path[1]!.id).toBe(year.id);
+    });
+
+    it("should return the existing leaf when the full path already exists", async () => {
+      const daily = await createTestFolder(db, userA.id, { name: "Daily" });
+      const year = await createTestFolder(db, userA.id, {
+        name: "2026",
+        parentId: daily.id,
+      });
+      const month = await createTestFolder(db, userA.id, {
+        name: "01",
+        parentId: year.id,
+      });
+      const day = await createTestFolder(db, userA.id, {
+        name: "15",
+        parentId: month.id,
+      });
+
+      const leaf = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "01",
+        "15",
+      ]);
+
+      expect(leaf.id).toBe(day.id);
+
+      // Verify no extra folders were created
+      const allFolders = await service.findAll(userA.id);
+      expect(allFolders).toHaveLength(4);
+    });
+
+    it("should throw an error for an empty path", async () => {
+      await expect(
+        service.findOrCreatePath(userA.id, []),
+      ).rejects.toThrow("Path must not be empty");
+    });
+
+    it("should not interfere with another user's folders", async () => {
+      // User B has a Daily folder
+      await createTestFolder(db, userB.id, { name: "Daily" });
+
+      // User A creates the same path - should create its own
+      const leaf = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+      ]);
+
+      expect(leaf.name).toBe("2026");
+      expect(leaf.userId).toBe(userA.id);
+
+      // User B should still have only one folder
+      const userBFolders = await service.findAll(userB.id);
+      expect(userBFolders).toHaveLength(1);
+    });
+
+    it("should handle calling findOrCreatePath twice with the same path idempotently", async () => {
+      const first = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "02",
+      ]);
+      const second = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "02",
+      ]);
+
+      expect(first.id).toBe(second.id);
+
+      // Verify no duplicate folders were created
+      const allFolders = await service.findAll(userA.id);
+      expect(allFolders).toHaveLength(3);
+    });
+
+    it("should handle branching paths correctly", async () => {
+      // Create Daily/2026/01
+      const jan = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "01",
+      ]);
+      // Create Daily/2026/02 (shares Daily and 2026 folders)
+      const feb = await service.findOrCreatePath(userA.id, [
+        "Daily",
+        "2026",
+        "02",
+      ]);
+
+      expect(jan.name).toBe("01");
+      expect(feb.name).toBe("02");
+      expect(jan.id).not.toBe(feb.id);
+
+      // Verify the shared parent (2026) is the same
+      const janPath = await service.getPath(userA.id, jan.id);
+      const febPath = await service.getPath(userA.id, feb.id);
+      expect(janPath[1]!.id).toBe(febPath[1]!.id); // same "2026" folder
+
+      // Total folders: Daily, 2026, 01, 02 = 4
+      const allFolders = await service.findAll(userA.id);
+      expect(allFolders).toHaveLength(4);
+    });
+  });
+
+  // ---------------------------------------------------------------------------
   // User isolation
   // ---------------------------------------------------------------------------
   describe("user isolation", () => {

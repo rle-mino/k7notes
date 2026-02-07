@@ -27,6 +27,8 @@ export interface Note {
   userId: string;
   title: string;
   content: string;
+  kind: "REGULAR" | "DAILY";
+  date: string | null;
   folderId: string | null;
   createdAt: Date;
   updatedAt: Date;
@@ -199,6 +201,67 @@ export class FoldersService {
     }
 
     return path;
+  }
+
+  /**
+   * Finds a folder by name within a specific parent (or at root level if parentId is null).
+   * Returns the folder if found, or null if not.
+   */
+  async findByName(
+    userId: string,
+    name: string,
+    parentId: string | null,
+  ): Promise<Folder | null> {
+    const condition =
+      parentId === null
+        ? and(
+            eq(folders.userId, userId),
+            eq(folders.name, name),
+            isNull(folders.parentId),
+          )
+        : and(
+            eq(folders.userId, userId),
+            eq(folders.name, name),
+            eq(folders.parentId, parentId),
+          );
+
+    const [folder] = await this.db
+      .select()
+      .from(folders)
+      .where(condition)
+      .limit(1);
+
+    return folder ?? null;
+  }
+
+  /**
+   * Walks a folder path (e.g. ["Daily", "2026", "01", "15"]) and creates any
+   * missing folders along the way. Returns the leaf (deepest) folder.
+   *
+   * The first element is expected at the root level (parentId = null).
+   */
+  async findOrCreatePath(userId: string, path: string[]): Promise<Folder> {
+    if (path.length === 0) {
+      throw new Error("Path must not be empty");
+    }
+
+    let parentId: string | null = null;
+    let current: Folder | null = null;
+
+    for (const segment of path) {
+      const existing = await this.findByName(userId, segment, parentId);
+
+      if (existing) {
+        current = existing;
+      } else {
+        current = await this.create(userId, { name: segment, parentId });
+      }
+
+      parentId = current.id;
+    }
+
+    // current is guaranteed non-null because path.length > 0
+    return current!;
   }
 
   async createDefaultFolders(userId: string): Promise<Folder[]> {
