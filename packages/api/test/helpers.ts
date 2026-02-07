@@ -76,6 +76,7 @@ export async function cleanupDb(db: Database) {
   await db.execute(sql`TRUNCATE TABLE
     calendar_connections,
     transcriptions,
+    user_preferences,
     notes,
     folders,
     session,
